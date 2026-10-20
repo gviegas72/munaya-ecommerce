@@ -46,6 +46,8 @@ export async function POST(req: NextRequest) {
         .join("; ");
     }
 
+    const itemStatuses: Array<{ status: number; location: string | null }> = [];
+
     // 1. Adicionar cada item sequencialmente na sessão da Nuvemshop
     for (const item of items) {
       const productId = String(item.nuvemshopId || item.productId || "375454425");
@@ -78,6 +80,7 @@ export async function POST(req: NextRequest) {
         redirect: "manual",
       });
 
+      itemStatuses.push({ status: res.status, location: res.headers.get("location") });
       updateCookies(res);
     }
 
@@ -115,11 +118,11 @@ export async function POST(req: NextRequest) {
       bodySnippet = (await chkRes.text()).substring(0, 400);
     } catch {}
 
-    // Caso o checkout direto não tenha retornado 302 com /checkout/, retorna o carrinho padrão
     return NextResponse.json({
       success: true,
       checkoutUrl: location || `${STORE_URL}/comprar/`,
       debug: {
+        itemStatuses,
         location,
         chkStatus: chkRes.status,
         cookiesPresent: Boolean(finalCookie),
