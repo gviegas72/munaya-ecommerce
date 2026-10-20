@@ -800,6 +800,12 @@ const PRODUCTS = {
     name: "Munaya Bonzo",
     price: 119,
     nuvemshopId: "375454425",
+    variants: {
+      P: "1622729750",
+      M: "1622729751",
+      G: "1622729752",
+      GG: "1622729753",
+    },
     images: [
       "/uploads/modelo_bonzo_01.jpg",
       "/uploads/01_BONZO_detalhe_01.jpg",
@@ -830,6 +836,12 @@ const PRODUCTS = {
     name: "Munaya Bonzo",
     price: 119,
     nuvemshopId: "375454425",
+    variants: {
+      P: "1622729750",
+      M: "1622729751",
+      G: "1622729752",
+      GG: "1622729753",
+    },
     images: [
       "/uploads/modelo_bonzo_01.jpg",
       "/uploads/01_BONZO_detalhe_01.jpg",
@@ -1579,6 +1591,13 @@ class Component extends DCLogic {
         if (!s.cart.length || s.ckProcessing) return;
         this.setState({ ckProcessing: true });
 
+        const BONZO_VARIANTS = {
+          P: "1622729750",
+          M: "1622729751",
+          G: "1622729752",
+          GG: "1622729753",
+        };
+
         // Agrupa todos os itens da sacola por produto e tamanho somando quantidades
         const groupedMap = {};
         s.cart.forEach((i) => {
@@ -1595,70 +1614,23 @@ class Component extends DCLogic {
         });
 
         const items = Object.values(groupedMap);
-        const targetName = items.length > 1 ? "munaya_checkout_window" : "_self";
 
-        // Se houver mais de 1 item, abre a aba sincronizada no clique direto do usuário
-        if (items.length > 1) {
-          try {
-            window.open("about:blank", targetName);
-          } catch (e) {}
-        }
-
-        const submitItem = (item) => {
-          const form = document.createElement("form");
-          form.method = "POST";
-          form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
-          form.target = targetName;
-          form.style.display = "none";
-
-          const addInput = document.createElement("input");
-          addInput.type = "hidden";
-          addInput.name = "add_to_cart";
-          addInput.value = String(item.nuvemshopId || "375454425");
-
-          const varInput = document.createElement("input");
-          varInput.type = "hidden";
-          varInput.name = "variation[0]";
-          varInput.value = item.size;
-
-          const qtyInput = document.createElement("input");
-          qtyInput.type = "hidden";
-          qtyInput.name = "quantity";
-          qtyInput.value = String(item.quantity || 1);
-
-          form.appendChild(addInput);
-          form.appendChild(varInput);
-          form.appendChild(qtyInput);
-          document.body.appendChild(form);
-          form.submit();
-          setTimeout(() => {
-            try { form.remove(); } catch (e) {}
-          }, 1000);
-        };
-
-        // Se for apenas 1 item/tamanho: submete diretamente na janela atual
-        if (items.length === 1) {
-          submitItem(items[0]);
-          return;
-        }
-
-        // Se houver múltiplos itens ou tamanhos diferentes (ex: Bonzo P + Bonzo G):
-        // Envia sequencialmente para a aba da Nuvemshop com intervalo de segurança para gravar cada variação
-        let delay = 0;
-        items.forEach((item, index) => {
-          setTimeout(() => {
-            submitItem(item);
-            if (index === items.length - 1) {
-              setTimeout(() => {
-                this.setState({ ckProcessing: false });
-              }, 1500);
-            }
-          }, delay);
-          delay += 1200; // 1.2 segundos para garantir o processamento de cada produto
+        // Monta os tokens nativos da Nuvemshop: {idVariante}-{quantidade}
+        const tokens = items.map((it) => {
+          const p = PRODUCTS[it.productId] || {};
+          const variantId =
+            (p.variants && p.variants[it.size]) ||
+            BONZO_VARIANTS[it.size] ||
+            it.nuvemshopId;
+          return `${variantId}-${it.quantity || 1}`;
         });
+
+        // Redireciona diretamente via link nativo oficial da Nuvemshop (suporta múltiplos itens separados por vírgula)
+        const cartUrl = `https://munayarocks.lojavirtualnuvem.com.br/cart-link/${tokens.join(",")}`;
+        window.location.href = cartUrl;
       },
       checkoutOpacity: s.cart.length === 0 || s.ckProcessing ? 0.4 : 1,
-      checkoutLabel: s.ckProcessing ? "Sincronizando sacola..." : "Fechar pedido",
+      checkoutLabel: s.ckProcessing ? "Abrindo sacola..." : "Fechar pedido",
 
       ckSteps: [
         { n: 1, label: "Entrega" },

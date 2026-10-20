@@ -49,63 +49,24 @@ export function CartDrawer() {
       setIsCheckingOut(true);
       setErrorMsg(null);
 
-      const targetName = items.length > 1 ? "munaya_checkout_window" : "_self";
-
-      if (items.length > 1) {
-        try {
-          window.open("about:blank", targetName);
-        } catch (e) {}
-      }
-
-      const submitItem = (item: (typeof items)[0]) => {
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
-        form.target = targetName;
-        form.style.display = "none";
-
-        const addInput = document.createElement("input");
-        addInput.type = "hidden";
-        addInput.name = "add_to_cart";
-        addInput.value = String(item.nuvemshopId || "375454425");
-
-        const varInput = document.createElement("input");
-        varInput.type = "hidden";
-        varInput.name = "variation[0]";
-        varInput.value = item.size;
-
-        const qtyInput = document.createElement("input");
-        qtyInput.type = "hidden";
-        qtyInput.name = "quantity";
-        qtyInput.value = String(item.quantity || 1);
-
-        form.appendChild(addInput);
-        form.appendChild(varInput);
-        form.appendChild(qtyInput);
-        document.body.appendChild(form);
-        form.submit();
-        setTimeout(() => {
-          try { form.remove(); } catch (e) {}
-        }, 1000);
+      const BONZO_VARIANTS: Record<string, string> = {
+        P: "1622729750",
+        M: "1622729751",
+        G: "1622729752",
+        GG: "1622729753",
       };
 
-      if (items.length === 1) {
-        submitItem(items[0]);
-        return;
-      }
-
-      let delay = 0;
-      items.forEach((item, index) => {
-        setTimeout(() => {
-          submitItem(item);
-          if (index === items.length - 1) {
-            setTimeout(() => {
-              setIsCheckingOut(false);
-            }, 1500);
-          }
-        }, delay);
-        delay += 1200;
+      const tokens = items.map((it) => {
+        const variantId =
+          (it as any).variantId ||
+          BONZO_VARIANTS[it.size] ||
+          it.nuvemshopId ||
+          "375454425";
+        return `${variantId}-${it.quantity || 1}`;
       });
+
+      const cartUrl = `https://munayarocks.lojavirtualnuvem.com.br/cart-link/${tokens.join(",")}`;
+      window.location.href = cartUrl;
     } catch (err) {
       console.error("Erro no checkout:", err);
       setErrorMsg("Erro ao iniciar finalização. Tente novamente.");
