@@ -4,7 +4,25 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X, Plus, Minus, Loader2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-import { CATALOG_VARIANTS } from "@/lib/nuvemshop";
+import { CATALOG_VARIANTS } from "@/lib/catalog-variants";
+
+const PRODUCT_ID_TO_KEY: Record<string, string> = {
+  "1": "bonzo",
+  "2": "dimebag",
+  "3": "ghost",
+  "4": "cathedral",
+  "5": "amplificador",
+  "6": "clutch",
+  "7": "soundgarden",
+  "8": "chico",
+  "9": "rolling",
+  "10": "spiritual",
+  "11": "lionheart",
+  "12": "suicidal",
+  "13": "3r",
+  "14": "monstermagnet",
+  "15": "coc",
+};
 
 export function CartDrawer() {
   const {
@@ -53,6 +71,15 @@ export function CartDrawer() {
       const tokens = items.map((it) => {
         let variantId = (it as any).variantId;
 
+        // 1. Tentar mapear pelo productId numérico
+        if (!variantId && it.productId) {
+          const key = PRODUCT_ID_TO_KEY[String(it.productId)];
+          if (key && CATALOG_VARIANTS[key]) {
+            variantId = CATALOG_VARIANTS[key][it.size];
+          }
+        }
+
+        // 2. Tentar mapear por correspondência de nome
         if (!variantId) {
           const itemKey = (it.name || "").toLowerCase();
           for (const [key, map] of Object.entries(CATALOG_VARIANTS)) {
@@ -63,11 +90,12 @@ export function CartDrawer() {
           }
         }
 
+        // 3. Fallback seguro
         if (!variantId) {
           variantId =
-            CATALOG_VARIANTS.bonzo[it.size] ||
+            (CATALOG_VARIANTS.bonzo && CATALOG_VARIANTS.bonzo[it.size]) ||
             it.nuvemshopId ||
-            "375454425";
+            "1622729750";
         }
 
         return `${variantId}-${it.quantity || 1}`;
