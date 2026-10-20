@@ -785,7 +785,7 @@
               <span style="font-size: 20px; font-weight: 700; opacity: .6;">Total</span>
               <span style="font-size: 40px; font-weight: 700;">{{ cartTotal }}</span>
             </div>
-            <button type="button" onClick="{{ checkout }}" disabled="{{ cartEmpty }}" style="width: 100%; border: none; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 30px; text-transform: uppercase; font-weight: 700; padding: 22px 0; cursor: pointer; opacity: {{ checkoutOpacity }};">Fechar pedido</button>
+            <button type="button" onClick="{{ checkout }}" disabled="{{ cartEmpty }}" style="width: 100%; border: none; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 30px; text-transform: uppercase; font-weight: 700; padding: 22px 0; cursor: pointer; opacity: {{ checkoutOpacity }};">{{ checkoutLabel }}</button>
           </div>
         </div>
       </div>
@@ -1576,7 +1576,8 @@ class Component extends DCLogic {
       cartOpen: s.cartOpen,
       toggleCart: () => this.setState((st) => ({ cartOpen: !st.cartOpen, checkedOut: false })),
       checkout: () => {
-        if (!s.cart.length) return;
+        if (!s.cart.length || s.ckProcessing) return;
+        this.setState({ ckProcessing: true });
 
         // Agrupa todos os itens da sacola por produto e tamanho somando quantidades
         const groupedMap = {};
@@ -1595,53 +1596,11 @@ class Component extends DCLogic {
 
         const items = Object.values(groupedMap);
 
-        // Se houver apenas 1 item/tamanho (mesmo com múltiplas unidades)
-        if (items.length === 1) {
-          const item = items[0];
+        const fallback = () => {
+          const item = items[0] || { nuvemshopId: "375454425", size: "M", quantity: 1 };
           const form = document.createElement("form");
           form.method = "POST";
           form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
-          form.style.display = "none";
-
-          const addInput = document.createElement("input");
-          addInput.type = "hidden";
-          addInput.name = "add_to_cart";
-          addInput.value = String(item.nuvemshopId || "375454425");
-
-          const varInput = document.createElement("input");
-          varInput.type = "hidden";
-          varInput.name = "variation[0]";
-          varInput.value = item.size;
-
-          const qtyInput = document.createElement("input");
-          qtyInput.type = "hidden";
-          qtyInput.name = "quantity";
-          qtyInput.value = String(item.quantity || 1);
-
-          form.appendChild(addInput);
-          form.appendChild(varInput);
-          form.appendChild(qtyInput);
-          document.body.appendChild(form);
-          form.submit();
-          return;
-        }
-
-        // Se houver múltiplos itens ou tamanhos diferentes (ex: 1 Bonzo P + 1 Bonzo G):
-        // Usa iframe oculto no navegador do usuário para enviar o primeiro item, e a janela principal para o último
-        let iframe = document.getElementById("nuvem_cart_sink");
-        if (!iframe) {
-          iframe = document.createElement("iframe");
-          iframe.id = "nuvem_cart_sink";
-          iframe.name = "nuvem_cart_sink";
-          iframe.style.display = "none";
-          document.body.appendChild(iframe);
-        }
-
-        const submitItem = (item, target) => {
-          const form = document.createElement("form");
-          form.method = "POST";
-          form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
-          form.target = target;
           form.style.display = "none";
 
           const addInput = document.createElement("input");
@@ -1666,23 +1625,25 @@ class Component extends DCLogic {
           form.submit();
         };
 
-        // Envia os primeiros itens para o iframe oculto
-        let delay = 0;
-        for (let i = 0; i < items.length - 1; i++) {
-          const it = items[i];
-          setTimeout(() => {
-            submitItem(it, "nuvem_cart_sink");
-          }, delay);
-          delay += 600;
-        }
-
-        // Envia o último item na janela principal para redirecionar o usuário com o carrinho completo
-        const lastItem = items[items.length - 1];
-        setTimeout(() => {
-          submitItem(lastItem, "_self");
-        }, delay + 300);
+        fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: items }),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data && data.checkoutUrl) {
+              window.location.href = data.checkoutUrl;
+            } else {
+              fallback();
+            }
+          })
+          .catch(() => {
+            fallback();
+          });
       },
-      checkoutOpacity: s.cart.length === 0 ? 0.4 : 1,
+      checkoutOpacity: s.cart.length === 0 || s.ckProcessing ? 0.4 : 1,
+      checkoutLabel: s.ckProcessing ? "Iniciando checkout..." : "Fechar pedido",
 
       ckSteps: [
         { n: 1, label: "Entrega" },

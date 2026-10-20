@@ -23,7 +23,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let cookieHeader = "";
+    const cookieMap: Record<string, string> = {};
+
+    function updateCookies(res: Response) {
+      let newCookies: string[] = [];
+      if (typeof res.headers.getSetCookie === "function") {
+        newCookies = res.headers.getSetCookie();
+      } else {
+        const raw = res.headers.get("set-cookie");
+        if (raw) newCookies = raw.split(/,(?=[^;]+;)/g);
+      }
+      for (const c of newCookies) {
+        const [pair] = c.split(";");
+        const [k, v] = pair.split("=");
+        if (k && v) cookieMap[k.trim()] = v.trim();
+      }
+    }
+
+    function getCookieHeader(): string {
+      return Object.entries(cookieMap)
+        .map(([k, v]) => `${k}=${v}`)
+        .join("; ");
+    }
 
     // 1. Adicionar cada item sequencialmente na sessão da Nuvemshop
     for (const item of items) {
@@ -45,8 +66,9 @@ export async function POST(req: NextRequest) {
         Referer: `${STORE_URL}/comprar/`,
       };
 
-      if (cookieHeader) {
-        headers["Cookie"] = cookieHeader;
+      const currentCookie = getCookieHeader();
+      if (currentCookie) {
+        headers["Cookie"] = currentCookie;
       }
 
       const res = await fetch(`${STORE_URL}/comprar/`, {
@@ -56,21 +78,7 @@ export async function POST(req: NextRequest) {
         redirect: "manual",
       });
 
-      // Atualizar cookies da sessão
-      let newCookies: string[] = [];
-      if (typeof res.headers.getSetCookie === "function") {
-        newCookies = res.headers.getSetCookie();
-      }
-      if (!newCookies || newCookies.length === 0) {
-        const raw = res.headers.get("set-cookie");
-        if (raw) {
-          newCookies = raw.split(/,(?=[^;]+;)/g);
-        }
-      }
-      if (newCookies.length > 0) {
-        const parsed = newCookies.map((c) => c.split(";")[0].trim()).filter(Boolean);
-        cookieHeader = parsed.join("; ");
-      }
+      updateCookies(res);
     }
 
     // 2. Submeter 'go_to_checkout' para obter a URL direta do Checkout Transparente da Nuvemshop
@@ -81,8 +89,9 @@ export async function POST(req: NextRequest) {
       Origin: STORE_URL,
       Referer: `${STORE_URL}/comprar/`,
     };
-    if (cookieHeader) {
-      checkoutHeaders["Cookie"] = cookieHeader;
+    const finalCookie = getCookieHeader();
+    if (finalCookie) {
+      checkoutHeaders["Cookie"] = finalCookie;
     }
 
     const chkRes = await fetch(`${STORE_URL}/comprar/`, {
@@ -113,7 +122,7 @@ export async function POST(req: NextRequest) {
       debug: {
         location,
         chkStatus: chkRes.status,
-        cookiesPresent: Boolean(cookieHeader),
+        cookiesPresent: Boolean(finalCookie),
         bodySnippet,
       },
     });
