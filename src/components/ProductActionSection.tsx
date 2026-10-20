@@ -26,12 +26,32 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
     setErrorMsg(null);
     setLoading(true);
 
-    const selectedVariant = product.variants?.find(
-      (v) => v.size.toUpperCase() === selectedSize.toUpperCase()
-    );
+    // Submete diretamente para o carrinho da Nuvemshop com o tamanho escolhido
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
+    form.style.display = "none";
 
-    // Redireciona diretamente para a página oficial do produto na Nuvemshop
-    window.location.href = product.checkoutUrl;
+    const addInput = document.createElement("input");
+    addInput.type = "hidden";
+    addInput.name = "add_to_cart";
+    addInput.value = "375454425";
+
+    const varInput = document.createElement("input");
+    varInput.type = "hidden";
+    varInput.name = "variation[0]";
+    varInput.value = selectedSize;
+
+    const qtyInput = document.createElement("input");
+    qtyInput.type = "hidden";
+    qtyInput.name = "quantity";
+    qtyInput.value = "1";
+
+    form.appendChild(addInput);
+    form.appendChild(varInput);
+    form.appendChild(qtyInput);
+    document.body.appendChild(form);
+    form.submit();
   };
 
   return (
