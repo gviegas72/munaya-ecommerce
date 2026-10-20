@@ -101,6 +101,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    let bodySnippet = "";
+    try {
+      bodySnippet = (await chkRes.text()).substring(0, 400);
+    } catch {}
+
     // Caso o checkout direto não tenha retornado 302 com /checkout/, retorna o carrinho padrão
     return NextResponse.json({
       success: true,
@@ -109,6 +114,7 @@ export async function POST(req: NextRequest) {
         location,
         chkStatus: chkRes.status,
         cookiesPresent: Boolean(cookieHeader),
+        bodySnippet,
       },
     });
   } catch (err: unknown) {
