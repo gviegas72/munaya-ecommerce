@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StoreProduct } from "@/lib/nuvemshop";
+import { useCart } from "@/context/CartContext";
 
 interface ProductActionSectionProps {
   product: StoreProduct;
@@ -9,8 +10,9 @@ interface ProductActionSectionProps {
 
 export function ProductActionSection({ product }: ProductActionSectionProps) {
   const [selectedSize, setSelectedSize] = useState<string>("M");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [addedFeedback, setAddedFeedback] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { addItem } = useCart();
 
   const availableSizes =
     product.variants?.length > 0
@@ -24,34 +26,23 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
     }
 
     setErrorMsg(null);
-    setLoading(true);
 
-    // Submete diretamente para o carrinho da Nuvemshop com o tamanho escolhido
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
-    form.style.display = "none";
+    // Adiciona o produto na sacola headless e abre a gaveta lateral
+    addItem({
+      productId: product.id,
+      nuvemshopId: String(product.nuvemshopId || product.id || "375454425"),
+      name: product.name,
+      price: product.rawPrice || 119,
+      size: selectedSize,
+      image: product.image,
+      checkoutUrl: product.checkoutUrl,
+      quantity: 1,
+    });
 
-    const addInput = document.createElement("input");
-    addInput.type = "hidden";
-    addInput.name = "add_to_cart";
-    addInput.value = "375454425";
-
-    const varInput = document.createElement("input");
-    varInput.type = "hidden";
-    varInput.name = "variation[0]";
-    varInput.value = selectedSize;
-
-    const qtyInput = document.createElement("input");
-    qtyInput.type = "hidden";
-    qtyInput.name = "quantity";
-    qtyInput.value = "1";
-
-    form.appendChild(addInput);
-    form.appendChild(varInput);
-    form.appendChild(qtyInput);
-    document.body.appendChild(form);
-    form.submit();
+    setAddedFeedback(true);
+    setTimeout(() => {
+      setAddedFeedback(false);
+    }, 2000);
   };
 
   return (
@@ -107,10 +98,13 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
         <button
           type="button"
           onClick={handleAddToPit}
-          disabled={loading}
-          className="w-full bg-foreground text-background font-oswald text-3xl md:text-4xl uppercase font-black py-6 md:py-8 transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+          className={`w-full font-oswald text-3xl md:text-4xl uppercase font-black py-6 md:py-8 transition-all ${
+            addedFeedback
+              ? "bg-[#ff66c4] text-black scale-[1.02]"
+              : "bg-foreground text-background hover:scale-[1.02] active:scale-95"
+          }`}
         >
-          {loading ? "Indo para o Pit..." : "Add to Pit"}
+          {addedFeedback ? "No Pit! 🤘" : "Add to Pit"}
         </button>
       </div>
     </div>

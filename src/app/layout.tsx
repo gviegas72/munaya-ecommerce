@@ -3,6 +3,8 @@ import { Oswald, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Navbar } from "@/components/Navbar";
+import { CartProvider } from "@/context/CartContext";
+import { CartDrawer } from "@/components/CartDrawer";
 
 const oswald = Oswald({
   variable: "--font-oswald",
@@ -32,10 +34,13 @@ export default function RootLayout({
     >
       <body className="font-sans min-h-screen flex flex-col md:flex-row bg-background text-foreground transition-colors duration-300">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <Navbar />
-          <main className="flex-1 w-full md:ml-[max(15%,200px)] relative">
-            {children}
-          </main>
+          <CartProvider>
+            <Navbar />
+            <main className="flex-1 w-full md:ml-[max(15%,200px)] relative">
+              {children}
+            </main>
+            <CartDrawer />
+          </CartProvider>
         </ThemeProvider>
       </body>
     </html>

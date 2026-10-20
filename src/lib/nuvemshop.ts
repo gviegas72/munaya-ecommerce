@@ -46,6 +46,7 @@ export interface NuvemshopProduct {
 
 export interface StoreProduct {
   id: number | string;
+  nuvemshopId?: string | number;
   name: string;
   price: string;
   rawPrice: number;
@@ -75,6 +76,7 @@ const ACCESS_TOKEN = process.env.NUVEMSHOP_ACCESS_TOKEN;
 export const LOCAL_FALLBACK_PRODUCTS: StoreProduct[] = [
   {
     id: 1,
+    nuvemshopId: "375454425",
     name: "Munaya Bonzo",
     price: "R$ 119",
     rawPrice: 119.0,
@@ -206,6 +208,7 @@ export async function getStoreProducts(): Promise<StoreProduct[]> {
 
       return {
         id: p.id,
+        nuvemshopId: p.id,
         name: p.name?.pt || "Camiseta Munaya",
         price: formattedPrice,
         rawPrice: firstPrice,

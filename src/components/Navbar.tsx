@@ -5,10 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, ShoppingBag } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { useCart } from "@/context/CartContext";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { openCart, totalCount } = useCart();
 
   const navLinks = [
     { href: "/categoria", label: "Shop" },
@@ -50,13 +52,19 @@ export function Navbar() {
 
         {/* Ações: Sacola e Hambúrguer */}
         <div className="flex items-center gap-3">
-          <Link
-            href="/categoria"
+          <button
+            type="button"
+            onClick={openCart}
             className="relative w-11 h-11 border border-foreground flex items-center justify-center hover:bg-foreground hover:text-background transition-colors"
             aria-label="Sacola de Compras"
           >
             <ShoppingBag className="w-5 h-5" strokeWidth={2.2} />
-          </Link>
+            {totalCount > 0 && (
+              <span className="absolute -top-2 -right-2 min-w-[20px] h-[20px] px-1 bg-[#ff66c4] text-black font-oswald text-xs font-black flex items-center justify-center">
+                {totalCount}
+              </span>
+            )}
+          </button>
 
           <button
             type="button"
@@ -89,6 +97,20 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
+
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                openCart();
+              }}
+              className="py-4 flex items-center justify-between text-left transition-transform active:translate-x-2 text-foreground"
+            >
+              <span>Sacola</span>
+              <span className="min-w-[24px] h-[24px] px-1.5 flex items-center justify-center bg-[#ff66c4] text-black font-oswald text-sm font-bold">
+                {totalCount}
+              </span>
+            </button>
           </div>
 
           <div className="pt-6 mt-4 border-t border-foreground flex items-center justify-between">
@@ -157,8 +179,18 @@ export function Navbar() {
           </nav>
         </div>
 
-        {/* Rodapé da Sidebar: Toggle de Tema */}
+        {/* Rodapé da Sidebar: Botão Sacola & Toggle de Tema */}
         <div className="mt-8 flex flex-col gap-4">
+          <button
+            type="button"
+            onClick={openCart}
+            className="w-full flex items-center justify-between border border-foreground p-3 font-oswald text-xl font-bold uppercase hover:bg-foreground hover:text-background transition-colors group"
+          >
+            <span>Sacola</span>
+            <span className="min-w-[24px] h-[24px] px-1.5 flex items-center justify-center bg-[#ff66c4] text-black font-oswald text-sm font-bold">
+              {totalCount}
+            </span>
+          </button>
           <ThemeToggle />
         </div>
       </aside>
