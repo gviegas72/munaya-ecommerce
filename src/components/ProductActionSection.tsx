@@ -27,6 +27,8 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
 
     setErrorMsg(null);
 
+    const matchedVariant = product.variants?.find((v) => v.size === selectedSize);
+
     // Adiciona o produto na sacola headless e abre a gaveta lateral
     addItem({
       productId: product.id,
@@ -37,7 +39,8 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
       image: product.image,
       checkoutUrl: product.checkoutUrl,
       quantity: 1,
-    });
+      variantId: matchedVariant ? String(matchedVariant.id) : undefined,
+    } as any);
 
     setAddedFeedback(true);
     setTimeout(() => {
