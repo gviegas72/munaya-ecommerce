@@ -1596,8 +1596,9 @@ class Component extends DCLogic {
 
         const items = Object.values(groupedMap);
 
-        const fallback = () => {
-          const item = items[0] || { nuvemshopId: "375454425", size: "M", quantity: 1 };
+        // Se houver apenas 1 item/variação: envia via formulário POST nativo instantâneo
+        if (items.length === 1) {
+          const item = items[0];
           const form = document.createElement("form");
           form.method = "POST";
           form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
@@ -1623,24 +1624,15 @@ class Component extends DCLogic {
           form.appendChild(qtyInput);
           document.body.appendChild(form);
           form.submit();
-        };
+          return;
+        }
 
-        fetch("/api/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items: items }),
-        })
-          .then((r) => r.json())
-          .then((data) => {
-            if (data && data.checkoutUrl) {
-              window.location.href = data.checkoutUrl;
-            } else {
-              fallback();
-            }
-          })
-          .catch(() => {
-            fallback();
-          });
+        // Se houver múltiplos itens ou tamanhos diferentes (ex: Bonzo P + Bonzo G):
+        // Redireciona com o parâmetro munaya_cart para a Nuvemshop montar o carrinho completo sem bloqueio
+        const cartParam = items
+          .map((it) => `${it.nuvemshopId || "375454425"}:${it.size}:${it.quantity || 1}`)
+          .join("|");
+        window.location.href = `https://munayarocks.lojavirtualnuvem.com.br/carrinho/?munaya_cart=${encodeURIComponent(cartParam)}`;
       },
       checkoutOpacity: s.cart.length === 0 || s.ckProcessing ? 0.4 : 1,
       checkoutLabel: s.ckProcessing ? "Iniciando checkout..." : "Fechar pedido",

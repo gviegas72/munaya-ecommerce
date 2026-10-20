@@ -42,58 +42,47 @@ export function CartDrawer() {
     };
   }, [isOpen]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (items.length === 0) return;
 
     try {
       setIsCheckingOut(true);
       setErrorMsg(null);
 
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: items.map((i) => ({
-            nuvemshopId: i.nuvemshopId || "375454425",
-            size: i.size,
-            quantity: i.quantity,
-          })),
-        }),
-      });
+      if (items.length === 1) {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
+        form.style.display = "none";
 
-      const data = await res.json();
-      if (data && data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+        const primaryItem = items[0];
+        const addInput = document.createElement("input");
+        addInput.type = "hidden";
+        addInput.name = "add_to_cart";
+        addInput.value = String(primaryItem.nuvemshopId || "375454425");
+
+        const varInput = document.createElement("input");
+        varInput.type = "hidden";
+        varInput.name = "variation[0]";
+        varInput.value = primaryItem.size;
+
+        const qtyInput = document.createElement("input");
+        qtyInput.type = "hidden";
+        qtyInput.name = "quantity";
+        qtyInput.value = String(primaryItem.quantity || 1);
+
+        form.appendChild(addInput);
+        form.appendChild(varInput);
+        form.appendChild(qtyInput);
+        document.body.appendChild(form);
+        form.submit();
         return;
       }
 
-      // Fallback: se falhar o checkout unificado, submete o primeiro item
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
-      form.style.display = "none";
-
-      const primaryItem = items[0];
-      const addInput = document.createElement("input");
-      addInput.type = "hidden";
-      addInput.name = "add_to_cart";
-      addInput.value = String(primaryItem.nuvemshopId || "375454425");
-
-      const varInput = document.createElement("input");
-      varInput.type = "hidden";
-      varInput.name = "variation[0]";
-      varInput.value = primaryItem.size;
-
-      const qtyInput = document.createElement("input");
-      qtyInput.type = "hidden";
-      qtyInput.name = "quantity";
-      qtyInput.value = String(primaryItem.quantity || 1);
-
-      form.appendChild(addInput);
-      form.appendChild(varInput);
-      form.appendChild(qtyInput);
-      document.body.appendChild(form);
-      form.submit();
+      const cartParam = items
+        .map((it) => `${it.nuvemshopId || "375454425"}:${it.size}:${it.quantity || 1}`)
+        .join("|");
+      window.location.href = `https://munayarocks.lojavirtualnuvem.com.br/carrinho/?munaya_cart=${encodeURIComponent(cartParam)}`;
     } catch (err) {
       console.error("Erro no checkout:", err);
       setErrorMsg("Erro ao iniciar finalização. Tente novamente.");
