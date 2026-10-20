@@ -33,7 +33,7 @@ export default function RootLayout({
       <body className="font-sans min-h-screen flex flex-col md:flex-row bg-background text-foreground transition-colors duration-300">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <Navbar />
-          <main className="flex-1 w-full md:ml-[15%] relative">
+          <main className="flex-1 w-full md:ml-[max(15%,200px)] relative">
             {children}
           </main>
         </ThemeProvider>
