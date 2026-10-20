@@ -1595,13 +1595,20 @@ class Component extends DCLogic {
         });
 
         const items = Object.values(groupedMap);
+        const targetName = items.length > 1 ? "munaya_checkout_window" : "_self";
 
-        // Se houver apenas 1 item/variação: envia via formulário POST nativo instantâneo
-        if (items.length === 1) {
-          const item = items[0];
+        // Se houver mais de 1 item, abre a aba sincronizada no clique direto do usuário
+        if (items.length > 1) {
+          try {
+            window.open("about:blank", targetName);
+          } catch (e) {}
+        }
+
+        const submitItem = (item) => {
           const form = document.createElement("form");
           form.method = "POST";
           form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
+          form.target = targetName;
           form.style.display = "none";
 
           const addInput = document.createElement("input");
@@ -1624,18 +1631,34 @@ class Component extends DCLogic {
           form.appendChild(qtyInput);
           document.body.appendChild(form);
           form.submit();
+          setTimeout(() => {
+            try { form.remove(); } catch (e) {}
+          }, 1000);
+        };
+
+        // Se for apenas 1 item/tamanho: submete diretamente na janela atual
+        if (items.length === 1) {
+          submitItem(items[0]);
           return;
         }
 
         // Se houver múltiplos itens ou tamanhos diferentes (ex: Bonzo P + Bonzo G):
-        // Redireciona com o parâmetro munaya_cart para a Nuvemshop montar o carrinho completo sem bloqueio
-        const cartParam = items
-          .map((it) => `${it.nuvemshopId || "375454425"}:${it.size}:${it.quantity || 1}`)
-          .join("|");
-        window.location.href = `https://munayarocks.lojavirtualnuvem.com.br/carrinho/?munaya_cart=${encodeURIComponent(cartParam)}`;
+        // Envia sequencialmente para a aba da Nuvemshop com intervalo de segurança para gravar cada variação
+        let delay = 0;
+        items.forEach((item, index) => {
+          setTimeout(() => {
+            submitItem(item);
+            if (index === items.length - 1) {
+              setTimeout(() => {
+                this.setState({ ckProcessing: false });
+              }, 1500);
+            }
+          }, delay);
+          delay += 1200; // 1.2 segundos para garantir o processamento de cada produto
+        });
       },
       checkoutOpacity: s.cart.length === 0 || s.ckProcessing ? 0.4 : 1,
-      checkoutLabel: s.ckProcessing ? "Iniciando checkout..." : "Fechar pedido",
+      checkoutLabel: s.ckProcessing ? "Sincronizando sacola..." : "Fechar pedido",
 
       ckSteps: [
         { n: 1, label: "Entrega" },

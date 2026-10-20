@@ -49,40 +49,63 @@ export function CartDrawer() {
       setIsCheckingOut(true);
       setErrorMsg(null);
 
-      if (items.length === 1) {
+      const targetName = items.length > 1 ? "munaya_checkout_window" : "_self";
+
+      if (items.length > 1) {
+        try {
+          window.open("about:blank", targetName);
+        } catch (e) {}
+      }
+
+      const submitItem = (item: (typeof items)[0]) => {
         const form = document.createElement("form");
         form.method = "POST";
         form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
+        form.target = targetName;
         form.style.display = "none";
 
-        const primaryItem = items[0];
         const addInput = document.createElement("input");
         addInput.type = "hidden";
         addInput.name = "add_to_cart";
-        addInput.value = String(primaryItem.nuvemshopId || "375454425");
+        addInput.value = String(item.nuvemshopId || "375454425");
 
         const varInput = document.createElement("input");
         varInput.type = "hidden";
         varInput.name = "variation[0]";
-        varInput.value = primaryItem.size;
+        varInput.value = item.size;
 
         const qtyInput = document.createElement("input");
         qtyInput.type = "hidden";
         qtyInput.name = "quantity";
-        qtyInput.value = String(primaryItem.quantity || 1);
+        qtyInput.value = String(item.quantity || 1);
 
         form.appendChild(addInput);
         form.appendChild(varInput);
         form.appendChild(qtyInput);
         document.body.appendChild(form);
         form.submit();
+        setTimeout(() => {
+          try { form.remove(); } catch (e) {}
+        }, 1000);
+      };
+
+      if (items.length === 1) {
+        submitItem(items[0]);
         return;
       }
 
-      const cartParam = items
-        .map((it) => `${it.nuvemshopId || "375454425"}:${it.size}:${it.quantity || 1}`)
-        .join("|");
-      window.location.href = `https://munayarocks.lojavirtualnuvem.com.br/carrinho/?munaya_cart=${encodeURIComponent(cartParam)}`;
+      let delay = 0;
+      items.forEach((item, index) => {
+        setTimeout(() => {
+          submitItem(item);
+          if (index === items.length - 1) {
+            setTimeout(() => {
+              setIsCheckingOut(false);
+            }, 1500);
+          }
+        }, delay);
+        delay += 1200;
+      });
     } catch (err) {
       console.error("Erro no checkout:", err);
       setErrorMsg("Erro ao iniciar finalização. Tente novamente.");
