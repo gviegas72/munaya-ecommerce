@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&amp;family=Inter:wght@400..900&amp;display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  :root { --bg: #000; --fg: #fff; }
+  body { margin: 0; background: #000; }
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: inherit; }
+  @keyframes munaya-pulse { 0%,100% { opacity: 1 } 50% { opacity: .55 } }
+  @keyframes munaya-slide { from { transform: translateX(100%) } to { transform: translateX(0) } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important } }
+</style>
+</helmet>
+
+<div style="font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; display: flex; flex-direction: {{ shellDir }}; transition: background-color .3s, color .3s;">
+
+  <sc-if value="{{ isCompact }}" hint-placeholder-val="{{ false }}">
+    <header ref="{{ barRef }}" style="position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--fg); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; box-sizing: border-box;">
+      <div role="button" tabindex="0" onClick="{{ goHome }}" aria-label="Munaya — início" style="cursor: pointer; flex: none; width: 56px; height: 56px; background-color: {{ accent }}; mask-image: url('uploads/logo_v2027_vetor.png'); mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-image: url('uploads/logo_v2027_vetor.png'); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;"></div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div role="button" tabindex="0" onClick="{{ toggleCart }}" aria-label="Sacola" style="cursor: pointer; position: relative; width: 48px; height: 48px; border: 1px solid var(--fg); display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M4 7h16l-1.5 13H5.5L4 7zM8.5 7V5a3.5 3.5 0 0 1 7 0v2"></path></svg>
+          <span style="position: absolute; top: -8px; right: -8px; min-width: 22px; height: 22px; padding: 0 5px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; background: {{ accent }}; color: #000; font-family: Oswald, sans-serif; font-size: 14px; font-weight: 700;">{{ cartCount }}</span>
+        </div>
+        <div role="button" tabindex="0" onClick="{{ toggleMenu }}" aria-label="Menu" aria-expanded="{{ menuOpen }}" style="cursor: pointer; width: 48px; height: 48px; border: 1px solid var(--fg); display: flex; align-items: center; justify-content: center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+        </div>
+      </div>
+    </header>
+
+    <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+      <nav style="position: sticky; top: {{ menuTop }}; z-index: 45; background: var(--bg); border-bottom: 1px solid var(--fg); display: flex; flex-direction: column; padding: 8px 16px 20px 16px; box-sizing: border-box; font-family: Oswald, sans-serif; font-size: 30px; font-weight: 700; text-transform: uppercase;">
+        <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; padding: 14px 0; border-bottom: 1px solid var(--fg);">Shop</div>
+        <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; padding: 14px 0; border-bottom: 1px solid var(--fg);">Coleções</div>
+        <div role="button" tabindex="0" onClick="{{ goSobre }}" style="cursor: pointer; padding: 14px 0; border-bottom: 1px solid var(--fg);">Sobre</div>
+        <div role="button" tabindex="0" onClick="{{ goCaos }}" style="cursor: pointer; padding: 14px 0; border-bottom: 1px solid var(--fg);">Caos</div>
+        <div role="button" tabindex="0" onClick="{{ goConta }}" style="cursor: pointer; padding: 14px 0; color: {{ accent }};">{{ contaLabel }}</div>
+      </nav>
+    </sc-if>
+  </sc-if>
+
+  <aside style="width: 15%; min-width: 200px; height: 100vh; position: sticky; top: 0; border-right: 1px solid var(--fg); display: {{ asideDisplay }}; flex-direction: column; justify-content: space-between; padding: 24px; box-sizing: border-box; flex: none; background: var(--bg); z-index: 40; overflow-y: auto; gap: 24px;">
+    <div style="display: flex; flex-direction: column; gap: 40px;">
+      <div role="button" tabindex="0" onClick="{{ goHome }}" style="cursor: pointer; width: 160px; height: 160px; background-color: {{ accent }}; mask-image: url('uploads/logo_v2027_vetor.png'); mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-image: url('uploads/logo_v2027_vetor.png'); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;" aria-label="Munaya — início"></div>
+      <nav style="display: flex; flex-direction: column; gap: 28px; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700; text-transform: uppercase;">
+        <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; transition: transform .2s;" style-hover="transform: translateX(8px);">Shop</div>
+        <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; margin-left: 16px; transition: transform .2s;" style-hover="transform: translateX(8px);">Coleções</div>
+        <div role="button" tabindex="0" onClick="{{ goSobre }}" style="cursor: pointer; transition: transform .2s;" style-hover="transform: translateX(8px);">Sobre</div>
+        <div role="button" tabindex="0" onClick="{{ goCaos }}" style="cursor: pointer; margin-left: -8px; transition: transform .2s;" style-hover="transform: translateX(8px);">Caos</div>
+        <div role="button" tabindex="0" onClick="{{ goConta }}" style="cursor: pointer; margin-left: 8px; transition: transform .2s; color: {{ contaColor }};" style-hover="transform: translateX(8px);">{{ contaLabel }}</div>
+      </nav>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div role="button" tabindex="0" onClick="{{ toggleCart }}" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--fg); padding: 10px 12px; font-family: Oswald, sans-serif; font-size: 18px; font-weight: 700; text-transform: uppercase; transition: background-color .2s;" style-hover="background: var(--fg); color: var(--bg);">
+        <span>Sacola</span>
+        <span style="min-width: 26px; height: 26px; padding: 0 6px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; background: {{ accent }}; color: #000; font-size: 15px;">{{ cartCount }}</span>
+      </div>
+    </div>
+  </aside>
+
+  <main style="flex: 1; position: relative; min-width: 0;">
+
+    <sc-if value="{{ showHome }}" hint-placeholder-val="{{ true }}">
+      <div style="position: relative; width: 100%; height: {{ heroH }}; min-height: 420px; overflow: hidden; background: #000; color: #fff;">
+        <video ref="{{ heroRef }}" playsinline="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .6;">
+          <source src="uploads/hero.mp4" type="video/mp4">
+        </video>
+        <div style="position: absolute; inset: 0; opacity: .2; pointer-events: none; background-image: url('https://grainy-gradients.vercel.app/noise.svg');"></div>
+        <div style="position: relative; z-index: 20; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: clamp(20px, 4vw, 48px); box-sizing: border-box;">
+          <div style="align-self: flex-end; display: flex; flex-direction: column; align-items: flex-end; max-width: 100%;">
+            <p style="font-size: clamp(15px, 2.2vw, 24px); text-transform: uppercase; font-weight: 700; letter-spacing: .1em; margin: 0 0 20px 0; mix-blend-mode: difference; text-align: right;">Vista a Revolução.</p>
+            <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: clamp(10px, 1.6vw, 16px); background: #fff; color: #000; padding: clamp(14px, 2.2vw, 24px) clamp(18px, 2.8vw, 32px); font-family: Oswald, sans-serif; font-size: clamp(26px, 4.4vw, 48px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.04em; line-height: 1; border: 3px solid transparent; transition: background-color .1s, color .1s, border-color .1s;" style-hover="background: #000; color: #fff; border-color: #fff;">
+              <span>Compre o Barulho</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" style="width: clamp(24px, 3.2vw, 40px); height: clamp(24px, 3.2vw, 40px); flex: none;"><path d="M5 12h14M13 5l7 7-7 7"></path></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showCategoria }}" hint-placeholder-val="{{ false }}">
+      <div style="width: 100%; min-height: 100vh; padding: clamp(16px, 4vw, 32px); box-sizing: border-box;">
+        <header style="margin: 16px 0 48px 0;">
+          <h1 style="font-family: Oswald, sans-serif; font-size: clamp(44px, 8vw, 96px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .95; margin: 0;"><div style="font-size: clamp(26px, 4.4vw, 50px);">CAMISETA&nbsp;<span style="letter-spacing: -0.05em; color: var(--fg);">SEM GRAÇA</span></div><div style="color: {{ accent }};">É PECADO</div></h1>
+          <p style="margin: 16px 0 0 0; font-size: 20px; font-weight: 700; text-transform: uppercase; opacity: .6;">Para vestir nas ruas, não em casa.</p>
+        </header>
+
+        <div style="display: grid; grid-template-columns: {{ gridCols }}; grid-auto-rows: {{ gridRow }}; gap: clamp(14px, 2.5vw, 32px);">
+          <div role="button" tabindex="0" onClick="{{ openP1 }}" style="grid-column: span 2; grid-row: span 2; position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
+            <image-slot id="pt-cat-1" shape="rect" src="https://picsum.photos/900/1200?random=1" placeholder="Foto — Chaos Theory" style="width: 100%; height: 100%; filter: grayscale(1);"></image-slot>
+            <div style="position: absolute; inset: 0; background: rgba(0,0,0,.7); opacity: {{ ovOpacity }}; pointer-events: none; transition: opacity .3s; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: 24px; box-sizing: border-box;" style-hover="opacity: 1;">
+              <h2 style="font-family: Oswald, sans-serif; font-size: 72px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .9; text-align: center; margin: 0;">Chaos Theory</h2>
+              <span style="margin-top: 8px; font-family: Oswald, sans-serif; font-size: 30px; font-weight: 700;">{{ priceP1 }}</span>
+              <div style="margin-top: 32px; background: #fff; color: #000; padding: 12px 32px; font-weight: 900; text-transform: uppercase; font-size: 20px; transform: skewX(-12deg);">Ver Detalhes</div>
+            </div>
+          </div>
+
+          <div role="button" tabindex="0" onClick="{{ openP2 }}" style="position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
+            <div style="width: 100%; height: 100%; transform-origin: center; transition: transform .5s ease-out;" style-hover="transform: scale(2.6) translate(20%, -8%);">
+              <image-slot id="pt-cat-2" shape="rect" src="https://picsum.photos/900/1200?random=2" placeholder="Foto — Nevermind" style="width: 100%; height: 100%; filter: brightness(1.3) contrast(0.85);"></image-slot>
+            </div>
+          </div>
+
+          <div role="button" tabindex="0" onClick="{{ openP3 }}" style="position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
+            <image-slot id="pt-cat-3" shape="rect" src="public/distortion-bonzo.png" placeholder="Foto — Distortion" style="width: 100%; height: 100%;"></image-slot>
+            <div style="position: absolute; inset: 0; background: rgba(0,0,0,.7); opacity: {{ ovOpacity }}; pointer-events: none; transition: opacity .3s; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: 24px; box-sizing: border-box;" style-hover="opacity: 1;">
+              <h2 style="font-family: Oswald, sans-serif; font-size: 52px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .9; text-align: center; margin: 0;">Distortion</h2>
+              <span style="margin-top: 8px; font-family: Oswald, sans-serif; font-size: 26px; font-weight: 700;">{{ priceP3 }}</span>
+              <div style="margin-top: 24px; background: #fff; color: #000; padding: 10px 24px; font-weight: 900; text-transform: uppercase; font-size: 17px; transform: skewX(-12deg);">Ver Detalhes</div>
+            </div>
+          </div>
+
+          <div role="button" tabindex="0" onClick="{{ openP4 }}" style="grid-column: span 2; position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
+            <image-slot id="pt-cat-4" shape="rect" src="https://picsum.photos/1200/900?random=4" placeholder="Foto — Riot" style="width: 100%; height: 100%;"></image-slot>
+            <div style="position: absolute; inset: 0; background: rgba(0,0,0,.7); opacity: {{ ovOpacity }}; pointer-events: none; transition: opacity .3s; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: 24px; box-sizing: border-box;" style-hover="opacity: 1;">
+              <h2 style="font-family: Oswald, sans-serif; font-size: 72px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .9; text-align: center; margin: 0;">Riot</h2>
+              <span style="margin-top: 8px; font-family: Oswald, sans-serif; font-size: 30px; font-weight: 700;">{{ priceP4 }}</span>
+              <div style="margin-top: 32px; background: #fff; color: #000; padding: 12px 32px; font-weight: 900; text-transform: uppercase; font-size: 20px; transform: skewX(-12deg);">Ver Detalhes</div>
+            </div>
+          </div>
+
+          <div role="button" tabindex="0" onClick="{{ openP5 }}" style="position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
+            <image-slot id="pt-cat-5" shape="rect" src="https://picsum.photos/900/1200?random=5" placeholder="Foto — Anarchy" style="width: 100%; height: 100%;"></image-slot>
+            <div style="position: absolute; inset: 0; background: rgba(0,0,0,.7); opacity: {{ ovOpacity }}; pointer-events: none; transition: opacity .3s; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: 24px; box-sizing: border-box;" style-hover="opacity: 1;">
+              <h2 style="font-family: Oswald, sans-serif; font-size: 52px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .9; text-align: center; margin: 0;">Anarchy</h2>
+              <span style="margin-top: 8px; font-family: Oswald, sans-serif; font-size: 26px; font-weight: 700;">{{ priceP5 }}</span>
+              <div style="margin-top: 24px; background: #fff; color: #000; padding: 10px 24px; font-weight: 900; text-transform: uppercase; font-size: 17px; transform: skewX(-12deg);">Ver Detalhes</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 96px; display: flex; flex-direction: column; gap: 72px;">
+
+          <section>
+            <div style="display: flex; align-items: baseline; gap: 16px; border-bottom: 2px solid var(--fg); padding-bottom: 10px;">
+              <h2 style="font-family: Oswald, sans-serif; font-size: clamp(28px, 4.2vw, 44px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.03em; line-height: 1; margin: 0;">Mais vendidas</h2>
+              <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; opacity: .5;">3 peças</span>
+            </div>
+            <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 24px;">
+              <sc-for list="{{ railBest }}" as="it" hint-placeholder-count="3">
+                <div role="button" tabindex="0" onClick="{{ it.open }}" style="position: relative; overflow: hidden; cursor: pointer; height: 420px; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
+                  <image-slot id="{{ it.slotId }}" shape="rect" src="{{ it.src }}" placeholder="{{ it.placeholder }}" style="width: 100%; height: 100%;"></image-slot>
+                  <div style="position: absolute; inset: 0; background: rgba(0,0,0,.7); opacity: {{ ovOpacity }}; pointer-events: none; transition: opacity .3s; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: 24px; box-sizing: border-box;" style-hover="opacity: 1;">
+                    <h3 style="font-family: Oswald, sans-serif; font-size: 44px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.04em; line-height: .9; text-align: center; margin: 0;">{{ it.name }}</h3>
+                    <span style="margin-top: 8px; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700;">{{ it.price }}</span>
+                    <div style="margin-top: 20px; background: #fff; color: #000; padding: 10px 24px; font-weight: 900; text-transform: uppercase; font-size: 16px; transform: skewX(-12deg);">Ver Detalhes</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section>
+            <div style="display: flex; align-items: baseline; gap: 16px; border-bottom: 2px solid var(--fg); padding-bottom: 10px;">
+              <h2 style="font-family: Oswald, sans-serif; font-size: clamp(28px, 4.2vw, 44px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.03em; line-height: 1; margin: 0;">Edição limitada</h2>
+              <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: {{ accent }};">Tiragem numerada</span>
+            </div>
+            <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: clamp(28px, 4vw, 56px); align-items: center;">
+            <div style="display: flex; flex-direction: column; min-width: 0;">
+              <h2 style="font-family: Oswald, sans-serif; font-size: clamp(40px, 5vw, 76px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.04em; line-height: .92; margin: 0;">EU PODERIA ESCREVER SOBRE PAUL POR MUITO TEMPO</h2>
+              <p style="margin: 28px 0 0 0; font-size: 18px; line-height: 1.65; opacity: .75; max-width: 46ch; text-wrap: pretty;">Camiseta raglan do nosso ídolo Macca. A gente imprime à mão, em tiragens curtas, com tinta que racha do jeito certo depois da vigésima lavagem. Cada estampa nasce de um disco, de um show, de um delírio coletivo ou de uma noite mal dormida.</p>
+              <div style="margin-top: 44px;">
+                <div style="font-family: Oswald, sans-serif; font-size: 68px; font-weight: 700; line-height: .85; color: {{ accent }};">13</div>
+                <div style="margin-top: 10px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .2em; opacity: .55;">Peças por estampa</div>
+              </div>
+            </div>
+            <div style="max-width: 100%; background: var(--fg); line-height: 0;">
+              <image-slot id="pt-limited-hero" shape="rect" fit="contain" src="https://picsum.photos/1000/1000?random=34" placeholder="Foto — camiseta raglan da edição limitada" style="width: 100%; height: clamp(300px, 45vw, 520px)"></image-slot>
+            </div>
+            </div>
+          </section>
+
+          <section>
+            <div style="display: flex; align-items: baseline; gap: 16px; border-bottom: 2px solid var(--fg); padding-bottom: 10px;">
+              <h2 style="font-family: Oswald, sans-serif; font-size: clamp(28px, 4.2vw, 44px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.03em; line-height: 1; margin: 0;">Bonés</h2>
+              <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; opacity: .5;">Tamanho único</span>
+            </div>
+            <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 24px;">
+              <sc-for list="{{ railCaps }}" as="it" hint-placeholder-count="3">
+                <div role="button" tabindex="0" onClick="{{ it.open }}" style="position: relative; overflow: hidden; cursor: pointer; height: 340px; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
+                  <image-slot id="{{ it.slotId }}" shape="rect" src="{{ it.src }}" placeholder="{{ it.placeholder }}" style="width: 100%; height: 100%;"></image-slot>
+                  <div style="position: absolute; inset: 0; background: rgba(0,0,0,.7); opacity: {{ ovOpacity }}; pointer-events: none; transition: opacity .3s; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: 24px; box-sizing: border-box;" style-hover="opacity: 1;">
+                    <h3 style="font-family: Oswald, sans-serif; font-size: 38px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.04em; line-height: .9; text-align: center; margin: 0;">{{ it.name }}</h3>
+                    <span style="margin-top: 8px; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700;">{{ it.price }}</span>
+                    <div style="margin-top: 20px; background: #fff; color: #000; padding: 10px 24px; font-weight: 900; text-transform: uppercase; font-size: 16px; transform: skewX(-12deg);">Ver Detalhes</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showProduto }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: {{ prodDir }}; align-items: stretch; width: 100%; min-height: 100vh;">
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; border-right: {{ prodBorderR }}; box-sizing: border-box;">
+          <sc-for list="{{ productImages }}" as="im" hint-placeholder-count="3">
+            <div style="width: 100%; height: {{ prodImgH }}; border-bottom: 1px solid var(--fg); box-sizing: border-box; position: relative;">
+              <image-slot id="{{ im.slotId }}" shape="rect" src="{{ im.url }}" placeholder="{{ im.alt }}" style="width: 100%; height: 100%; filter: grayscale(1);"></image-slot>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="width: {{ prodPanelW }}; min-width: {{ prodPanelMin }}; max-width: {{ prodPanelMax }}; flex: none; display: flex; flex-direction: column; gap: 32px; background: var(--bg); padding: clamp(16px, 4vw, 32px); box-sizing: border-box;">
+          <div style="display: flex; flex-direction: column;">
+            <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 12px; opacity: .6; margin-bottom: 24px;" style-hover="opacity: 1;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="M19 12H5M11 19l-7-7 7-7"></path></svg>
+              <span>Coleção</span>
+            </div>
+            <h1 style="font-family: Oswald, sans-serif; font-size: clamp(34px, 4.4vw, 88px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.04em; line-height: .9; margin: 0; overflow-wrap: normal; hyphens: none;">{{ productName }}</h1>
+            <p style="margin: 16px 0 0 0; font-family: Oswald, sans-serif; font-size: 36px; font-weight: 700; opacity: .8;">{{ productPrice }}</p>
+
+            <div style="margin-top: 40px;">
+              <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 14px; margin: 0 0 16px 0;">Escolha o tamanho</p>
+              <div style="display: flex; gap: 16px;">
+                <sc-for list="{{ sizes }}" as="s" hint-placeholder-count="4">
+                  <button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.pressed }}" style="width: 64px; height: 64px; border: 2px solid var(--fg); background: {{ s.bg }}; color: {{ s.fg }}; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700; cursor: pointer; transition: background-color .15s, color .15s;">{{ s.label }}</button>
+                </sc-for>
+              </div>
+              <sc-if value="{{ warn }}" hint-placeholder-val="{{ false }}">
+                <p style="margin: 16px 0 0 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">Escolha um tamanho antes de adicionar.</p>
+              </sc-if>
+              <div role="button" tabindex="0" onClick="{{ openGuide }}" style="cursor: pointer; margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid var(--fg); padding-bottom: 2px; opacity: .75; transition: opacity .15s;" style-hover="opacity: 1;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><path d="M2 9h20v6H2zM6 9v3M10 9v6M14 9v3M18 9v6"></path></svg>
+                <span>Guia de tamanhos</span>
+              </div>
+
+              <div style="margin-top: 32px;">
+                <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 14px; margin: 0 0 16px 0;">Quantidade</p>
+                <div style="display: inline-flex; align-items: stretch; border: 2px solid var(--fg);">
+                  <button type="button" onClick="{{ decQty }}" disabled="{{ qtyMin }}" aria-label="Diminuir quantidade" style="width: 56px; height: 56px; border: none; border-right: 2px solid var(--fg); background: transparent; color: var(--fg); font-family: Oswald, sans-serif; font-size: 28px; font-weight: 700; cursor: pointer; opacity: {{ decOpacity }}; transition: background-color .15s, color .15s;" style-hover="background: var(--fg); color: var(--bg);">–</button>
+                  <div aria-live="polite" style="width: 72px; height: 56px; display: flex; align-items: center; justify-content: center; font-family: Oswald, sans-serif; font-size: 26px; font-weight: 700;">{{ qty }}</div>
+                  <button type="button" onClick="{{ incQty }}" disabled="{{ qtyMax }}" aria-label="Aumentar quantidade" style="width: 56px; height: 56px; border: none; border-left: 2px solid var(--fg); background: transparent; color: var(--fg); font-family: Oswald, sans-serif; font-size: 28px; font-weight: 700; cursor: pointer; opacity: {{ incOpacity }}; transition: background-color .15s, color .15s;" style-hover="background: var(--fg); color: var(--bg);">+</button>
+                </div>
+                <sc-if value="{{ qtyMax }}" hint-placeholder-val="{{ false }}">
+                  <p style="margin: 12px 0 0 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .55;">Máximo de 10 por pedido.</p>
+                </sc-if>
+              </div>
+            </div>
+
+            <div style="margin-top: 40px; border-top: 1px solid var(--fg); padding-top: 24px;">
+              <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 14px; margin: 0 0 16px 0;">Calcular frete</p>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <input type="text" inputMode="numeric" placeholder="00000-000" maxLength="9" value="{{ cep }}" onChange="{{ onCep }}" onKeyDown="{{ onCepKey }}" aria-label="CEP" style="width: 100%; background: transparent; border: 2px solid var(--fg); color: var(--fg); font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: .04em; padding: 12px 14px; box-sizing: border-box;">
+                <button type="button" onClick="{{ calcFrete }}" style="width: 100%; border: 2px solid var(--fg); background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 20px; font-weight: 700; text-transform: uppercase; padding: 12px 0; cursor: pointer; transition: background-color .15s, color .15s;" style-hover="background: transparent; color: var(--fg);">{{ freteLabel }}</button>
+              </div>
+
+              <sc-if value="{{ freteError }}" hint-placeholder-val="{{ false }}">
+                <p style="margin: 12px 0 0 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">CEP incompleto — 8 dígitos.</p>
+              </sc-if>
+
+              <sc-if value="{{ hasFrete }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 2px;">
+                  <sc-for list="{{ freteOptions }}" as="f" hint-placeholder-count="2">
+                    <button type="button" onClick="{{ f.pick }}" aria-pressed="{{ f.pressed }}" style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; width: 100%; text-align: left; border: 2px solid var(--fg); background: {{ f.bg }}; color: {{ f.fg }}; padding: 14px 16px; cursor: pointer; transition: background-color .15s, color .15s;">
+                      <span style="display: flex; flex-direction: column; gap: 2px;">
+                        <span style="font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; line-height: 1;">{{ f.name }}</span>
+                        <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .65;">{{ f.eta }}</span>
+                      </span>
+                      <span style="font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700; white-space: nowrap;">{{ f.price }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+                <p style="margin: 12px 0 0 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .5;">Entrega em {{ freteCity }}</p>
+              </sc-if>
+            </div>
+
+            <p style="margin: 40px 0 0 0; font-size: 18px; line-height: 1.5; opacity: .7;">Camiseta 100% algodão estonado. Feita para sobreviver a qualquer mosh pit. Corte reto, gola pesada.</p>
+          </div>
+
+          <button type="button" onClick="{{ addToCart }}" style="width: 100%; border: none; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 32px; text-transform: uppercase; font-weight: 700; padding: 24px 0; cursor: pointer; flex: none; transition: transform .2s;" style-hover="transform: scale(1.02);">{{ addLabel }}</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showInfo }}" hint-placeholder-val="{{ false }}">
+      <div style="width: 100%; min-height: 100vh; padding: clamp(16px, 4vw, 32px); box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;">
+        <h1 style="font-family: Oswald, sans-serif; font-size: 96px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .95; margin: 0;">{{ infoTitle }}</h1>
+        <p style="margin: 24px 0 0 0; font-size: 20px; font-weight: 700; text-transform: uppercase; opacity: .6;">Sem conteúdo no repositório — a rota é <span style="font-family: ui-monospace, Menlo, monospace; text-transform: none;">href="#"</span> hoje.</p>
+        <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; align-self: flex-start; margin-top: 40px; background: var(--fg); color: var(--bg); padding: 16px 28px; font-family: Oswald, sans-serif; font-size: 28px; font-weight: 700; text-transform: uppercase;" style-hover="opacity: .85;">Ir para a coleção</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showLogin }}" hint-placeholder-val="{{ false }}">
+      <div style="width: 100%; min-height: 100vh; padding: clamp(16px, 4vw, 32px); box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; max-width: 560px;">
+        <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .22em; color: {{ accent }};">Área do cliente</div>
+        <h1 style="font-family: Oswald, sans-serif; font-size: clamp(48px, 7vw, 92px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .92; margin: 12px 0 0 0;">Entrar</h1>
+
+        <div style="margin-top: 36px; display: flex; flex-direction: column; gap: 20px;">
+          <label style="display: flex; flex-direction: column; gap: 7px;">
+            <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">E-mail</span>
+            <input type="text" value="{{ loginEmail }}" onChange="{{ onLoginEmail }}" onKeyDown="{{ onLoginKey }}" placeholder="voce@email.com" inputMode="email" style="width: 100%; box-sizing: border-box; background: transparent; border: 2px solid var(--fg); color: var(--fg); font-family: Inter, sans-serif; font-size: 17px; font-weight: 600; padding: 14px;">
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 7px;">
+            <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">Senha</span>
+            <input type="password" value="{{ loginSenha }}" onChange="{{ onLoginSenha }}" onKeyDown="{{ onLoginKey }}" placeholder="••••••" autoComplete="current-password" style="width: 100%; box-sizing: border-box; background: transparent; border: 2px solid var(--fg); color: var(--fg); font-family: Inter, sans-serif; font-size: 17px; font-weight: 600; padding: 14px;">
+          </label>
+
+          <sc-if value="{{ loginErr }}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">{{ loginErr }}</p>
+          </sc-if>
+
+          <button type="button" onClick="{{ doLogin }}" style="width: 100%; border: none; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 28px; font-weight: 700; text-transform: uppercase; padding: 18px 0; cursor: pointer;">Entrar</button>
+        </div>
+
+        <p style="margin: 28px 0 0 0; font-size: 15px; line-height: 1.55; opacity: .7;">{{ loginHint }}</p>
+        <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; align-self: flex-start; margin-top: 16px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; border-bottom: 1px solid var(--fg); padding-bottom: 2px; opacity: .75;" style-hover="opacity: 1;">Ir para a coleção</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showConta }}" hint-placeholder-val="{{ false }}">
+      <div style="width: 100%; min-height: 100vh; padding: clamp(16px, 4vw, 32px); box-sizing: border-box;">
+
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px;">
+          <div>
+            <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .22em; color: {{ accent }};">Área do cliente</div>
+            <h1 style="font-family: Oswald, sans-serif; font-size: clamp(44px, 6vw, 88px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .92; margin: 12px 0 0 0;">{{ acctFirstName }}</h1>
+            <p style="margin: 10px 0 0 0; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .6;">{{ acctEmail }}</p>
+          </div>
+          <div role="button" tabindex="0" onClick="{{ doLogout }}" style="cursor: pointer; border: 2px solid var(--fg); font-family: Oswald, sans-serif; font-size: 20px; font-weight: 700; text-transform: uppercase; padding: 12px 22px;" style-hover="background: var(--fg); color: var(--bg);">Sair</div>
+        </div>
+
+        <div style="margin-top: 32px; display: flex; flex-wrap: wrap; gap: 8px;">
+          <sc-for list="{{ acctTabs }}" as="t" hint-placeholder-count="3">
+            <div role="button" tabindex="0" onClick="{{ t.go }}" style="cursor: pointer; border: 2px solid var(--fg); background: {{ t.bg }}; color: {{ t.fg }}; font-family: Oswald, sans-serif; font-size: 20px; font-weight: 700; text-transform: uppercase; padding: 11px 20px;">{{ t.label }}</div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ tabPedidos }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top: 36px; max-width: 900px;">
+            <sc-if value="{{ noOrders }}" hint-placeholder-val="{{ true }}">
+              <div style="border: 2px solid var(--fg); padding: 32px;">
+                <p style="margin: 0; font-family: Oswald, sans-serif; font-size: 28px; font-weight: 700; text-transform: uppercase;">Nenhum pedido ainda</p>
+                <p style="margin: 10px 0 0 0; font-size: 16px; line-height: 1.5; opacity: .7;">Quando você fechar um pedido ele aparece aqui, com prazo e rastreio.</p>
+                <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; display: inline-block; margin-top: 24px; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; padding: 14px 22px;" style-hover="opacity: .85;">Ver a coleção</div>
+              </div>
+            </sc-if>
+
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <sc-for list="{{ acctOrders }}" as="o" hint-placeholder-count="0">
+                <div style="border: 2px solid var(--fg);">
+                  <div role="button" tabindex="0" onClick="{{ o.toggle }}" style="cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; padding: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+                      <span style="font-family: Oswald, sans-serif; font-size: 30px; font-weight: 700; text-transform: uppercase; line-height: 1;">{{ o.num }}</span>
+                      <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .6;">{{ o.meta }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                      <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; background: {{ o.statusBg }}; color: {{ o.statusFg }}; border: 2px solid {{ o.statusBg }}; padding: 6px 12px;">{{ o.status }}</span>
+                      <span style="font-family: Oswald, sans-serif; font-size: 28px; font-weight: 700; white-space: nowrap;">{{ o.total }}</span>
+                      <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .6;">{{ o.toggleLabel }}</span>
+                    </div>
+                  </div>
+
+                  <sc-if value="{{ o.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="border-top: 2px solid var(--fg); padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
+                      <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; opacity: .55;">Itens</span>
+                        <sc-for list="{{ o.items }}" as="it" hint-placeholder-count="1">
+                          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 14px;">
+                            <span style="font-size: 15px; font-weight: 600;">{{ it.name }}</span>
+                            <span style="font-size: 14px; opacity: .7; white-space: nowrap;">{{ it.meta }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; opacity: .55;">Entrega</span>
+                        <span style="font-size: 15px; line-height: 1.5;">{{ o.address }}</span>
+                        <span style="font-size: 14px; line-height: 1.5; opacity: .7;">{{ o.shipping }}</span>
+                      </div>
+                      <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; opacity: .55;">Pagamento</span>
+                        <span style="font-size: 15px; line-height: 1.5;">{{ o.payment }}</span>
+                        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; opacity: .55; margin-top: 8px;">Rastreio</span>
+                        <span style="font-family: ui-monospace, Menlo, monospace; font-size: 14px;">{{ o.tracking }}</span>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ tabDados }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top: 36px; max-width: 760px;">
+            <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px;">
+              <sc-for list="{{ acctFields }}" as="f" hint-placeholder-count="6">
+                <label style="grid-column: span {{ f.span }}; display: flex; flex-direction: column; gap: 7px; min-width: 0;">
+                  <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">{{ f.label }}</span>
+                  <input type="text" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.ph }}" inputMode="{{ f.mode }}" maxLength="{{ f.max }}" style="width: 100%; box-sizing: border-box; background: transparent; border: 2px solid {{ f.border }}; color: var(--fg); font-family: Inter, sans-serif; font-size: 17px; font-weight: 600; padding: 13px 14px;">
+                  <sc-if value="{{ f.err }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: {{ accent }};">{{ f.err }}</span>
+                  </sc-if>
+                </label>
+              </sc-for>
+            </div>
+            <div style="margin-top: 26px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px;">
+              <button type="button" onClick="{{ saveAcct }}" style="border: none; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700; text-transform: uppercase; padding: 16px 28px; cursor: pointer;">Salvar dados</button>
+              <sc-if value="{{ acctMsg }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">{{ acctMsg }}</span>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ tabSenha }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top: 36px; max-width: 480px; display: flex; flex-direction: column; gap: 20px;">
+            <sc-for list="{{ pwFields }}" as="f" hint-placeholder-count="3">
+              <label style="display: flex; flex-direction: column; gap: 7px;">
+                <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">{{ f.label }}</span>
+                <input type="password" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="••••••" autoComplete="off" style="width: 100%; box-sizing: border-box; background: transparent; border: 2px solid var(--fg); color: var(--fg); font-family: Inter, sans-serif; font-size: 17px; font-weight: 600; padding: 13px 14px;">
+              </label>
+            </sc-for>
+            <sc-if value="{{ pwErr }}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">{{ pwErr }}</p>
+            </sc-if>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px;">
+              <button type="button" onClick="{{ savePw }}" style="border: none; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700; text-transform: uppercase; padding: 16px 28px; cursor: pointer;">Trocar senha</button>
+              <sc-if value="{{ pwMsg }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">{{ pwMsg }}</span>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showCheckout }}" hint-placeholder-val="{{ false }}">
+      <div style="width: 100%; min-height: 100vh; padding: clamp(16px, 4vw, 32px); box-sizing: border-box;">
+
+        <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 12px; opacity: .6;" style-hover="opacity: 1;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="M19 12H5M11 19l-7-7 7-7"></path></svg>
+          <span>Continuar comprando</span>
+        </div>
+
+        <h1 style="font-family: Oswald, sans-serif; font-size: clamp(46px, 6vw, 88px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.04em; line-height: .95; margin: 12px 0 0 0;">Fechar pedido</h1>
+
+        <div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 8px;">
+          <sc-for list="{{ ckSteps }}" as="st" hint-placeholder-count="3">
+            <div role="button" tabindex="0" onClick="{{ st.go }}" style="cursor: {{ st.cursor }}; display: flex; align-items: baseline; gap: 10px; padding: 10px 18px 10px 14px; border: 2px solid var(--fg); background: {{ st.bg }}; color: {{ st.fg }}; opacity: {{ st.opacity }};">
+              <span style="font-family: ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: .1em;">{{ st.num }}</span>
+              <span style="font-family: Oswald, sans-serif; font-size: 20px; font-weight: 700; text-transform: uppercase; line-height: 1;">{{ st.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top: 40px; display: flex; align-items: flex-start; gap: 48px; flex-wrap: wrap;">
+
+          <div style="flex: 1; min-width: {{ ckMainMin }}; display: flex; flex-direction: column; gap: 40px;">
+
+            <sc-if value="{{ ckStep1 }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; gap: 40px;">
+                <section>
+                  <h2 style="font-family: Oswald, sans-serif; font-size: 30px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; margin: 0 0 20px 0; border-bottom: 2px solid var(--fg); padding-bottom: 8px;">Quem recebe</h2>
+                  <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px;">
+                    <sc-for list="{{ ckIdFields }}" as="f" hint-placeholder-count="4">
+                      <label style="grid-column: span {{ f.span }}; display: flex; flex-direction: column; gap: 7px; min-width: 0;">
+                        <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">{{ f.label }}</span>
+                        <input type="text" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.ph }}" inputMode="{{ f.mode }}" maxLength="{{ f.max }}" style="width: 100%; box-sizing: border-box; background: transparent; border: 2px solid {{ f.border }}; color: var(--fg); font-family: Inter, sans-serif; font-size: 17px; font-weight: 600; padding: 13px 14px;">
+                        <sc-if value="{{ f.err }}" hint-placeholder-val="{{ false }}">
+                          <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: {{ accent }};">{{ f.err }}</span>
+                        </sc-if>
+                      </label>
+                    </sc-for>
+                  </div>
+                </section>
+
+                <section>
+                  <h2 style="font-family: Oswald, sans-serif; font-size: 30px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; margin: 0 0 20px 0; border-bottom: 2px solid var(--fg); padding-bottom: 8px;">Entrega</h2>
+
+                  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px;">
+                    <label style="display: flex; flex-direction: column; gap: 7px; width: 220px;">
+                      <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">CEP</span>
+                      <input type="text" value="{{ ckCep }}" onChange="{{ ckOnCep }}" onKeyDown="{{ ckCepKey }}" placeholder="00000-000" inputMode="numeric" maxLength="9" style="width: 100%; box-sizing: border-box; background: transparent; border: 2px solid {{ ckCepBorder }}; color: var(--fg); font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: .04em; padding: 12px 14px;">
+                    </label>
+                    <button type="button" onClick="{{ ckCalcFrete }}" style="border: 2px solid var(--fg); background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 19px; font-weight: 700; text-transform: uppercase; padding: 13px 24px; cursor: pointer; transition: background-color .15s, color .15s;" style-hover="background: transparent; color: var(--fg);">Buscar</button>
+                  </div>
+
+                  <sc-if value="{{ ckCepErr }}" hint-placeholder-val="{{ false }}">
+                    <p style="margin: 12px 0 0 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">{{ ckCepErr }}</p>
+                  </sc-if>
+
+                  <sc-if value="{{ ckHasFrete }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px;">
+                      <sc-for list="{{ ckAddrFields }}" as="f" hint-placeholder-count="6">
+                        <label style="grid-column: span {{ f.span }}; display: flex; flex-direction: column; gap: 7px; min-width: 0;">
+                          <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">{{ f.label }}</span>
+                          <input type="text" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.ph }}" inputMode="{{ f.mode }}" maxLength="{{ f.max }}" style="width: 100%; box-sizing: border-box; background: transparent; border: 2px solid {{ f.border }}; color: var(--fg); font-family: Inter, sans-serif; font-size: 17px; font-weight: 600; padding: 13px 14px;">
+                          <sc-if value="{{ f.err }}" hint-placeholder-val="{{ false }}">
+                            <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: {{ accent }};">{{ f.err }}</span>
+                          </sc-if>
+                        </label>
+                      </sc-for>
+                    </div>
+
+                    <p style="margin: 28px 0 12px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">Modo de envio</p>
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                      <sc-for list="{{ ckFreteOptions }}" as="f" hint-placeholder-count="2">
+                        <button type="button" onClick="{{ f.pick }}" aria-pressed="{{ f.pressed }}" style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; width: 100%; text-align: left; border: 2px solid var(--fg); background: {{ f.bg }}; color: {{ f.fg }}; padding: 15px 18px; cursor: pointer; transition: background-color .15s, color .15s;">
+                          <span style="display: flex; flex-direction: column; gap: 3px;">
+                            <span style="font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; line-height: 1;">{{ f.name }}</span>
+                            <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .65;">{{ f.eta }}</span>
+                          </span>
+                          <span style="font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700; white-space: nowrap;">{{ f.price }}</span>
+                        </button>
+                      </sc-for>
+                    </div>
+                    <sc-if value="{{ ckShipErr }}" hint-placeholder-val="{{ false }}">
+                      <p style="margin: 12px 0 0 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">{{ ckShipErr }}</p>
+                    </sc-if>
+                  </sc-if>
+                </section>
+
+                <sc-if value="{{ ckShowSignup }}" hint-placeholder-val="{{ true }}">
+                  <section>
+                    <h2 style="font-family: Oswald, sans-serif; font-size: 30px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; margin: 0 0 20px 0; border-bottom: 2px solid var(--fg); padding-bottom: 8px;">Criar conta</h2>
+
+                    <div role="button" tabindex="0" onClick="{{ ckToggleAccount }}" aria-pressed="{{ ckWantAccount }}" style="cursor: pointer; display: flex; align-items: flex-start; gap: 14px;">
+                      <div style="flex: none; width: 26px; height: 26px; border: 2px solid var(--fg); background: {{ ckAcctBoxBg }}; color: {{ ckAcctBoxFg }}; display: flex; align-items: center; justify-content: center; margin-top: 2px;">
+                        <sc-if value="{{ ckWantAccount }}" hint-placeholder-val="{{ true }}">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"><path d="M4 12.5 9.5 18 20 6.5"></path></svg>
+                        </sc-if>
+                      </div>
+                      <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; line-height: 1;">Quero acompanhar meus pedidos</span>
+                        <span style="font-size: 14px; line-height: 1.45; opacity: .7;">Crie uma senha para entrar na sua conta e ver pedidos, rastreio e dados de cadastro.</span>
+                      </div>
+                    </div>
+
+                    <sc-if value="{{ ckWantAccount }}" hint-placeholder-val="{{ true }}">
+                      <div style="margin-top: 22px; display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px;">
+                        <sc-for list="{{ ckPwFields }}" as="f" hint-placeholder-count="2">
+                          <label style="grid-column: span {{ f.span }}; display: flex; flex-direction: column; gap: 7px; min-width: 0;">
+                            <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">{{ f.label }}</span>
+                            <input type="password" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.ph }}" autoComplete="new-password" style="width: 100%; box-sizing: border-box; background: transparent; border: 2px solid {{ f.border }}; color: var(--fg); font-family: Inter, sans-serif; font-size: 17px; font-weight: 600; padding: 13px 14px;">
+                            <sc-if value="{{ f.err }}" hint-placeholder-val="{{ false }}">
+                              <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: {{ accent }};">{{ f.err }}</span>
+                            </sc-if>
+                          </label>
+                        </sc-for>
+                      </div>
+                      <p style="margin: 12px 0 0 0; font-size: 13px; line-height: 1.5; opacity: .6;">Mínimo de 6 caracteres. Você entra depois com este e-mail e senha.</p>
+                    </sc-if>
+                  </section>
+                </sc-if>
+
+                <sc-if value="{{ ckLoggedNote }}" hint-placeholder-val="{{ false }}">
+                  <p style="margin: 0; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .6;">{{ ckLoggedNote }}</p>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ ckStep2 }}" hint-placeholder-val="{{ false }}">
+              <section>
+                <h2 style="font-family: Oswald, sans-serif; font-size: 30px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; margin: 0 0 20px 0; border-bottom: 2px solid var(--fg); padding-bottom: 8px;">Pagamento</h2>
+
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <sc-for list="{{ ckPayOptions }}" as="p" hint-placeholder-count="3">
+                    <button type="button" onClick="{{ p.pick }}" aria-pressed="{{ p.pressed }}" style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; width: 100%; text-align: left; border: 2px solid var(--fg); background: {{ p.bg }}; color: {{ p.fg }}; padding: 16px 18px; cursor: pointer; transition: background-color .15s, color .15s;">
+                      <span style="display: flex; flex-direction: column; gap: 3px;">
+                        <span style="font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700; text-transform: uppercase; line-height: 1;">{{ p.name }}</span>
+                        <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .65;">{{ p.note }}</span>
+                      </span>
+                      <span style="font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; white-space: nowrap;">{{ p.value }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+
+                <sc-if value="{{ ckIsCard }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top: 28px; display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px;">
+                    <sc-for list="{{ ckCardFields }}" as="f" hint-placeholder-count="4">
+                      <label style="grid-column: span {{ f.span }}; display: flex; flex-direction: column; gap: 7px; min-width: 0;">
+                        <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">{{ f.label }}</span>
+                        <input type="text" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.ph }}" inputMode="{{ f.mode }}" maxLength="{{ f.max }}" autoComplete="off" style="width: 100%; box-sizing: border-box; background: transparent; border: 2px solid {{ f.border }}; color: var(--fg); font-family: Oswald, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: .04em; padding: 13px 14px;">
+                        <sc-if value="{{ f.err }}" hint-placeholder-val="{{ false }}">
+                          <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: {{ accent }};">{{ f.err }}</span>
+                        </sc-if>
+                      </label>
+                    </sc-for>
+                  </div>
+
+                  <p style="margin: 28px 0 12px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7;">Parcelas</p>
+                  <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <sc-for list="{{ ckInstallments }}" as="i" hint-placeholder-count="4">
+                      <button type="button" onClick="{{ i.pick }}" aria-pressed="{{ i.pressed }}" style="border: 2px solid var(--fg); background: {{ i.bg }}; color: {{ i.fg }}; padding: 11px 16px; cursor: pointer; font-family: Oswald, sans-serif; font-size: 18px; font-weight: 700; text-transform: uppercase; transition: background-color .15s, color .15s;">{{ i.label }}</button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ ckIsPix }}" hint-placeholder-val="{{ false }}">
+                  <p style="margin: 24px 0 0 0; font-size: 16px; line-height: 1.55; opacity: .75; max-width: 46ch;">O código PIX aparece na próxima tela e vale por 30 minutos. O pedido entra na fila de produção assim que o pagamento é confirmado, normalmente em poucos segundos.</p>
+                </sc-if>
+
+                <sc-if value="{{ ckIsBoleto }}" hint-placeholder-val="{{ false }}">
+                  <p style="margin: 24px 0 0 0; font-size: 16px; line-height: 1.55; opacity: .75; max-width: 46ch;">O boleto vence em 2 dias úteis e a compensação leva até 3 dias. A peça só é separada depois do pagamento, e a reserva de tamanho não é garantida nesse período.</p>
+                </sc-if>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{ ckStep3 }}" hint-placeholder-val="{{ false }}">
+              <section>
+                <h2 style="font-family: Oswald, sans-serif; font-size: 30px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; margin: 0 0 20px 0; border-bottom: 2px solid var(--fg); padding-bottom: 8px;">Revisão</h2>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <sc-for list="{{ ckReview }}" as="r" hint-placeholder-count="3">
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; border: 2px solid var(--fg); padding: 18px;">
+                      <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+                        <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; opacity: .55;">{{ r.label }}</span>
+                        <span style="font-size: 17px; font-weight: 600; line-height: 1.45;">{{ r.line1 }}</span>
+                        <span style="font-size: 15px; line-height: 1.45; opacity: .7;">{{ r.line2 }}</span>
+                      </div>
+                      <div role="button" tabindex="0" onClick="{{ r.edit }}" style="cursor: pointer; flex: none; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; border-bottom: 1px solid var(--fg); padding-bottom: 2px; opacity: .7;" style-hover="opacity: 1;">Alterar</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <p style="margin: 22px 0 0 0; font-size: 14px; line-height: 1.55; opacity: .65; max-width: 52ch;">Ao confirmar você concorda com a política de troca em até 7 dias corridos após o recebimento, com a peça sem uso e com etiqueta.</p>
+              </section>
+            </sc-if>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center;">
+              <sc-if value="{{ ckCanGoBack }}" hint-placeholder-val="{{ false }}">
+                <button type="button" onClick="{{ ckBack }}" style="border: 2px solid var(--fg); background: transparent; color: var(--fg); font-family: Oswald, sans-serif; font-size: 20px; font-weight: 700; text-transform: uppercase; padding: 16px 26px; cursor: pointer; transition: background-color .15s, color .15s;" style-hover="background: var(--fg); color: var(--bg);">Voltar</button>
+              </sc-if>
+              <button type="button" onClick="{{ ckNext }}" disabled="{{ ckProcessing }}" style="flex: 1; min-width: 260px; border: none; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 28px; font-weight: 700; text-transform: uppercase; padding: 18px 28px; cursor: pointer; opacity: {{ ckNextOpacity }};">{{ ckNextLabel }}</button>
+            </div>
+
+          </div>
+
+          <aside style="width: {{ ckAsideW }}; flex: none; position: {{ ckAsideSticky }}; top: 32px; border: 2px solid var(--fg); padding: clamp(18px, 3vw, 26px); box-sizing: border-box;">
+            <h2 style="font-family: Oswald, sans-serif; font-size: 26px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; margin: 0;">Seu pedido</h2>
+
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 14px;">
+              <sc-for list="{{ ckItems }}" as="it" hint-placeholder-count="2">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--fg); padding-bottom: 12px;">
+                  <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                    <span style="font-family: Oswald, sans-serif; font-size: 21px; font-weight: 700; text-transform: uppercase; line-height: 1;">{{ it.name }}</span>
+                    <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .6;">{{ it.meta }}</span>
+                  </div>
+                  <span style="font-family: Oswald, sans-serif; font-size: 20px; font-weight: 700; white-space: nowrap;">{{ it.line }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+              <sc-for list="{{ ckTotals }}" as="t" hint-placeholder-count="3">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 14px; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: {{ t.color }};">
+                  <span style="opacity: .75;">{{ t.label }}</span>
+                  <span>{{ t.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin-top: 20px; border-top: 2px solid var(--fg); padding-top: 16px; display: flex; align-items: baseline; justify-content: space-between; gap: 14px;">
+              <span style="font-family: Oswald, sans-serif; font-size: 20px; font-weight: 700; text-transform: uppercase; opacity: .6;">Total</span>
+              <span style="font-family: Oswald, sans-serif; font-size: 38px; font-weight: 700;">{{ ckTotal }}</span>
+            </div>
+            <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; opacity: .6;">{{ ckPayNote }}</p>
+          </aside>
+
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showPedido }}" hint-placeholder-val="{{ false }}">
+      <div style="width: 100%; min-height: 100vh; padding: clamp(16px, 4vw, 32px); box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; max-width: 900px;">
+        <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .22em; color: {{ accent }};">Pedido confirmado</div>
+        <h1 style="font-family: Oswald, sans-serif; font-size: clamp(48px, 7vw, 104px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .92; margin: 14px 0 0 0;">Barulho a caminho</h1>
+        <p style="margin: 20px 0 0 0; font-size: 19px; line-height: 1.55; opacity: .75; max-width: 54ch;">{{ orderIntro }}</p>
+
+        <div style="margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2px;">
+          <sc-for list="{{ orderFacts }}" as="f" hint-placeholder-count="4">
+            <div style="border: 2px solid var(--fg); padding: 18px; display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; opacity: .55;">{{ f.label }}</span>
+              <span style="font-family: Oswald, sans-serif; font-size: 25px; font-weight: 700; text-transform: uppercase; line-height: 1.05;">{{ f.value }}</span>
+              <span style="font-size: 13px; line-height: 1.45; opacity: .7;">{{ f.note }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ orderIsPix }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top: 32px; border: 2px solid {{ accent }}; padding: 22px;">
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: {{ accent }};">Código PIX — copie e cole</div>
+            <div style="margin-top: 12px; font-family: ui-monospace, Menlo, monospace; font-size: 14px; line-height: 1.6; word-break: break-all; opacity: .85;">{{ orderPixCode }}</div>
+            <div role="button" tabindex="0" onClick="{{ copyPix }}" style="cursor: pointer; margin-top: 18px; display: inline-flex; align-items: center; gap: 10px; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 19px; font-weight: 700; text-transform: uppercase; padding: 12px 20px;">{{ copyLabel }}</div>
+          </div>
+        </sc-if>
+
+        <div style="margin-top: 40px; display: flex; flex-wrap: wrap; gap: 14px;">
+          <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 26px; font-weight: 700; text-transform: uppercase; padding: 18px 28px;" style-hover="opacity: .85;">Voltar à coleção</div>
+          <div role="button" tabindex="0" onClick="{{ goHome }}" style="cursor: pointer; border: 2px solid var(--fg); font-family: Oswald, sans-serif; font-size: 26px; font-weight: 700; text-transform: uppercase; padding: 16px 26px;" style-hover="background: var(--fg); color: var(--bg);">Início</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ guideOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box;">
+        <div onClick="{{ closeGuide }}" style="position: absolute; inset: 0; background: rgba(0,0,0,.75);"></div>
+        <div role="dialog" aria-modal="true" aria-label="Guia de tamanhos" style="position: relative; width: 640px; max-width: 100%; max-height: 88vh; overflow-y: auto; background: var(--bg); color: var(--fg); border: 2px solid var(--fg); padding: clamp(18px, 5vw, 32px); box-sizing: border-box;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;">
+            <div>
+              <h2 style="font-family: Oswald, sans-serif; font-size: 44px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.04em; line-height: 1; margin: 0;">Guia de tamanhos</h2>
+              <p style="margin: 6px 0 0 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .55;">Medidas da peça em centímetros</p>
+            </div>
+            <div role="button" tabindex="0" onClick="{{ closeGuide }}" aria-label="Fechar" style="cursor: pointer; flex: none; width: 36px; height: 36px; border: 1px solid var(--fg); display: flex; align-items: center; justify-content: center; transition: background-color .15s;" style-hover="background: var(--fg); color: var(--bg);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+            </div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; margin-top: 28px;">
+            <thead>
+              <tr style="background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; text-transform: uppercase; font-size: 15px; letter-spacing: .06em;">
+                <th style="text-align: left; padding: 10px 12px;">Tam</th>
+                <th style="text-align: left; padding: 10px 12px;">Largura</th>
+                <th style="text-align: left; padding: 10px 12px;">Altura</th>
+                <th style="text-align: left; padding: 10px 12px;">Manga</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ guideRows }}" as="r" hint-placeholder-count="4">
+                <tr style="border-bottom: 1px solid var(--fg);">
+                  <td style="padding: 12px; font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700;">{{ r.size }}</td>
+                  <td style="padding: 12px; font-size: 15px;">{{ r.chest }}</td>
+                  <td style="padding: 12px; font-size: 15px;">{{ r.length }}</td>
+                  <td style="padding: 12px; font-size: 15px;">{{ r.sleeve }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+
+          <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.5; opacity: .75;">
+            <p style="margin: 0;">Medidas tiradas com a peça apoiada sobre superfície plana. Largura é de axila a axila; altura, do ombro à barra.</p>
+            <p style="margin: 0;">Modelagem reta, sem afunilar na cintura. Quem prefere caimento mais solto costuma escolher um tamanho acima.</p>
+            <p style="margin: 0;">Algodão estonado com até 3 cm de variação por peça e leve encolhimento na primeira lavagem.</p>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ cartOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position: fixed; inset: 0; z-index: 60; display: flex; justify-content: flex-end;">
+        <div onClick="{{ toggleCart }}" style="position: absolute; inset: 0; background: rgba(0,0,0,.6);"></div>
+        <div style="position: relative; width: 420px; max-width: 100%; height: 100%; background: var(--bg); color: var(--fg); border-left: 1px solid var(--fg); padding: clamp(18px, 5vw, 32px); box-sizing: border-box; display: flex; flex-direction: column; animation: munaya-slide .2s ease-out;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <h2 style="font-family: Oswald, sans-serif; font-size: 48px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.04em; margin: 0;">Sacola</h2>
+            <div role="button" tabindex="0" onClick="{{ toggleCart }}" aria-label="Fechar" style="cursor: pointer; width: 36px; height: 36px; border: 1px solid var(--fg); display: flex; align-items: center; justify-content: center;" style-hover="background: var(--fg); color: var(--bg);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+            </div>
+          </div>
+
+          <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ true }}">
+            <p style="margin-top: 32px; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .5;">Vazia. Nada de barulho ainda.</p>
+          </sc-if>
+
+          <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; flex: 1;">
+            <sc-for list="{{ cart }}" as="item" hint-placeholder-count="0">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--fg); padding-bottom: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-family: Oswald, sans-serif; font-size: 26px; font-weight: 700; text-transform: uppercase; line-height: 1;">{{ item.name }}</span>
+                  <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .6;">Tam {{ item.size }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 14px;">
+                  <span style="font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700;">{{ item.price }}</span>
+                  <div role="button" tabindex="0" onClick="{{ item.remove }}" aria-label="Remover" style="cursor: pointer; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .5;" style-hover="opacity: 1; color: {{ accent }};">Tirar</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; font-family: Oswald, sans-serif; text-transform: uppercase;">
+              <span style="font-size: 20px; font-weight: 700; opacity: .6;">Total</span>
+              <span style="font-size: 40px; font-weight: 700;">{{ cartTotal }}</span>
+            </div>
+            <button type="button" onClick="{{ checkout }}" disabled="{{ cartEmpty }}" style="width: 100%; border: none; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 30px; text-transform: uppercase; font-weight: 700; padding: 22px 0; cursor: pointer; opacity: {{ checkoutOpacity }};">Fechar pedido</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#ff66c4&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#ff66c4&quot;,&quot;#ff3131&quot;,&quot;#3b82f6&quot;,&quot;#ffffff&quot;]}}">
+const PRODUCTS = {
+  1: { name: "Chaos Theory", price: 40, img: 1 },
+  2: { name: "Nevermind", price: 35, img: 2 },
+  3: { name: "Distortion", price: 45, img: 3 },
+  4: { name: "Riot", price: 30, img: 4 },
+  5: { name: "Anarchy", price: 40, img: 5 },
+  6: { name: "Bonzo", price: 40, img: 31 },
+  7: { name: "Lion Heart", price: 45, img: 32 },
+  8: { name: "Feedback", price: 35, img: 33 },
+  9: { name: "Ruína 001", price: 90, img: 34 },
+  10: { name: "Estática", price: 85, img: 35 },
+  11: { name: "Última Faixa", price: 95, img: 36 },
+  12: { name: "Boné Crest", price: 30, img: 37 },
+  13: { name: "Boné Static", price: 30, img: 38 },
+  14: { name: "Boné Pit", price: 35, img: 39 },
+};
+
+const brl = (v) => "R$ " + v.toFixed(2).replace(".", ",");
+const dg = (v) => String(v || "").replace(/\D/g, "");
+
+const maskCpf = (v) => {
+  const d = dg(v).slice(0, 11);
+  let o = d.slice(0, 3);
+  if (d.length > 3) o += "." + d.slice(3, 6);
+  if (d.length > 6) o += "." + d.slice(6, 9);
+  if (d.length > 9) o += "-" + d.slice(9, 11);
+  return o;
+};
+const maskFone = (v) => {
+  const d = dg(v).slice(0, 11);
+  if (d.length < 3) return d;
+  const head = "(" + d.slice(0, 2) + ") ";
+  if (d.length <= 6) return head + d.slice(2);
+  if (d.length <= 10) return head + d.slice(2, 6) + "-" + d.slice(6);
+  return head + d.slice(2, 7) + "-" + d.slice(7);
+};
+const maskCard = (v) => {
+  const d = dg(v).slice(0, 16);
+  const parts = [];
+  for (let i = 0; i < d.length; i += 4) parts.push(d.slice(i, i + 4));
+  return parts.join(" ");
+};
+const maskExp = (v) => {
+  const d = dg(v).slice(0, 4);
+  return d.length <= 2 ? d : d.slice(0, 2) + "/" + d.slice(2);
+};
+const maskCep = (v) => {
+  const d = dg(v).slice(0, 8);
+  return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d;
+};
+const upper = (v) => String(v || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2);
+
+const cpfOk = (v) => {
+  const d = dg(v);
+  if (d.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(d)) return false;
+  for (let t = 9; t < 11; t++) {
+    let sum = 0;
+    for (let i = 0; i < t; i++) sum += Number(d[i]) * (t + 1 - i);
+    const check = ((sum * 10) % 11) % 10;
+    if (check !== Number(d[t])) return false;
+  }
+  return true;
+};
+const luhnOk = (v) => {
+  const d = dg(v);
+  if (d.length < 13) return false;
+  let sum = 0, alt = false;
+  for (let i = d.length - 1; i >= 0; i--) {
+    let n = Number(d[i]);
+    if (alt) { n *= 2; if (n > 9) n -= 9; }
+    sum += n;
+    alt = !alt;
+  }
+  return sum % 10 === 0;
+};
+const expOk = (v) => {
+  const d = dg(v);
+  if (d.length !== 4) return false;
+  const m = Number(d.slice(0, 2)), y = 2000 + Number(d.slice(2));
+  if (m < 1 || m > 12) return false;
+  const now = new Date();
+  return y > now.getFullYear() || (y === now.getFullYear() && m >= now.getMonth() + 1);
+};
+const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(v || "").trim());
+
+const CK_ID = [
+  { k: "email", label: "E-mail", span: 12, ph: "voce@email.com", mode: "email" },
+  { k: "nome", label: "Nome completo", span: 12, ph: "Como está no documento", mode: "text" },
+  { k: "cpf", label: "CPF", span: 6, ph: "000.000.000-00", mode: "numeric", mask: maskCpf, max: 14 },
+  { k: "fone", label: "Celular", span: 6, ph: "(11) 90000-0000", mode: "numeric", mask: maskFone, max: 16 },
+];
+const CK_ADDR = [
+  { k: "rua", label: "Rua", span: 9, ph: "Nome da rua", mode: "text" },
+  { k: "num", label: "Número", span: 3, ph: "000", mode: "numeric", max: 8 },
+  { k: "compl", label: "Complemento", span: 6, ph: "Apto, bloco (opcional)", mode: "text", opt: true },
+  { k: "bairro", label: "Bairro", span: 6, ph: "Bairro", mode: "text" },
+  { k: "cidade", label: "Cidade", span: 9, ph: "Cidade", mode: "text" },
+  { k: "uf", label: "UF", span: 3, ph: "SP", mode: "text", mask: upper, max: 2 },
+];
+const CK_CARD = [
+  { k: "cnum", label: "Número do cartão", span: 12, ph: "0000 0000 0000 0000", mode: "numeric", mask: maskCard, max: 19 },
+  { k: "cname", label: "Nome impresso", span: 12, ph: "Como está no cartão", mode: "text" },
+  { k: "cexp", label: "Validade", span: 6, ph: "MM/AA", mode: "numeric", mask: maskExp, max: 5 },
+  { k: "ccvv", label: "CVV", span: 6, ph: "000", mode: "numeric", mask: (v) => dg(v).slice(0, 4), max: 4 },
+];
+
+const CK_PW = [
+  { k: "senha", label: "Senha", span: 6, ph: "Mínimo 6 caracteres" },
+  { k: "senha2", label: "Confirmar senha", span: 6, ph: "Repita a senha" },
+];
+const ACCT_FIELDS = [
+  { k: "nome", label: "Nome completo", span: 12, ph: "Como está no documento", mode: "text" },
+  { k: "email", label: "E-mail", span: 12, ph: "voce@email.com", mode: "email" },
+  { k: "cpf", label: "CPF", span: 6, ph: "000.000.000-00", mode: "numeric", mask: maskCpf, max: 14 },
+  { k: "fone", label: "Celular", span: 6, ph: "(11) 90000-0000", mode: "numeric", mask: maskFone, max: 16 },
+  { k: "cep", label: "CEP", span: 4, ph: "00000-000", mode: "numeric", mask: maskCep, max: 9 },
+  { k: "rua", label: "Rua", span: 8, ph: "Nome da rua", mode: "text" },
+  { k: "num", label: "Número", span: 3, ph: "000", mode: "numeric", max: 8 },
+  { k: "compl", label: "Complemento", span: 4, ph: "Apto, bloco (opcional)", mode: "text", opt: true },
+  { k: "bairro", label: "Bairro", span: 5, ph: "Bairro", mode: "text" },
+  { k: "cidade", label: "Cidade", span: 9, ph: "Cidade", mode: "text" },
+  { k: "uf", label: "UF", span: 3, ph: "SP", mode: "text", mask: upper, max: 2 },
+];
+const PW_FIELDS = [
+  { k: "atual", label: "Senha atual" },
+  { k: "nova", label: "Nova senha" },
+  { k: "conf", label: "Confirmar nova senha" },
+];
+const STORE = "munaya.conta.v1";
+const EMPTY_ACCT = { nome: "", email: "", cpf: "", fone: "", cep: "", rua: "", num: "", compl: "", bairro: "", cidade: "", uf: "" };
+
+const CITIES = [
+  { city: "São Paulo", uf: "SP" }, { city: "Campinas", uf: "SP" }, { city: "Rio de Janeiro", uf: "RJ" },
+  { city: "Belo Horizonte", uf: "MG" }, { city: "Salvador", uf: "BA" }, { city: "Curitiba", uf: "PR" },
+  { city: "Brasília", uf: "DF" }, { city: "Belém", uf: "PA" }, { city: "Fortaleza", uf: "CE" },
+  { city: "Porto Alegre", uf: "RS" },
+];
+
+const RAILS = {
+  railBest: [6, 7, 8],
+  railLimited: [9, 10],
+  railCaps: [12, 13, 14],
+};
+
+class Component extends DCLogic {
+  heroRef = React.createRef();
+  state = {
+    screen: "home",
+    productId: 1,
+    size: null,
+    cart: [],
+    cartOpen: false,
+    warn: false,
+    added: false,
+    checkedOut: false,
+    infoTitle: "Sobre",
+    cep: "",
+    frete: null,
+    freteChoice: null,
+    freteError: false,
+    freteCity: "",
+    guideOpen: false,
+    qty: 1,
+    ckStep: 1,
+    ckForm: { email: "", nome: "", cpf: "", fone: "", rua: "", num: "", compl: "", bairro: "", cidade: "", uf: "", cnum: "", cname: "", cexp: "", ccvv: "", senha: "", senha2: "" },
+    ckWantAccount: true,
+    account: null,
+    orders: [],
+    authed: false,
+    loginForm: { email: "", senha: "" },
+    loginErr: "",
+    acctTab: "pedidos",
+    acctForm: Object.assign({}, EMPTY_ACCT),
+    acctErrors: {},
+    acctMsg: "",
+    pwForm: { atual: "", nova: "", conf: "" },
+    pwErr: "",
+    pwMsg: "",
+    openOrder: null,
+    vw: typeof window !== "undefined" ? window.innerWidth : 1440,
+    menuOpen: false,
+    barH: 0,
+    ckCep: "",
+    ckFrete: null,
+    ckFreteChoice: null,
+    ckCity: "",
+    ckCepErr: "",
+    ckShipErr: "",
+    ckErrors: {},
+    ckPay: "pix",
+    ckInst: 1,
+    ckProcessing: false,
+    order: null,
+    copied: false,
+  };
+
+
+  componentDidMount() {
+    this.startHero();
+    window.addEventListener("resize", this.onResize);
+    this.onResize();
+    try {
+      const raw = window.localStorage.getItem(STORE);
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data && data.account) {
+          this.setState({
+            account: data.account,
+            orders: data.orders || [],
+            acctForm: Object.assign({}, EMPTY_ACCT, data.account, { senha: undefined }),
+          });
+        }
+      }
+    } catch (e) {}
+  }
+
+  barRef = React.createRef();
+
+  onResize = () => {
+    const w = window.innerWidth;
+    const h = this.barRef.current ? Math.round(this.barRef.current.getBoundingClientRect().height) : 0;
+    if (w !== this.state.vw || h !== this.state.barH) this.setState({ vw: w, barH: h });
+  };
+
+  persist = (account, orders) => {
+    try { window.localStorage.setItem(STORE, JSON.stringify({ account: account, orders: orders })); } catch (e) {}
+  };
+  componentDidUpdate() {
+    this.startHero();
+    const el = this.barRef.current;
+    if (el) {
+      const h = Math.round(el.getBoundingClientRect().height);
+      if (h && h !== this.state.barH) this.setState({ barH: h });
+    } else if (this.state.barH) {
+      this.setState({ barH: 0 });
+    }
+  }
+
+  startHero() {
+    const el = this.heroRef.current;
+    if (!el) return;
+    el.muted = true;
+    el.loop = true;
+    if (el.paused) el.play().catch(() => {});
+  }
+
+  formatCep = (v) => {
+    const d = String(v).replace(/\D/g, "").slice(0, 8);
+    return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d;
+  };
+
+  calcFrete = () => {
+    const digits = this.state.cep.replace(/\D/g, "");
+    if (digits.length !== 8) { this.setState({ freteError: true, frete: null }); return; }
+    // Simulação: a taxa varia com a região do CEP (primeiro dígito).
+    const region = Number(digits[0]);
+    const far = region >= 6 ? 1 : 0;
+    const city = ["São Paulo, SP", "São Paulo (interior), SP", "Rio de Janeiro, RJ", "Belo Horizonte, MG", "Salvador, BA", "Curitiba, PR", "Brasília, DF", "Belém, PA", "Fortaleza, CE", "Porto Alegre, RS"][region];
+    this.setState({
+      freteError: false,
+      freteCity: city,
+      frete: [
+        { id: "pac", name: "PAC", price: 19.9 + far * 8, days: far ? "8 a 12 dias úteis" : "5 a 8 dias úteis" },
+        { id: "sedex", name: "Sedex", price: 34.9 + far * 12, days: far ? "3 a 5 dias úteis" : "1 a 2 dias úteis" },
+      ],
+      freteChoice: null,
+    });
+  };
+
+  setField = (k, mask) => (e) => {
+    const raw = e.target.value;
+    const val = mask ? mask(raw) : raw;
+    this.setState((s) => {
+      const errors = Object.assign({}, s.ckErrors);
+      delete errors[k];
+      return { ckForm: Object.assign({}, s.ckForm, { [k]: val }), ckErrors: errors };
+    });
+  };
+
+  fieldList = (defs) => defs.map((d) => ({
+    label: d.label,
+    span: this.state.vw < 700 ? 12 : d.span,
+    ph: d.ph,
+    mode: d.mode,
+    max: d.max || 80,
+    value: this.state.ckForm[d.k],
+    err: this.state.ckErrors[d.k] || "",
+    border: this.state.ckErrors[d.k] ? (this.props.accent ?? "#ff66c4") : "var(--fg)",
+    onChange: this.setField(d.k, d.mask),
+  }));
+
+  setAcctField = (k, mask) => (e) => {
+    const raw = e.target.value;
+    const val = mask ? mask(raw) : raw;
+    this.setState((s) => {
+      const errors = Object.assign({}, s.acctErrors);
+      delete errors[k];
+      return { acctForm: Object.assign({}, s.acctForm, { [k]: val }), acctErrors: errors, acctMsg: "" };
+    });
+  };
+
+  setPwField = (k) => (e) => {
+    const val = e.target.value;
+    this.setState((s) => ({ pwForm: Object.assign({}, s.pwForm, { [k]: val }), pwErr: "", pwMsg: "" }));
+  };
+
+  doLogin = () => {
+    const { email, senha } = this.state.loginForm;
+    const acc = this.state.account;
+    if (!acc) { this.setState({ loginErr: "Nenhuma conta neste dispositivo. Crie a sua ao fechar um pedido." }); return; }
+    if (String(email).trim().toLowerCase() !== String(acc.email).trim().toLowerCase() || senha !== acc.senha) {
+      this.setState({ loginErr: "E-mail ou senha incorretos." });
+      return;
+    }
+    this.setState({
+      authed: true,
+      loginErr: "",
+      loginForm: { email: "", senha: "" },
+      screen: "conta",
+      acctTab: "pedidos",
+      acctForm: Object.assign({}, EMPTY_ACCT, acc, { senha: undefined }),
+    });
+  };
+
+  doLogout = () => this.setState({ authed: false, screen: "home", acctTab: "pedidos", openOrder: null, acctMsg: "", pwMsg: "", pwForm: { atual: "", nova: "", conf: "" } });
+
+  saveAcct = () => {
+    const f = this.state.acctForm;
+    const errors = {};
+    if (!emailOk(f.email)) errors.email = "E-mail inválido.";
+    if (String(f.nome).trim().split(/\s+/).length < 2) errors.nome = "Informe nome e sobrenome.";
+    if (!cpfOk(f.cpf)) errors.cpf = "CPF inválido.";
+    if (dg(f.fone).length < 10) errors.fone = "Telefone incompleto.";
+    ["rua", "num", "bairro", "cidade"].forEach((k) => { if (!String(f[k]).trim()) errors[k] = "Obrigatório."; });
+    if (String(f.uf).length !== 2) errors.uf = "2 letras.";
+    if (Object.keys(errors).length) { this.setState({ acctErrors: errors, acctMsg: "" }); return; }
+    const account = Object.assign({}, this.state.account, f, { senha: this.state.account.senha });
+    this.persist(account, this.state.orders);
+    this.setState({ account: account, acctErrors: {}, acctMsg: "Dados salvos." });
+  };
+
+  savePw = () => {
+    const { atual, nova, conf } = this.state.pwForm;
+    if (atual !== this.state.account.senha) { this.setState({ pwErr: "Senha atual incorreta.", pwMsg: "" }); return; }
+    if (String(nova).length < 6) { this.setState({ pwErr: "Nova senha: mínimo 6 caracteres.", pwMsg: "" }); return; }
+    if (nova !== conf) { this.setState({ pwErr: "As senhas não conferem.", pwMsg: "" }); return; }
+    const account = Object.assign({}, this.state.account, { senha: nova });
+    this.persist(account, this.state.orders);
+    this.setState({ account: account, pwForm: { atual: "", nova: "", conf: "" }, pwErr: "", pwMsg: "Senha atualizada." });
+  };
+
+  ckCalcFrete = () => {
+    const d = dg(this.state.ckCep);
+    if (d.length !== 8) {
+      this.setState({ ckCepErr: "CEP incompleto — 8 dígitos.", ckFrete: null, ckFreteChoice: null });
+      return;
+    }
+    const region = Number(d[0]);
+    const far = region >= 6 ? 1 : 0;
+    const place = CITIES[region];
+    this.setState((s) => ({
+      ckCepErr: "",
+      ckCity: place.city + ", " + place.uf,
+      ckForm: Object.assign({}, s.ckForm, { cidade: place.city, uf: place.uf }),
+      ckFrete: [
+        { id: "pac", name: "PAC", price: 19.9 + far * 8, days: far ? "8 a 12 dias úteis" : "5 a 8 dias úteis" },
+        { id: "sedex", name: "Sedex", price: 34.9 + far * 12, days: far ? "3 a 5 dias úteis" : "1 a 2 dias úteis" },
+      ],
+      ckFreteChoice: null,
+    }));
+  };
+
+  validateStep = (step) => {
+    const f = this.state.ckForm;
+    const errors = {};
+    if (step === 1) {
+      if (!emailOk(f.email)) errors.email = "E-mail inválido.";
+      if (String(f.nome).trim().split(/\s+/).length < 2) errors.nome = "Informe nome e sobrenome.";
+      if (!cpfOk(f.cpf)) errors.cpf = "CPF inválido.";
+      if (dg(f.fone).length < 10) errors.fone = "Telefone incompleto.";
+      if (this.state.ckFrete) {
+        ["rua", "num", "bairro", "cidade"].forEach((k) => { if (!String(f[k]).trim()) errors[k] = "Obrigatório."; });
+        if (String(f.uf).length !== 2) errors.uf = "2 letras.";
+      }
+      if (this.state.ckWantAccount && !this.state.authed) {
+        if (String(f.senha).length < 6) errors.senha = "Mínimo 6 caracteres.";
+        else if (f.senha !== f.senha2) errors.senha2 = "As senhas não conferem.";
+      }
+    }
+    if (step === 2 && this.state.ckPay === "cartao") {
+      if (!luhnOk(f.cnum)) errors.cnum = "Número inválido.";
+      if (String(f.cname).trim().length < 3) errors.cname = "Obrigatório.";
+      if (!expOk(f.cexp)) errors.cexp = "Validade inválida.";
+      if (dg(f.ccvv).length < 3) errors.ccvv = "3 dígitos.";
+    }
+    return errors;
+  };
+
+  ckNext = () => {
+    const step = this.state.ckStep;
+    const errors = this.validateStep(step);
+    let cepErr = "", shipErr = "";
+    if (step === 1) {
+      if (!this.state.ckFrete) cepErr = "Busque o CEP para ver as opções de envio.";
+      else if (!this.state.ckFreteChoice) shipErr = "Escolha um modo de envio.";
+    }
+    if (Object.keys(errors).length || cepErr || shipErr) {
+      this.setState({ ckErrors: errors, ckCepErr: cepErr || this.state.ckCepErr, ckShipErr: shipErr });
+      return;
+    }
+    this.setState({ ckErrors: {}, ckShipErr: "" });
+    if (step < 3) { this.setState({ ckStep: step + 1 }); return; }
+    this.placeOrder();
+  };
+
+  placeOrder = () => {
+    this.setState({ ckProcessing: true });
+    this.orderTimer = setTimeout(() => {
+      const t = this.totals();
+      const f = this.state.ckForm;
+      const ship = (this.state.ckFrete || []).find((x) => x.id === this.state.ckFreteChoice);
+      const num = "MNY-" + String(Math.floor(Math.random() * 9000) + 1000);
+      const pay = this.state.ckPay;
+      const items = Object.values(this.state.cart.reduce((acc, i) => {
+        const key = i.name + "|" + i.size;
+        if (!acc[key]) acc[key] = { name: i.name, size: i.size, qty: 0, unit: i.price };
+        acc[key].qty += 1;
+        return acc;
+      }, {}));
+      const order = {
+        num: num,
+        email: f.email,
+        date: new Date().toISOString(),
+        status: pay === "cartao" ? "Em produção" : pay === "pix" ? "Aguardando PIX" : "Aguardando boleto",
+        items: items,
+        total: t.total,
+        pay: pay,
+        inst: this.state.ckInst,
+        cardLast: pay === "cartao" ? dg(f.cnum).slice(-4) : "",
+        shipName: ship ? ship.name : "",
+        eta: ship ? ship.days : "",
+        city: this.state.ckCity,
+        cep: this.state.ckCep,
+        address: f.rua + ", " + f.num + (f.compl ? " — " + f.compl : "") + " · " + f.bairro,
+        tracking: "BR" + dg(num) + String(Math.floor(Math.random() * 900) + 100) + "MY",
+        pixCode: "00020126580014BR.GOV.BCB.PIX0136munaya-" + num.toLowerCase() + "-2027520400005303986540" + t.total.toFixed(2) + "5802BR5906MUNAYA6009SAO PAULO62070503***6304A1B2",
+      };
+
+      const wants = this.state.ckWantAccount && !this.state.authed;
+      const profile = { nome: f.nome, email: f.email, cpf: f.cpf, fone: f.fone, cep: this.state.ckCep, rua: f.rua, num: f.num, compl: f.compl, bairro: f.bairro, cidade: f.cidade, uf: f.uf };
+      const account = this.state.account
+        ? Object.assign({}, this.state.account, profile)
+        : (wants ? Object.assign({}, profile, { senha: f.senha }) : null);
+      const orders = account ? [order].concat(this.state.orders) : this.state.orders;
+      if (account) this.persist(account, orders);
+
+      this.setState({
+        ckProcessing: false,
+        screen: "pedido",
+        cart: [],
+        copied: false,
+        ckStep: 1,
+        ckPay: "pix",
+        ckInst: 1,
+        ckErrors: {},
+        account: account,
+        orders: orders,
+        authed: this.state.authed || wants,
+        acctForm: account ? Object.assign({}, EMPTY_ACCT, account, { senha: undefined }) : this.state.acctForm,
+        ckForm: Object.assign({}, f, { cnum: "", cname: "", cexp: "", ccvv: "", senha: "", senha2: "" }),
+        justSignedUp: wants,
+        order: order,
+      });
+    }, 900);
+  };
+
+  componentWillUnmount() {
+    if (this.orderTimer) clearTimeout(this.orderTimer);
+    window.removeEventListener("resize", this.onResize);
+  }
+
+  totals = () => {
+    const subtotal = this.state.cart.reduce((a, i) => a + i.price, 0);
+    const ship = (this.state.ckFrete || []).find((x) => x.id === this.state.ckFreteChoice);
+    const shipValue = ship ? ship.price : 0;
+    const discount = this.state.ckPay === "pix" ? subtotal * 0.05 : 0;
+    return { subtotal: subtotal, shipValue: shipValue, ship: ship, discount: discount, total: subtotal + shipValue - discount };
+  };
+
+  rail = (key, badges) => RAILS[key].map((id, i) => {
+    const p = PRODUCTS[id];
+    return {
+      name: p.name,
+      price: brl(p.price),
+      slotId: "pt-" + key + "-" + id,
+      src: "https://picsum.photos/900/1200?random=" + p.img,
+      placeholder: "Foto — " + p.name,
+      badge: badges ? badges[i] : "",
+      open: this.open(id),
+    };
+  });
+
+  go = (screen, extra) => this.setState(Object.assign({ screen: screen, warn: false, added: false, menuOpen: false }, extra || {}));
+
+  open = (id) => (e) => {
+    // só os controles da foto (trocar / reenquadrar) não navegam
+    const ne = e && (e.nativeEvent || e);
+    const path = ne && ne.composedPath ? ne.composedPath() : [];
+    if (path.some((n) => n && n.getAttribute && n.getAttribute("data-act"))) return;
+    this.go("produto", { productId: id, size: null, qty: 1 });
+  };
+
+  addToCart = () => {
+    if (!this.state.size) { this.setState({ warn: true }); return; }
+    const p = PRODUCTS[this.state.productId];
+    const entries = [];
+    for (let i = 0; i < this.state.qty; i++) {
+      entries.push({ id: Date.now() + i, name: p.name, price: p.price, size: this.state.size });
+    }
+    this.setState((s) => ({ cart: s.cart.concat(entries), warn: false, added: true, checkedOut: false }));
+  };
+
+  renderVals() {
+    const s = this.state;
+    const accent = this.props.accent ?? "#ff66c4";
+    const p = PRODUCTS[s.productId];
+    const total = s.cart.reduce((a, i) => a + i.price, 0);
+    const ck = this.totals();
+
+    return {
+      accent: accent,
+      heroRef: this.heroRef,
+
+      isDesktop: s.vw >= 1024,
+      asideDisplay: s.vw >= 1024 ? "flex" : "none",
+      isCompact: s.vw < 1024,
+      menuOpen: s.menuOpen,
+      toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }),
+      shellDir: s.vw >= 1024 ? "row" : "column",
+      barRef: this.barRef,
+      menuTop: (s.barH || 0) + "px",
+      heroH: s.vw >= 1024 ? "100vh" : "calc(100dvh - " + (s.barH || 0) + "px)",
+      ovOpacity: s.vw < 1024 ? 1 : 0,
+      gridCols: s.vw < 640 ? "1fr" : s.vw < 1024 ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
+      gridRow: s.vw < 640 ? "300px" : s.vw < 1024 ? "340px" : "400px",
+      prodDir: s.vw < 1024 ? "column" : "row",
+      prodImgH: s.vw < 640 ? "72vh" : s.vw < 1024 ? "80vh" : "100vh",
+      prodPanelW: s.vw < 1024 ? "100%" : "35%",
+      prodPanelMax: s.vw < 1024 ? "100%" : "46%",
+      prodPanelMin: s.vw < 1024 ? "0" : "300px",
+      prodBorderR: s.vw < 1024 ? "none" : "1px solid var(--fg)",
+      ckMainMin: s.vw < 900 ? "0" : "420px",
+      ckAsideW: s.vw < 900 ? "100%" : "380px",
+      ckAsideSticky: s.vw < 900 ? "static" : "sticky",
+
+
+      showHome: s.screen === "home",
+      showCategoria: s.screen === "categoria",
+      showProduto: s.screen === "produto",
+      showInfo: s.screen === "info",
+      showCheckout: s.screen === "checkout",
+      showPedido: s.screen === "pedido",
+      showLogin: s.screen === "login",
+      showConta: s.screen === "conta",
+
+      contaLabel: s.authed ? "Minha conta" : "Entrar",
+      contaColor: s.screen === "conta" || s.screen === "login" ? accent : "var(--fg)",
+      goConta: () => this.setState({
+        screen: s.authed ? "conta" : "login",
+        loginErr: "",
+        acctForm: s.account ? Object.assign({}, EMPTY_ACCT, s.account, { senha: undefined }) : s.acctForm,
+      }),
+
+      loginEmail: s.loginForm.email,
+      loginSenha: s.loginForm.senha,
+      onLoginEmail: (e) => this.setState({ loginForm: Object.assign({}, s.loginForm, { email: e.target.value }), loginErr: "" }),
+      onLoginSenha: (e) => this.setState({ loginForm: Object.assign({}, s.loginForm, { senha: e.target.value }), loginErr: "" }),
+      onLoginKey: (e) => { if (e.key === "Enter") this.doLogin(); },
+      doLogin: this.doLogin,
+      loginErr: s.loginErr,
+      loginHint: s.account
+        ? "Use o e-mail e a senha que você criou ao fechar seu pedido."
+        : "Ainda não há conta neste dispositivo. A senha é criada na etapa de entrega do checkout.",
+
+      acctFirstName: s.account ? String(s.account.nome).split(/\s+/)[0] : "Conta",
+      acctEmail: s.account ? s.account.email : "",
+      doLogout: this.doLogout,
+      acctTabs: [
+        { id: "pedidos", label: "Pedidos" },
+        { id: "dados", label: "Dados cadastrais" },
+        { id: "senha", label: "Senha" },
+      ].map((t) => ({
+        label: t.label,
+        bg: s.acctTab === t.id ? "var(--fg)" : "transparent",
+        fg: s.acctTab === t.id ? "var(--bg)" : "var(--fg)",
+        go: () => this.setState({ acctTab: t.id, acctMsg: "", pwMsg: "", pwErr: "" }),
+      })),
+      tabPedidos: s.acctTab === "pedidos",
+      tabDados: s.acctTab === "dados",
+      tabSenha: s.acctTab === "senha",
+      noOrders: s.orders.length === 0,
+      acctOrders: s.orders.map((o) => ({
+        num: o.num,
+        meta: new Date(o.date).toLocaleDateString("pt-BR") + " · " + o.items.reduce((a, i) => a + i.qty, 0) + " item(ns)",
+        status: o.status,
+        statusBg: o.status === "Em produção" ? "var(--fg)" : accent,
+        statusFg: o.status === "Em produção" ? "var(--bg)" : "#000",
+        total: brl(o.total),
+        open: s.openOrder === o.num,
+        toggleLabel: s.openOrder === o.num ? "Fechar" : "Detalhes",
+        toggle: () => this.setState({ openOrder: s.openOrder === o.num ? null : o.num }),
+        items: o.items.map((i) => ({ name: i.name, meta: "Tam " + i.size + " · " + i.qty + " un · " + brl(i.unit * i.qty) })),
+        address: o.address,
+        shipping: o.shipName + " · " + o.eta + " · " + o.city + " · CEP " + o.cep,
+        payment: o.pay === "cartao" ? "Cartão •••• " + o.cardLast + " · " + o.inst + "x" : o.pay === "pix" ? "PIX com 5% de desconto" : "Boleto bancário",
+        tracking: o.tracking,
+      })),
+      acctFields: ACCT_FIELDS.map((d) => ({
+        label: d.label, span: s.vw < 700 ? 12 : d.span, ph: d.ph, mode: d.mode, max: d.max || 80,
+        value: s.acctForm[d.k] || "",
+        err: s.acctErrors[d.k] || "",
+        border: s.acctErrors[d.k] ? accent : "var(--fg)",
+        onChange: this.setAcctField(d.k, d.mask),
+      })),
+      saveAcct: this.saveAcct,
+      acctMsg: s.acctMsg,
+      pwFields: PW_FIELDS.map((d) => ({
+        label: d.label,
+        value: s.pwForm[d.k],
+        onChange: this.setPwField(d.k),
+      })),
+      savePw: this.savePw,
+      pwErr: s.pwErr,
+      pwMsg: s.pwMsg,
+
+      ckShowSignup: !s.authed,
+      ckWantAccount: s.ckWantAccount,
+      ckAcctBoxBg: s.ckWantAccount ? "var(--fg)" : "transparent",
+      ckAcctBoxFg: s.ckWantAccount ? "var(--bg)" : "var(--fg)",
+      ckToggleAccount: () => this.setState({ ckWantAccount: !s.ckWantAccount, ckErrors: {} }),
+      ckPwFields: this.fieldList(CK_PW),
+      ckLoggedNote: s.authed && s.account ? "Você está na sua conta como " + s.account.email : "",
+
+      goHome: () => this.go("home"),
+      goCategoria: () => this.go("categoria"),
+      goSobre: () => this.go("info", { infoTitle: "Sobre" }),
+      goCaos: () => this.go("info", { infoTitle: "Caos" }),
+      openP1: this.open(1),
+      openP2: this.open(2),
+      openP3: this.open(3),
+      openP4: this.open(4),
+      openP5: this.open(5),
+
+      priceP1: brl(PRODUCTS[1].price),
+      priceP3: brl(PRODUCTS[3].price),
+      priceP4: brl(PRODUCTS[4].price),
+      priceP5: brl(PRODUCTS[5].price),
+
+      railBest: this.rail("railBest"),
+      railLimited: this.rail("railLimited", ["01 / 50", "01 / 30"]),
+      railCaps: this.rail("railCaps"),
+
+      qty: s.qty,
+      qtyMin: s.qty <= 1,
+      qtyMax: s.qty >= 10,
+      decOpacity: s.qty <= 1 ? 0.35 : 1,
+      incOpacity: s.qty >= 10 ? 0.35 : 1,
+      decQty: () => this.setState((st) => ({ qty: Math.max(1, st.qty - 1) })),
+      incQty: () => this.setState((st) => ({ qty: Math.min(10, st.qty + 1) })),
+
+      productName: p.name,
+      productPrice: brl(p.price),
+      productImages: [p.img, p.img + 10, p.img + 20].map((n, i) => ({
+        url: "https://picsum.photos/900/1200?random=" + n,
+        slotId: "pt-p" + s.productId + "-" + (i + 1),
+        alt: p.name + " — foto " + (i + 1),
+      })),
+
+      sizes: ["P", "M", "G", "GG"].map((label) => ({
+        label: label,
+        pressed: s.size === label,
+        bg: s.size === label ? "var(--fg)" : "transparent",
+        fg: s.size === label ? "var(--bg)" : "var(--fg)",
+        pick: () => this.setState({ size: label, warn: false }),
+      })),
+      guideOpen: s.guideOpen,
+      openGuide: () => this.setState({ guideOpen: true }),
+      closeGuide: () => this.setState({ guideOpen: false }),
+      guideRows: [
+        { size: "P", chest: "50 cm", length: "70 cm", sleeve: "20 cm" },
+        { size: "M", chest: "53 cm", length: "72 cm", sleeve: "21 cm" },
+        { size: "G", chest: "56 cm", length: "74 cm", sleeve: "22 cm" },
+        { size: "GG", chest: "59 cm", length: "76 cm", sleeve: "23 cm" },
+      ],
+
+      cep: s.cep,
+      onCep: (e) => this.setState({ cep: this.formatCep(e.target.value), freteError: false }),
+      onCepKey: (e) => { if (e.key === "Enter") this.calcFrete(); },
+      calcFrete: this.calcFrete,
+      freteLabel: s.frete ? "Refazer" : "Calcular",
+      freteError: s.freteError,
+      hasFrete: !!s.frete,
+      freteCity: s.freteCity,
+      freteOptions: (s.frete || []).map((f) => ({
+        name: f.name,
+        eta: f.days,
+        price: "R$ " + f.price.toFixed(2).replace(".", ","),
+        pressed: s.freteChoice === f.id,
+        bg: s.freteChoice === f.id ? "var(--fg)" : "transparent",
+        fg: s.freteChoice === f.id ? "var(--bg)" : "var(--fg)",
+        pick: () => this.setState({ freteChoice: f.id }),
+      })),
+
+      warn: s.warn,
+      addToCart: this.addToCart,
+      addLabel: s.added ? "Na sacola ✕" + (s.cart.length) : "Adicione a sacola",
+
+      cart: s.cart.map((i) => ({
+        name: i.name,
+        size: i.size,
+        price: brl(i.price),
+        remove: () => this.setState((st) => ({ cart: st.cart.filter((x) => x.id !== i.id), checkedOut: false })),
+      })),
+      cartCount: s.cart.length,
+      cartEmpty: s.cart.length === 0,
+      cartTotal: brl(total),
+      cartOpen: s.cartOpen,
+      toggleCart: () => this.setState((st) => ({ cartOpen: !st.cartOpen, checkedOut: false })),
+      checkout: () => {
+        if (!s.cart.length) return;
+        this.setState((st) => ({
+          screen: "checkout", cartOpen: false, ckStep: 1, ckErrors: {}, ckShipErr: "",
+          ckForm: Object.assign({}, st.ckForm, { cnum: "", cname: "", cexp: "", ccvv: "" }),
+        }));
+      },
+      checkoutOpacity: s.cart.length === 0 ? 0.4 : 1,
+
+      ckSteps: [
+        { n: 1, label: "Entrega" },
+        { n: 2, label: "Pagamento" },
+        { n: 3, label: "Revisão" },
+      ].map((st) => ({
+        num: "0" + st.n,
+        label: st.label,
+        bg: s.ckStep === st.n ? "var(--fg)" : "transparent",
+        fg: s.ckStep === st.n ? "var(--bg)" : "var(--fg)",
+        opacity: st.n <= s.ckStep ? 1 : 0.45,
+        cursor: st.n < s.ckStep ? "pointer" : "default",
+        go: () => { if (st.n < s.ckStep) this.setState({ ckStep: st.n, ckErrors: {} }); },
+      })),
+      ckStep1: s.ckStep === 1,
+      ckStep2: s.ckStep === 2,
+      ckStep3: s.ckStep === 3,
+      ckCanGoBack: s.ckStep > 1,
+      ckBack: () => this.setState({ ckStep: Math.max(1, s.ckStep - 1), ckErrors: {} }),
+      ckNext: this.ckNext,
+      ckNextLabel: s.ckProcessing ? "Processando…" : (s.ckStep === 1 ? "Ir para pagamento" : s.ckStep === 2 ? "Revisar pedido" : "Confirmar pedido"),
+      ckNextOpacity: s.ckProcessing ? 0.55 : 1,
+      ckProcessing: s.ckProcessing,
+
+      ckIdFields: this.fieldList(CK_ID),
+      ckAddrFields: this.fieldList(CK_ADDR),
+      ckCardFields: this.fieldList(CK_CARD),
+
+      ckCep: s.ckCep,
+      ckOnCep: (e) => this.setState({ ckCep: maskCep(e.target.value), ckCepErr: "" }),
+      ckCepKey: (e) => { if (e.key === "Enter") this.ckCalcFrete(); },
+      ckCalcFrete: this.ckCalcFrete,
+      ckCepErr: s.ckCepErr,
+      ckCepBorder: s.ckCepErr ? accent : "var(--fg)",
+      ckHasFrete: !!s.ckFrete,
+      ckShipErr: s.ckShipErr,
+      ckFreteOptions: (s.ckFrete || []).map((f) => ({
+        name: f.name,
+        eta: f.days + " · " + s.ckCity,
+        price: brl(f.price),
+        pressed: s.ckFreteChoice === f.id,
+        bg: s.ckFreteChoice === f.id ? "var(--fg)" : "transparent",
+        fg: s.ckFreteChoice === f.id ? "var(--bg)" : "var(--fg)",
+        pick: () => this.setState({ ckFreteChoice: f.id, ckShipErr: "" }),
+      })),
+
+      ckPayOptions: [
+        { id: "pix", name: "PIX", note: "5% de desconto · aprovação imediata", value: brl(ck.subtotal * 0.95 + ck.shipValue) },
+        { id: "cartao", name: "Cartão", note: "Até 6x sem juros", value: brl(ck.subtotal + ck.shipValue) },
+        { id: "boleto", name: "Boleto", note: "Vence em 2 dias úteis", value: brl(ck.subtotal + ck.shipValue) },
+      ].map((p) => ({
+        name: p.name,
+        note: p.note,
+        value: p.value,
+        pressed: s.ckPay === p.id,
+        bg: s.ckPay === p.id ? "var(--fg)" : "transparent",
+        fg: s.ckPay === p.id ? "var(--bg)" : "var(--fg)",
+        pick: () => this.setState({ ckPay: p.id, ckErrors: {}, ckInst: 1 }),
+      })),
+      ckIsCard: s.ckPay === "cartao",
+      ckIsPix: s.ckPay === "pix",
+      ckIsBoleto: s.ckPay === "boleto",
+      ckInstallments: [1, 2, 3, 6].map((n) => ({
+        label: n === 1 ? "1x " + brl(ck.total) : n + "x " + brl(ck.total / n),
+        pressed: s.ckInst === n,
+        bg: s.ckInst === n ? "var(--fg)" : "transparent",
+        fg: s.ckInst === n ? "var(--bg)" : "var(--fg)",
+        pick: () => this.setState({ ckInst: n }),
+      })),
+
+      ckReview: [
+        {
+          label: "Quem recebe",
+          line1: s.ckForm.nome || "—",
+          line2: [s.ckForm.email, s.ckForm.fone].filter(Boolean).join(" · "),
+          edit: () => this.setState({ ckStep: 1, ckErrors: {} }),
+        },
+        {
+          label: "Entrega",
+          line1: s.ckForm.rua ? s.ckForm.rua + ", " + s.ckForm.num + (s.ckForm.compl ? " — " + s.ckForm.compl : "") : "—",
+          line2: [s.ckForm.bairro, s.ckCity, "CEP " + s.ckCep, ck.ship ? ck.ship.name + " · " + ck.ship.days : ""].filter(Boolean).join(" · "),
+          edit: () => this.setState({ ckStep: 1, ckErrors: {} }),
+        },
+        {
+          label: "Pagamento",
+          line1: s.ckPay === "pix" ? "PIX" : s.ckPay === "cartao" ? "Cartão de crédito" : "Boleto bancário",
+          line2: s.ckPay === "cartao"
+            ? "•••• " + dg(s.ckForm.cnum).slice(-4) + " · " + s.ckInst + "x de " + brl(ck.total / s.ckInst)
+            : s.ckPay === "pix" ? "Desconto de 5% aplicado" : "Compensação em até 3 dias úteis",
+          edit: () => this.setState({ ckStep: 2, ckErrors: {} }),
+        },
+      ],
+
+      ckItems: Object.values(s.cart.reduce((acc, i) => {
+        const key = i.name + "|" + i.size;
+        if (!acc[key]) acc[key] = { name: i.name, size: i.size, qty: 0, unit: i.price };
+        acc[key].qty += 1;
+        return acc;
+      }, {})).map((g) => ({
+        name: g.name,
+        meta: "Tam " + g.size + " · " + g.qty + " un · " + brl(g.unit),
+        line: brl(g.unit * g.qty),
+      })),
+      ckTotals: [
+        { label: "Subtotal", value: brl(ck.subtotal), color: "var(--fg)" },
+        { label: "Frete" + (ck.ship ? " · " + ck.ship.name : ""), value: ck.ship ? brl(ck.shipValue) : "a calcular", color: "var(--fg)" },
+      ].concat(ck.discount > 0 ? [{ label: "Desconto PIX 5%", value: "− " + brl(ck.discount), color: accent }] : []),
+      ckTotal: brl(ck.total),
+      ckPayNote: s.ckPay === "cartao" ? "Em até 6x de " + brl(ck.total / 6) + " sem juros" : s.ckPay === "pix" ? "À vista no PIX, com 5% de desconto" : "Boleto à vista, vence em 2 dias úteis",
+
+      orderIntro: s.order
+        ? "Pedido " + s.order.num + " registrado. Enviamos a confirmação para " + s.order.email + " com o código de rastreio assim que a peça sair daqui."
+        : "",
+      orderFacts: s.order ? [
+        { label: "Pedido", value: s.order.num, note: "Guarde esse número para falar com a gente" },
+        { label: "Total", value: brl(s.order.total), note: s.order.pay === "cartao" ? s.order.inst + "x sem juros" : s.order.pay === "pix" ? "PIX com 5% de desconto" : "Boleto à vista" },
+        { label: s.order.shipName, value: s.order.eta, note: s.order.city },
+        { label: "Endereço", value: s.order.city, note: s.order.address },
+      ] : [],
+      orderIsPix: !!s.order && s.order.pay === "pix",
+      orderPixCode: s.order ? s.order.pixCode : "",
+      copyLabel: s.copied ? "Código copiado" : "Copiar código",
+      copyPix: () => {
+        if (s.order && navigator.clipboard) navigator.clipboard.writeText(s.order.pixCode).catch(() => {});
+        this.setState({ copied: true });
+      },
+
+      infoTitle: s.infoTitle,
+    };
+  }
+}
+</script>
+</body>
+</html>

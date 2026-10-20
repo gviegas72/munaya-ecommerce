@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Inter:wght@400..900&display=swap" rel="stylesheet">
+<script src="./doc-page.js"></script>
+<style>
+  doc-page:not(:defined) { visibility: hidden }
+  a { color: #b3007a; text-decoration: underline }
+  a:hover { color: #000 }
+</style>
+</helmet>
+
+<doc-page margin="0.7in">
+
+  <div style="font-family: Inter, system-ui, sans-serif; color: #111; font-size: 10.5pt; line-height: 1.55;">
+
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; border-bottom: 3px solid #111; padding-bottom: 14px;">
+      <div>
+        <div style="font-family: Oswald, sans-serif; font-size: 30pt; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1;">Munaya — Acessibilidade</div>
+        <div style="margin-top: 6px; font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #666;">WCAG 2.2 AA · código e cores · todas as telas</div>
+      </div>
+      <div style="width: 44px; height: 44px; flex: none; background-color: #ff66c4; mask-image: url('uploads/logo_v2027_vetor.png'); mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-image: url('uploads/logo_v2027_vetor.png'); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;"></div>
+    </div>
+
+    <p style="margin: 18px 0 0 0; font-size: 12pt; line-height: 1.5;">A paleta da Munaya é, por acidente felizardo, quase ideal para acessibilidade: branco puro sobre preto puro rende 21:1, sete vezes o mínimo exigido. O problema não está nas cores — está no teclado. A maior parte dos controles do site é feita de <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">div</span> com aparência de botão, e nenhum deles responde a Enter ou Espaço. Quem não usa mouse não consegue navegar, escolher tamanho pelo card, abrir a sacola ou concluir uma compra.</p>
+
+    <p style="margin: 14px 0 0 0;">Foram avaliadas nove telas: Home, Coleção, Produto, as três etapas do Checkout, Pedido confirmado, Entrar e Minha conta, mais os dois painéis sobrepostos (Sacola e Guia de tamanhos). Conforme combinado, o conteúdo fotográfico ficou fora da análise — o que inclui o contraste de texto sobreposto a imagens, que depende da foto escolhida.</p>
+
+    <div style="margin-top: 22px; border: 2px solid #111; padding: 16px 18px; break-inside: avoid;">
+      <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">Resumo</div>
+      <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+        <div>
+          <div style="font-family: Oswald, sans-serif; font-size: 26pt; font-weight: 700; line-height: 1; color: #b3007a;">6</div>
+          <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #555; margin-top: 3px;">Falhas críticas</div>
+        </div>
+        <div>
+          <div style="font-family: Oswald, sans-serif; font-size: 26pt; font-weight: 700; line-height: 1; color: #c96a00;">7</div>
+          <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #555; margin-top: 3px;">Falhas médias</div>
+        </div>
+        <div>
+          <div style="font-family: Oswald, sans-serif; font-size: 26pt; font-weight: 700; line-height: 1; color: #2c7a3f;">21:1</div>
+          <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #555; margin-top: 3px;">Contraste base</div>
+        </div>
+        <div>
+          <div style="font-family: Oswald, sans-serif; font-size: 26pt; font-weight: 700; line-height: 1; color: #b3007a;">0</div>
+          <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #555; margin-top: 3px;">Indicadores de foco</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 26px; border-top: 1px solid #ddd; padding-top: 18px;">
+      <div style="font-family: Oswald, sans-serif; font-size: 17pt; font-weight: 700; text-transform: uppercase;">1. Falhas críticas</div>
+      <p style="margin: 6px 0 0 0; color: #555;">Cada uma delas impede, por si só, que parte dos usuários complete uma compra.</p>
+    </div>
+
+    <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 14px;">
+
+      <div style="break-inside: avoid; border-left: 4px solid #b3007a; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.1 Controles não funcionam pelo teclado</div>
+        <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #777; margin-top: 3px;">WCAG 2.1.1 Teclado (A) · 4.1.2 Nome, função, valor (A)</div>
+        <p style="margin: 6px 0 0 0;">Cerca de trinta controles são <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">div role="button" tabindex="0"</span> com apenas <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">onClick</span>. Um <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">div</span> não dispara clique com Enter nem Espaço, ao contrário de um <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">button</span> nativo. O elemento recebe foco, o usuário pressiona Enter, e nada acontece.</p>
+        <p style="margin: 6px 0 0 0;">Atinge: todo o menu lateral e o menu mobile, o logo, o botão da sacola, os cinco cards da grade e os nove cards das trilhas, o CTA da home, os links "Alterar" e "Tirar", os passos do checkout, as abas da conta, o botão "Sair", o fechar dos dois painéis e o "Copiar código" do PIX. Em resumo: a navegação inteira e a maior parte do fluxo de compra.</p>
+        <p style="margin: 6px 0 0 0;"><strong>Correção:</strong> trocar por <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">button type="button"</span> com fundo transparente e borda removida. Os campos de tamanho, quantidade, frete, pagamento e os botões de avanço já usam <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">button</span> nativo e funcionam — é o mesmo padrão, só não aplicado de forma consistente.</p>
+      </div>
+
+      <div style="break-inside: avoid; border-left: 4px solid #b3007a; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.2 Nenhum indicador de foco visível</div>
+        <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #777; margin-top: 3px;">WCAG 2.4.7 Foco visível (AA) · 2.4.11 Foco não obscurecido (AA)</div>
+        <p style="margin: 6px 0 0 0;">Não existe uma única regra de <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">:focus</span> ou <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">:focus-visible</span> em todo o projeto. Todos os estados são de <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">hover</span>, que o teclado nunca aciona. O usuário tabula às cegas, sem saber onde está.</p>
+        <p style="margin: 6px 0 0 0;"><strong>Correção:</strong> um contorno de 3px em <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">#ff66c4</span> com deslocamento de 2px, aplicado globalmente. O rosa da marca rende 7,95:1 sobre o preto — mais que o triplo do mínimo de 3:1 exigido para indicadores. Aqui a identidade visual resolve a acessibilidade sem concessão.</p>
+      </div>
+
+      <div style="break-inside: avoid; border-left: 4px solid #b3007a; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.3 Painéis sobrepostos sem gestão de foco</div>
+        <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #777; margin-top: 3px;">WCAG 2.1.2 Sem bloqueio de teclado (A) · 2.4.3 Ordem de foco (A)</div>
+        <p style="margin: 6px 0 0 0;">A Sacola e o Guia de tamanhos abrem sobre a página, mas o foco permanece atrás deles. O usuário de teclado continua tabulando pelo conteúdo escondido, sem alcançar o painel; quem usa leitor de tela não é avisado de que algo abriu. Também não há fechamento por Esc nem devolução do foco ao botão de origem. A Sacola ainda não declara <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">role="dialog"</span> — o Guia declara.</p>
+        <p style="margin: 6px 0 0 0;"><strong>Correção:</strong> mover o foco para o painel ao abrir, confinar a tabulação dentro dele, fechar com Esc, devolver o foco ao abrir de onde veio e marcar o fundo como inerte.</p>
+      </div>
+
+      <div style="break-inside: avoid; border-left: 4px solid #b3007a; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.4 Troca de tela é silenciosa</div>
+        <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #777; margin-top: 3px;">WCAG 4.1.3 Mensagens de status (AA) · 2.4.3 Ordem de foco (A)</div>
+        <p style="margin: 6px 0 0 0;">O site troca de tela substituindo o conteúdo, sem recarregar a página. Nada move o foco nem anuncia a mudança, então o leitor de tela segue lendo a posição antiga enquanto a tela por baixo já é outra. O mesmo vale para as três etapas do checkout e para a conclusão do pedido.</p>
+        <p style="margin: 6px 0 0 0;"><strong>Correção:</strong> ao trocar de tela, mover o foco para o <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">h1</span> correspondente e anunciar o novo título por região de status.</p>
+      </div>
+
+      <div style="break-inside: avoid; border-left: 4px solid #b3007a; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.5 Erros de formulário não são anunciados nem associados</div>
+        <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #777; margin-top: 3px;">WCAG 3.3.1 Identificação de erro (A) · 4.1.3 Mensagens de status (AA)</div>
+        <p style="margin: 6px 0 0 0;">A validação é boa — CPF com dígito verificador, cartão por Luhn, validade contra a data atual. Mas a mensagem de erro aparece apenas como texto solto abaixo do campo, sem <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">aria-describedby</span>, sem <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">aria-invalid</span> e sem região de status. Quem usa leitor de tela pressiona "Ir para pagamento", não avança e não recebe explicação. O erro também é sinalizado por cor da borda, sem ícone ou texto no próprio campo.</p>
+        <p style="margin: 6px 0 0 0;"><strong>Correção:</strong> dar <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">id</span> a cada mensagem, referenciá-la no campo, marcar <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">aria-invalid="true"</span>, e mover o foco ao primeiro campo inválido ao tentar avançar.</p>
+      </div>
+
+      <div style="break-inside: avoid; border-left: 4px solid #b3007a; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.6 Idioma da página não declarado</div>
+        <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #777; margin-top: 3px;">WCAG 3.1.1 Idioma da página (A)</div>
+        <p style="margin: 6px 0 0 0;">O elemento <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">html</span> não tem atributo <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">lang</span>. O leitor de tela usa a voz padrão do sistema, e um conteúdo em português lido com pronúncia inglesa fica ininteligível. Correção de um atributo: <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">lang="pt-BR"</span>.</p>
+      </div>
+
+    </div>
+
+    <div style="margin-top: 26px; border-top: 1px solid #ddd; padding-top: 18px; break-before: page;">
+      <div style="font-family: Oswald, sans-serif; font-size: 17pt; font-weight: 700; text-transform: uppercase;">2. Análise de contraste</div>
+      <p style="margin: 6px 0 0 0; color: #555;">Razões calculadas pela fórmula de luminância relativa da W3C. Mínimos AA: 4,5:1 para texto normal, 3:1 para texto grande (24px, ou 19px em negrito) e para elementos não textuais.</p>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5pt;">
+      <caption style="text-align: left; font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #666; padding-bottom: 6px;">Combinações declaradas no código</caption>
+      <thead>
+        <tr style="background: #111; color: #fff; font-family: Oswald, sans-serif; text-transform: uppercase; font-size: 9pt; letter-spacing: .06em;">
+          <th scope="col" style="text-align: left; padding: 8px 10px;">Combinação</th>
+          <th scope="col" style="text-align: left; padding: 8px 10px; width: 12%;">Onde</th>
+          <th scope="col" style="text-align: left; padding: 8px 10px; width: 10%;">Razão</th>
+          <th scope="col" style="text-align: left; padding: 8px 10px; width: 12%;">Veredito</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px;">Branco <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">#fff</span> sobre preto <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">#000</span></td>
+          <td style="padding: 9px 10px;">Títulos e corpo, todas as telas</td>
+          <td style="padding: 9px 10px; font-weight: 700;">21,0:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #2c7a3f;">AAA</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px;">Preto sobre branco (botão invertido)</td>
+          <td style="padding: 9px 10px;">CTA, "Adicione a sacola", avanços</td>
+          <td style="padding: 9px 10px; font-weight: 700;">21,0:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #2c7a3f;">AAA</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px;">Rosa <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">#ff66c4</span> sobre preto</td>
+          <td style="padding: 9px 10px;">Erros, selos, "É pecado", conta</td>
+          <td style="padding: 9px 10px; font-weight: 700;">7,95:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #2c7a3f;">AAA</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px;">Preto sobre rosa <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">#ff66c4</span></td>
+          <td style="padding: 9px 10px;">Contador da sacola, selo de tiragem</td>
+          <td style="padding: 9px 10px; font-weight: 700;">7,95:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #2c7a3f;">AAA</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px;">Branco a 80% sobre preto</td>
+          <td style="padding: 9px 10px;">Preço do produto, descrições</td>
+          <td style="padding: 9px 10px; font-weight: 700;">13,1:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #2c7a3f;">AAA</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px;">Branco a 70% sobre preto</td>
+          <td style="padding: 9px 10px;">Textos de apoio, rótulos de campo</td>
+          <td style="padding: 9px 10px; font-weight: 700;">10,0:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #2c7a3f;">AAA</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px;">Branco a 60% sobre preto</td>
+          <td style="padding: 9px 10px;">Subtítulo da coleção, metadados</td>
+          <td style="padding: 9px 10px; font-weight: 700;">7,37:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #2c7a3f;">AAA</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px;">Branco a 55% sobre preto</td>
+          <td style="padding: 9px 10px;">Rótulos de 11px na conta e no pedido</td>
+          <td style="padding: 9px 10px; font-weight: 700;">6,25:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #2c7a3f;">AA</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px;">Branco a 50% sobre preto</td>
+          <td style="padding: 9px 10px;">"Máximo de 10", qualificadores</td>
+          <td style="padding: 9px 10px; font-weight: 700;">5,32:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #2c7a3f;">AA</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px;">Botão desabilitado (branco a 35%)</td>
+          <td style="padding: 9px 10px;">Menos/mais da quantidade</td>
+          <td style="padding: 9px 10px; font-weight: 700;">3,00:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #777;">Isento</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 9px 10px;">Vermelho <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">#dc2626</span> sobre preto</td>
+          <td style="padding: 9px 10px;">Site atual, botão do card</td>
+          <td style="padding: 9px 10px; font-weight: 700;">4,35:1</td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #b3007a;">Falha AA</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin: 14px 0 0 0;">Duas conclusões. A primeira: as opacidades improvisadas que a análise de UX apontou como problema de sistema de design não são problema de contraste — mesmo a mais fraca, 50%, passa em AA com folga. A segunda: o único valor que falha é o vermelho <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">#dc2626</span> herdado da paleta padrão do framework, que já era o único fora do sistema de cores. Substituí-lo pelo rosa da marca corrige a falha e a inconsistência no mesmo movimento.</p>
+
+    <div style="margin-top: 26px; border-top: 1px solid #ddd; padding-top: 18px;">
+      <div style="font-family: Oswald, sans-serif; font-size: 17pt; font-weight: 700; text-transform: uppercase;">3. Falhas médias</div>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5pt;">
+      <thead>
+        <tr style="background: #111; color: #fff; font-family: Oswald, sans-serif; text-transform: uppercase; font-size: 9pt; letter-spacing: .06em;">
+          <th scope="col" style="text-align: left; padding: 8px 10px; width: 26%;">Item</th>
+          <th scope="col" style="text-align: left; padding: 8px 10px; width: 17%;">Critério</th>
+          <th scope="col" style="text-align: left; padding: 8px 10px;">Descrição e correção</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">Contador da sacola sem contexto</td>
+          <td style="padding: 9px 10px; vertical-align: top;">1.3.1 (A)</td>
+          <td style="padding: 9px 10px; vertical-align: top;">O selo mostra só o número, lido como "3" isolado. Adicionar texto oculto: "3 itens na sacola".</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">Alvos de toque pequenos</td>
+          <td style="padding: 9px 10px; vertical-align: top;">2.5.8 (AA)</td>
+          <td style="padding: 9px 10px; vertical-align: top;">"Guia de tamanhos", "Alterar", "Tirar" e "Continuar comprando" têm cerca de 18px de altura, abaixo do mínimo de 24px. Aumentar o preenchimento vertical.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">Texto sobre vídeo com mistura de cor</td>
+          <td style="padding: 9px 10px; vertical-align: top;">1.4.3 (AA)</td>
+          <td style="padding: 9px 10px; vertical-align: top;">"Vista a Revolução." usa <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">mix-blend-difference</span> sobre vídeo em movimento: o contraste muda a cada quadro e não há garantia de mínimo. Fixar branco sobre faixa escura sólida.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">Vídeo em reprodução automática sem controle</td>
+          <td style="padding: 9px 10px; vertical-align: top;">2.2.2 (A)</td>
+          <td style="padding: 9px 10px; vertical-align: top;">O hero roda em laço infinito, sem pausa. Acima de 5 segundos é exigido um controle. A regra de movimento reduzido cobre animações, não o vídeo — incluir a consulta também para ele.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">Sem link de salto</td>
+          <td style="padding: 9px 10px; vertical-align: top;">2.4.1 (A)</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Não há "pular para o conteúdo": o teclado atravessa o menu inteiro em cada tela. Adicionar link de salto visível ao receber foco.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">Tabela do guia sem semântica</td>
+          <td style="padding: 9px 10px; vertical-align: top;">1.3.1 (A)</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Os cabeçalhos não têm <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">scope</span> e a tabela não tem legenda, então a associação entre medida e tamanho se perde na leitura linear.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">Caixa de "criar conta" improvisada</td>
+          <td style="padding: 9px 10px; vertical-align: top;">4.1.2 (A)</td>
+          <td style="padding: 9px 10px; vertical-align: top;">A caixa de seleção é um <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">div</span> com <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">aria-pressed</span>, anunciada como botão em vez de caixa. Usar <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">input type="checkbox"</span> com rótulo.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 26px; border-top: 1px solid #ddd; padding-top: 18px; break-before: page;">
+      <div style="font-family: Oswald, sans-serif; font-size: 17pt; font-weight: 700; text-transform: uppercase;">4. O que já está correto</div>
+      <p style="margin: 6px 0 0 0; color: #555;">Vale registrar: há bastante coisa certa, e ela deve ser preservada nas correções.</p>
+    </div>
+
+    <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+      <div style="border: 1px solid #ddd; padding: 14px; break-inside: avoid;">
+        <div style="font-family: Oswald, sans-serif; font-size: 12pt; font-weight: 700; text-transform: uppercase;">Campos com rótulo real</div>
+        <p style="margin: 5px 0 0 0; font-size: 9.5pt;">Todos os campos do checkout e da conta estão envolvidos por <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">label</span>, com rótulo permanente em vez de texto de exemplo dentro do campo.</p>
+      </div>
+      <div style="border: 1px solid #ddd; padding: 14px; break-inside: avoid;">
+        <div style="font-family: Oswald, sans-serif; font-size: 12pt; font-weight: 700; text-transform: uppercase;">Estado real de seleção</div>
+        <p style="margin: 5px 0 0 0; font-size: 9.5pt;">Tamanho, frete, pagamento e parcelas usam <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">aria-pressed</span> em botão nativo. Corrige o defeito do site atual, onde a seleção era só <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">:focus</span>.</p>
+      </div>
+      <div style="border: 1px solid #ddd; padding: 14px; break-inside: avoid;">
+        <div style="font-family: Oswald, sans-serif; font-size: 12pt; font-weight: 700; text-transform: uppercase;">Movimento reduzido respeitado</div>
+        <p style="margin: 5px 0 0 0; font-size: 9.5pt;">A consulta <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">prefers-reduced-motion</span> desliga as animações. O pulsar infinito do botão de compra, que existe no site atual, foi eliminado.</p>
+      </div>
+      <div style="border: 1px solid #ddd; padding: 14px; break-inside: avoid;">
+        <div style="font-family: Oswald, sans-serif; font-size: 12pt; font-weight: 700; text-transform: uppercase;">Marcos e títulos</div>
+        <p style="margin: 5px 0 0 0; font-size: 9.5pt;">Há <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">header</span>, <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">nav</span>, <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">main</span>, <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">aside</span> e <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">section</span>, com um <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">h1</span> por tela e hierarquia sem saltos.</p>
+      </div>
+      <div style="border: 1px solid #ddd; padding: 14px; break-inside: avoid;">
+        <div style="font-family: Oswald, sans-serif; font-size: 12pt; font-weight: 700; text-transform: uppercase;">Quantidade anunciada</div>
+        <p style="margin: 5px 0 0 0; font-size: 9.5pt;">O número da quantidade usa <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">aria-live="polite"</span>, então a mudança é falada. É o padrão que falta nos erros de formulário.</p>
+      </div>
+      <div style="border: 1px solid #ddd; padding: 14px; break-inside: avoid;">
+        <div style="font-family: Oswald, sans-serif; font-size: 12pt; font-weight: 700; text-transform: uppercase;">Bordas e contornos fortes</div>
+        <p style="margin: 5px 0 0 0; font-size: 9.5pt;">Bordas de campo e de botão são brancas de 2px sobre preto: 21:1, muito acima do mínimo de 3:1 para elementos não textuais.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 26px; border-top: 1px solid #ddd; padding-top: 18px;">
+      <div style="font-family: Oswald, sans-serif; font-size: 17pt; font-weight: 700; text-transform: uppercase;">5. Observação sobre tipografia</div>
+    </div>
+
+    <p style="margin: 12px 0 0 0;">Praticamente todo o texto do site é caixa alta, por <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">text-transform</span>. Isso não afeta leitores de tela — eles leem o texto original — mas remove as ascendentes e descendentes que dão silhueta às palavras, o que reduz a velocidade de leitura e prejudica especialmente pessoas com dislexia. Não é violação de critério; é recomendação da W3C. Como a caixa alta é parte central da identidade, o caminho é mantê-la em títulos, botões e rótulos curtos, e usar caixa mista nos blocos de texto corrido: descrição do produto, texto do manifesto, notas do guia de tamanhos e políticas.</p>
+
+    <p style="margin: 12px 0 0 0;">Um segundo ponto: os tamanhos usam <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">clamp</span> com unidades de viewport. O zoom do navegador funciona, mas o ajuste apenas de texto não tem efeito sobre esses valores. Ancorar o <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">clamp</span> em <span style="font-family: ui-monospace, Menlo, monospace; font-size: 10pt;">rem</span> resolve, sem mudar a aparência.</p>
+
+    <div style="margin-top: 26px; border-top: 1px solid #ddd; padding-top: 18px;">
+      <div style="font-family: Oswald, sans-serif; font-size: 17pt; font-weight: 700; text-transform: uppercase;">6. Ordem de correção</div>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5pt;">
+      <thead>
+        <tr style="background: #111; color: #fff; font-family: Oswald, sans-serif; text-transform: uppercase; font-size: 9pt; letter-spacing: .06em;">
+          <th scope="col" style="text-align: left; padding: 8px 10px; width: 6%;">#</th>
+          <th scope="col" style="text-align: left; padding: 8px 10px;">Ação</th>
+          <th scope="col" style="text-align: left; padding: 8px 10px; width: 15%;">Esforço</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">1</td><td style="padding: 8px 10px;">Declarar <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">lang="pt-BR"</span></td><td style="padding: 8px 10px;">Trivial</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">2</td><td style="padding: 8px 10px;">Contorno de foco global em rosa da marca</td><td style="padding: 8px 10px;">Trivial</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">3</td><td style="padding: 8px 10px;">Substituir o vermelho <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">#dc2626</span> pelo rosa da marca</td><td style="padding: 8px 10px;">Trivial</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">4</td><td style="padding: 8px 10px;">Trocar os <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">div role="button"</span> por <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">button</span> nativo</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">5</td><td style="padding: 8px 10px;">Associar erros aos campos e anunciá-los</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">6</td><td style="padding: 8px 10px;">Nome acessível no contador da sacola; alvos de toque a 24px</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">7</td><td style="padding: 8px 10px;">Link de salto; <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9pt;">scope</span> e legenda na tabela do guia</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">8</td><td style="padding: 8px 10px;">Faixa sólida atrás do texto do hero; controle de pausa no vídeo</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">9</td><td style="padding: 8px 10px;">Gestão de foco nos painéis: confinamento, Esc e devolução</td><td style="padding: 8px 10px;">Médio</td></tr>
+        <tr><td style="padding: 8px 10px; font-weight: 700;">10</td><td style="padding: 8px 10px;">Foco e anúncio a cada troca de tela e etapa do checkout</td><td style="padding: 8px 10px;">Médio</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin: 20px 0 0 0; font-size: 9.5pt; color: #555; border-top: 1px solid #ddd; padding-top: 12px;">Os três primeiros itens são de minutos e já eliminam duas falhas de nível A e uma de AA. O item 4 é o de maior impacto: sozinho, devolve o site a quem navega por teclado. Nada nesta lista exige mudar a aparência — o contraste da marca já é excelente, e o indicador de foco usa a própria cor de acento.</p>
+
+  </div>
+
+</doc-page>
+</x-dc>
+</body>
+</html>
