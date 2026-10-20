@@ -1499,7 +1499,7 @@ class Component extends DCLogic {
       entries.push({
         id: Date.now() + i,
         productId: this.state.productId,
-        nuvemshopId: p.nuvemshopId || "375454425",
+        nuvemshopId: p.nuvemshopId || String(this.state.productId),
         name: p.name,
         price: p.price,
         size: this.state.size,
@@ -1729,11 +1729,10 @@ class Component extends DCLogic {
         // Agrupa todos os itens da sacola por produto e tamanho somando quantidades
         const groupedMap = {};
         s.cart.forEach((i) => {
-          const key = (i.nuvemshopId || "375454425") + "_" + i.size;
+          const key = String(i.productId) + "_" + String(i.size);
           if (!groupedMap[key]) {
             groupedMap[key] = {
-              nuvemshopId: i.nuvemshopId || "375454425",
-              productId: i.productId || "375454425",
+              productId: i.productId,
               size: i.size,
               quantity: 0,
             };
@@ -1749,7 +1748,7 @@ class Component extends DCLogic {
           const variantId =
             (p.variants && p.variants[it.size]) ||
             BONZO_VARIANTS[it.size] ||
-            it.nuvemshopId;
+            "1622729750";
           return `${variantId}-${it.quantity || 1}`;
         });
 

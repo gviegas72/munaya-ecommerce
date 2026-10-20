@@ -101,8 +101,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         ? input.price
         : `R$ ${rawPrice.toFixed(0)}`;
 
-    const nuvemshopId = String(input.nuvemshopId || input.productId || "375454425");
-    const id = `${nuvemshopId}-${input.size}`;
+    const nuvemshopId = String(input.nuvemshopId || input.productId || "");
+    const id = `${input.productId}-${input.size}`;
     const qty = input.quantity && input.quantity > 0 ? input.quantity : 1;
 
     setItems((prevItems) => {
