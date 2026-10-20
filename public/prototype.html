@@ -99,9 +99,9 @@
 
         <div style="display: grid; grid-template-columns: {{ gridCols }}; grid-auto-rows: {{ gridRow }}; gap: clamp(14px, 2.5vw, 32px);">
           <div role="button" tabindex="0" onClick="{{ openP1 }}" style="grid-column: span 2; grid-row: span 2; position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
-            <image-slot id="pt-cat-1" shape="rect" src="https://picsum.photos/900/1200?random=1" placeholder="Foto — Chaos Theory" style="width: 100%; height: 100%; filter: grayscale(1);"></image-slot>
+            <image-slot id="pt-cat-1" shape="rect" src="/uploads/modelo_bonzo_01.jpg" placeholder="Foto — Munaya Bonzo" style="width: 100%; height: 100%;"></image-slot>
             <div style="position: absolute; inset: 0; background: rgba(0,0,0,.7); opacity: {{ ovOpacity }}; pointer-events: none; transition: opacity .3s; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: 24px; box-sizing: border-box;" style-hover="opacity: 1;">
-              <h2 style="font-family: Oswald, sans-serif; font-size: 72px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .9; text-align: center; margin: 0;">Chaos Theory</h2>
+              <h2 style="font-family: Oswald, sans-serif; font-size: 72px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.05em; line-height: .9; text-align: center; margin: 0;">Munaya Bonzo</h2>
               <span style="margin-top: 8px; font-family: Oswald, sans-serif; font-size: 30px; font-weight: 700;">{{ priceP1 }}</span>
               <div style="margin-top: 32px; background: #fff; color: #000; padding: 12px 32px; font-weight: 900; text-transform: uppercase; font-size: 20px; transform: skewX(-12deg);">Ver Detalhes</div>
             </div>
@@ -796,20 +796,63 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#ff66c4&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#ff66c4&quot;,&quot;#ff3131&quot;,&quot;#3b82f6&quot;,&quot;#ffffff&quot;]}}">
 const PRODUCTS = {
-  1: { name: "Chaos Theory", price: 40, img: 1 },
-  2: { name: "Nevermind", price: 35, img: 2 },
-  3: { name: "Distortion", price: 45, img: 3 },
-  4: { name: "Riot", price: 30, img: 4 },
-  5: { name: "Anarchy", price: 40, img: 5 },
-  6: { name: "Bonzo", price: 40, img: 31 },
-  7: { name: "Lion Heart", price: 45, img: 32 },
-  8: { name: "Feedback", price: 35, img: 33 },
-  9: { name: "Ruína 001", price: 90, img: 34 },
-  10: { name: "Estática", price: 85, img: 35 },
-  11: { name: "Última Faixa", price: 95, img: 36 },
-  12: { name: "Boné Crest", price: 30, img: 37 },
-  13: { name: "Boné Static", price: 30, img: 38 },
-  14: { name: "Boné Pit", price: 35, img: 39 },
+  1: {
+    name: "Munaya Bonzo",
+    price: 119,
+    nuvemshopId: "375454425",
+    images: [
+      "/uploads/modelo_bonzo_01.jpg",
+      "/uploads/01_BONZO_detalhe_01.jpg",
+      "/distortion-bonzo.png",
+    ],
+    img: 31,
+  },
+  2: {
+    name: "Lion Heart",
+    price: 119,
+    images: [
+      "/uploads/MUNAYA_LionHeart_mostra02.jpg",
+      "/distortion-lionheart.png",
+    ],
+    img: 32,
+  },
+  3: {
+    name: "Chaos Theory",
+    price: 119,
+    images: [
+      "/limited-raglan-psych-v3.png",
+    ],
+    img: 1,
+  },
+  4: { name: "Nevermind", price: 119, img: 2 },
+  5: { name: "Distortion", price: 119, img: 3 },
+  6: {
+    name: "Munaya Bonzo",
+    price: 119,
+    nuvemshopId: "375454425",
+    images: [
+      "/uploads/modelo_bonzo_01.jpg",
+      "/uploads/01_BONZO_detalhe_01.jpg",
+      "/distortion-bonzo.png",
+    ],
+    img: 31,
+  },
+  7: {
+    name: "Lion Heart",
+    price: 119,
+    images: [
+      "/uploads/MUNAYA_LionHeart_mostra02.jpg",
+      "/distortion-lionheart.png",
+    ],
+    img: 32,
+  },
+  8: { name: "Feedback", price: 119, img: 33 },
+  9: { name: "Ruína 001", price: 119, img: 34 },
+  10: { name: "Estática", price: 119, img: 35 },
+  11: { name: "Última Faixa", price: 119, img: 36 },
+  12: { name: "Boné Crest", price: 79, img: 37 },
+  13: { name: "Boné Static", price: 79, img: 38 },
+  14: { name: "Boné Pit", price: 79, img: 39 },
 };
 
 const brl = (v) => "R$ " + v.toFixed(2).replace(".", ",");
@@ -1291,7 +1334,7 @@ class Component extends DCLogic {
       name: p.name,
       price: brl(p.price),
       slotId: "pt-" + key + "-" + id,
-      src: "https://picsum.photos/900/1200?random=" + p.img,
+      src: (p.images && p.images[0]) ? p.images[0] : ("https://picsum.photos/900/1200?random=" + p.img),
       placeholder: "Foto — " + p.name,
       badge: badges ? badges[i] : "",
       open: this.open(id),
@@ -1313,9 +1356,16 @@ class Component extends DCLogic {
     const p = PRODUCTS[this.state.productId];
     const entries = [];
     for (let i = 0; i < this.state.qty; i++) {
-      entries.push({ id: Date.now() + i, name: p.name, price: p.price, size: this.state.size });
+      entries.push({
+        id: Date.now() + i,
+        productId: this.state.productId,
+        nuvemshopId: p.nuvemshopId || "375454425",
+        name: p.name,
+        price: p.price,
+        size: this.state.size,
+      });
     }
-    this.setState((s) => ({ cart: s.cart.concat(entries), warn: false, added: true, checkedOut: false }));
+    this.setState((s) => ({ cart: s.cart.concat(entries), warn: false, added: true, checkedOut: false, cartOpen: true }));
   };
 
   renderVals() {
@@ -1468,8 +1518,8 @@ class Component extends DCLogic {
 
       productName: p.name,
       productPrice: brl(p.price),
-      productImages: [p.img, p.img + 10, p.img + 20].map((n, i) => ({
-        url: "https://picsum.photos/900/1200?random=" + n,
+      productImages: (p.images && p.images.length ? p.images : [p.img, p.img + 10, p.img + 20].map((n) => "https://picsum.photos/900/1200?random=" + n)).map((url, i) => ({
+        url: url,
         slotId: "pt-p" + s.productId + "-" + (i + 1),
         alt: p.name + " — foto " + (i + 1),
       })),
@@ -1516,6 +1566,7 @@ class Component extends DCLogic {
       cart: s.cart.map((i) => ({
         name: i.name,
         size: i.size,
+        nuvemshopId: i.nuvemshopId,
         price: brl(i.price),
         remove: () => this.setState((st) => ({ cart: st.cart.filter((x) => x.id !== i.id), checkedOut: false })),
       })),
@@ -1526,10 +1577,32 @@ class Component extends DCLogic {
       toggleCart: () => this.setState((st) => ({ cartOpen: !st.cartOpen, checkedOut: false })),
       checkout: () => {
         if (!s.cart.length) return;
-        this.setState((st) => ({
-          screen: "checkout", cartOpen: false, ckStep: 1, ckErrors: {}, ckShipErr: "",
-          ckForm: Object.assign({}, st.ckForm, { cnum: "", cname: "", cexp: "", ccvv: "" }),
-        }));
+        const item = s.cart[0];
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
+        form.style.display = "none";
+
+        const addInput = document.createElement("input");
+        addInput.type = "hidden";
+        addInput.name = "add_to_cart";
+        addInput.value = String(item.nuvemshopId || "375454425");
+
+        const varInput = document.createElement("input");
+        varInput.type = "hidden";
+        varInput.name = "variation[0]";
+        varInput.value = item.size;
+
+        const qtyInput = document.createElement("input");
+        qtyInput.type = "hidden";
+        qtyInput.name = "quantity";
+        qtyInput.value = String(s.cart.filter((x) => x.name === item.name && x.size === item.size).length || 1);
+
+        form.appendChild(addInput);
+        form.appendChild(varInput);
+        form.appendChild(qtyInput);
+        document.body.appendChild(form);
+        form.submit();
       },
       checkoutOpacity: s.cart.length === 0 ? 0.4 : 1,
 
