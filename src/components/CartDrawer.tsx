@@ -42,63 +42,44 @@ export function CartDrawer() {
     };
   }, [isOpen]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (items.length === 0) return;
 
     try {
       setIsCheckingOut(true);
       setErrorMsg(null);
 
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          items: items.map((it) => ({
-            productId: it.nuvemshopId || it.productId,
-            nuvemshopId: it.nuvemshopId,
-            size: it.size,
-            quantity: it.quantity,
-          })),
-        }),
-      });
+      // Submete diretamente o formulário via navegador do usuário (evita bloqueios de Cloudflare)
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
+      form.style.display = "none";
 
-      const data = await res.json();
+      const primaryItem = items[0];
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
-        // Fallback para o primeiro item via form se a rota falhar
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
-        form.style.display = "none";
+      const addInput = document.createElement("input");
+      addInput.type = "hidden";
+      addInput.name = "add_to_cart";
+      addInput.value = String(primaryItem.nuvemshopId || "375454425");
 
-        const addInput = document.createElement("input");
-        addInput.type = "hidden";
-        addInput.name = "add_to_cart";
-        addInput.value = String(items[0].nuvemshopId || "375454425");
+      const varInput = document.createElement("input");
+      varInput.type = "hidden";
+      varInput.name = "variation[0]";
+      varInput.value = primaryItem.size;
 
-        const varInput = document.createElement("input");
-        varInput.type = "hidden";
-        varInput.name = "variation[0]";
-        varInput.value = items[0].size;
+      const qtyInput = document.createElement("input");
+      qtyInput.type = "hidden";
+      qtyInput.name = "quantity";
+      qtyInput.value = String(primaryItem.quantity || 1);
 
-        const qtyInput = document.createElement("input");
-        qtyInput.type = "hidden";
-        qtyInput.name = "quantity";
-        qtyInput.value = String(items[0].quantity);
-
-        form.appendChild(addInput);
-        form.appendChild(varInput);
-        form.appendChild(qtyInput);
-        document.body.appendChild(form);
-        form.submit();
-      }
+      form.appendChild(addInput);
+      form.appendChild(varInput);
+      form.appendChild(qtyInput);
+      document.body.appendChild(form);
+      form.submit();
     } catch (err) {
       console.error("Erro no checkout:", err);
-      setErrorMsg("Erro ao conectar com a finalização. Tente novamente.");
+      setErrorMsg("Erro ao iniciar finalização. Tente novamente.");
       setIsCheckingOut(false);
     }
   };
