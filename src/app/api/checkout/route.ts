@@ -55,11 +55,19 @@ export async function POST(req: NextRequest) {
       });
 
       // Atualizar cookies da sessão
-      const newCookies = res.headers.getSetCookie
-        ? res.headers.getSetCookie()
-        : [];
+      let newCookies: string[] = [];
+      if (typeof res.headers.getSetCookie === "function") {
+        newCookies = res.headers.getSetCookie();
+      }
+      if (!newCookies || newCookies.length === 0) {
+        const raw = res.headers.get("set-cookie");
+        if (raw) {
+          newCookies = raw.split(/,(?=[^;]+;)/g);
+        }
+      }
       if (newCookies.length > 0) {
-        cookieHeader = newCookies.map((c) => c.split(";")[0]).join("; ");
+        const parsed = newCookies.map((c) => c.split(";")[0].trim()).filter(Boolean);
+        cookieHeader = parsed.join("; ");
       }
     }
 
@@ -92,7 +100,12 @@ export async function POST(req: NextRequest) {
     // Caso o checkout direto não tenha retornado 302 com /checkout/, retorna o carrinho padrão
     return NextResponse.json({
       success: true,
-      checkoutUrl: `${STORE_URL}/comprar/`,
+      checkoutUrl: location || `${STORE_URL}/comprar/`,
+      debug: {
+        location,
+        chkStatus: chkRes.status,
+        cookiesPresent: Boolean(cookieHeader),
+      },
     });
   } catch (err: unknown) {
     console.error("❌ [API/CHECKOUT] Erro ao gerar checkout na Nuvemshop:", err);
