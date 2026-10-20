@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X, Plus, Minus, Loader2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { CATALOG_VARIANTS } from "@/lib/nuvemshop";
 
 export function CartDrawer() {
   const {
@@ -49,19 +50,26 @@ export function CartDrawer() {
       setIsCheckingOut(true);
       setErrorMsg(null);
 
-      const BONZO_VARIANTS: Record<string, string> = {
-        P: "1622729750",
-        M: "1622729751",
-        G: "1622729752",
-        GG: "1622729753",
-      };
-
       const tokens = items.map((it) => {
-        const variantId =
-          (it as any).variantId ||
-          BONZO_VARIANTS[it.size] ||
-          it.nuvemshopId ||
-          "375454425";
+        let variantId = (it as any).variantId;
+
+        if (!variantId) {
+          const itemKey = (it.name || "").toLowerCase();
+          for (const [key, map] of Object.entries(CATALOG_VARIANTS)) {
+            if (itemKey.includes(key)) {
+              variantId = map[it.size];
+              break;
+            }
+          }
+        }
+
+        if (!variantId) {
+          variantId =
+            CATALOG_VARIANTS.bonzo[it.size] ||
+            it.nuvemshopId ||
+            "375454425";
+        }
+
         return `${variantId}-${it.quantity || 1}`;
       });
 
@@ -141,7 +149,7 @@ export function CartDrawer() {
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover object-center grayscale hover:grayscale-0 transition-all duration-300"
+                    className="w-full h-full object-cover object-center transition-all duration-300"
                   />
                 </div>
 
@@ -210,7 +218,7 @@ export function CartDrawer() {
             </p>
 
             {errorMsg && (
-              <p className="text-xs text-red-500 font-bold">{errorMsg}</p>
+              <p className="text-xs text-accent font-bold">{errorMsg}</p>
             )}
 
             <button

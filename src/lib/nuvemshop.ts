@@ -73,13 +73,46 @@ const ACCESS_TOKEN = process.env.NUVEMSHOP_ACCESS_TOKEN;
  * Produtos base locais (Pilotos) para exibição imediata caso a API oficial
  * ainda não esteja com o Access Token gerado no painel da Nuvemshop
  */
+export const CATALOG_VARIANTS: Record<string, Record<string, string>> = {
+  bonzo: {
+    P: "1622729750",
+    M: "1622729751",
+    G: "1622729752",
+    GG: "1622729753",
+  },
+  dimebag: {
+    P: "1623046305",
+    M: "1623046306",
+    G: "1623046307",
+    GG: "1623046308",
+  },
+  ghost: {
+    P: "1623046693",
+    M: "1623046694",
+    G: "1623046695",
+    GG: "1623046696",
+  },
+  cathedral: {
+    P: "1623047278",
+    M: "1623047279",
+    G: "1623047280",
+    GG: "1623047281",
+  },
+  amplificador: {
+    P: "1623047745",
+    M: "1623047746",
+    G: "1623047747",
+    GG: "1623047748",
+  },
+};
+
 export const LOCAL_FALLBACK_PRODUCTS: StoreProduct[] = [
   {
     id: 1,
     nuvemshopId: "375454425",
     name: "Munaya Bonzo",
-    price: "R$ 119",
-    rawPrice: 119.0,
+    price: "R$ 89,90",
+    rawPrice: 89.9,
     image: "/uploads/modelo_bonzo_01.jpg",
     images: [
       "/uploads/modelo_bonzo_01.jpg",
@@ -87,57 +120,99 @@ export const LOCAL_FALLBACK_PRODUCTS: StoreProduct[] = [
       "/distortion-bonzo.png",
     ],
     description:
-      "Camiseta 100% algodão estonado pesado. Modelagem streetwear reta. Estampa Bonzo sob demanda Dimona em alta definição.",
+      "Camiseta 100% algodão penteado 30.1. Estampa Bonzo exclusiva Munaya em alta definição.",
     span: "col-span-1 md:col-span-2 row-span-2",
     variants: [
-      { id: 1622729750, size: "P", sku: "MUNAYA-BONZO-PRETA-P", price: "R$ 119" },
-      { id: 1622729751, size: "M", sku: "MUNAYA-BONZO-PRETA-M", price: "R$ 119" },
-      { id: 1622729752, size: "G", sku: "MUNAYA-BONZO-PRETA-G", price: "R$ 119" },
-      { id: 1622729753, size: "GG", sku: "MUNAYA-BONZO-PRETA-GG", price: "R$ 119" },
+      { id: 1622729750, size: "P", sku: "MUNAYA-BONZO-PRETA-P", price: "R$ 89,90" },
+      { id: 1622729751, size: "M", sku: "MUNAYA-BONZO-PRETA-M", price: "R$ 89,90" },
+      { id: 1622729752, size: "G", sku: "MUNAYA-BONZO-PRETA-G", price: "R$ 89,90" },
+      { id: 1622729753, size: "GG", sku: "MUNAYA-BONZO-PRETA-GG", price: "R$ 89,90" },
     ],
     checkoutUrl: `${STORE_URL}/produtos/camiseta-munaya-bonzo-27l82/`,
   },
   {
     id: 2,
-    name: "Lion Heart",
-    price: "R$ 119",
-    rawPrice: 119.0,
-    image: "/uploads/MUNAYA_LionHeart_mostra02.jpg",
+    name: "Camiseta Dimebag",
+    price: "R$ 89,90",
+    rawPrice: 89.9,
+    image: "/uploads/DIMEBAG_camiseta.jpg",
     images: [
-      "/uploads/MUNAYA_LionHeart_mostra02.jpg",
-      "/distortion-lionheart.png",
+      "/uploads/DIMEBAG_camiseta.jpg",
+      "/uploads/DIMEBAG_detalhe_02.jpg",
     ],
     description:
-      "Camiseta 100% algodão preto profundo. Estampa Lion Heart com acabamento premium de toque zero.",
+      "Camiseta 100% algodão preta profunda. Estampa Dimebag com visual agressivo e acabamento toque zero.",
     span: "col-span-1 row-span-1",
     variants: [
-      { id: 201, size: "P", sku: "MUNAYA-LION-PRETA-P", price: "R$ 119" },
-      { id: 202, size: "M", sku: "MUNAYA-LION-PRETA-M", price: "R$ 119" },
-      { id: 203, size: "G", sku: "MUNAYA-LION-PRETA-G", price: "R$ 119" },
-      { id: 204, size: "GG", sku: "MUNAYA-LION-PRETA-GG", price: "R$ 119" },
+      { id: 1623046305, size: "P", sku: "MUNAYA-DIMEBAG-PRETA-P", price: "R$ 89,90" },
+      { id: 1623046306, size: "M", sku: "MUNAYA-DIMEBAG-PRETA-M", price: "R$ 89,90" },
+      { id: 1623046307, size: "G", sku: "MUNAYA-DIMEBAG-PRETA-G", price: "R$ 89,90" },
+      { id: 1623046308, size: "GG", sku: "MUNAYA-DIMEBAG-PRETA-GG", price: "R$ 89,90" },
     ],
-    checkoutUrl: `${STORE_URL}/produtos/`,
+    checkoutUrl: `${STORE_URL}/produtos/camiseta-dimebag/`,
   },
   {
     id: 3,
-    name: "Chaos Theory",
-    price: "R$ 119",
-    rawPrice: 119.0,
-    image: "/limited-raglan-psych-v3.png",
+    name: "Camiseta Ghost",
+    price: "R$ 89,90",
+    rawPrice: 89.9,
+    image: "/uploads/GHOST_camiseta.jpg",
     images: [
-      "/limited-raglan-psych-v3.png",
-      "/distortion-bonzo.png",
+      "/uploads/GHOST_camiseta.jpg",
+      "/uploads/GHOST_detalhe_01.jpg",
+      "/uploads/GHOST_modelos.jpg",
     ],
     description:
-      "Camiseta especial raglan / streetwear. Edição Chaos Theory inspirada nas raízes do punk e grunge.",
+      "Camiseta estampa Ghost. Confeccionada em algodão de alta qualidade e caimento streetwear impecável.",
     span: "col-span-1 row-span-1",
     variants: [
-      { id: 301, size: "P", sku: "MUNAYA-CHAOS-PRETA-P", price: "R$ 119" },
-      { id: 302, size: "M", sku: "MUNAYA-CHAOS-PRETA-M", price: "R$ 119" },
-      { id: 303, size: "G", sku: "MUNAYA-CHAOS-PRETA-G", price: "R$ 119" },
-      { id: 304, size: "GG", sku: "MUNAYA-CHAOS-PRETA-GG", price: "R$ 119" },
+      { id: 1623046693, size: "P", sku: "MUNAYA-GHOST-PRETA-P", price: "R$ 89,90" },
+      { id: 1623046694, size: "M", sku: "MUNAYA-GHOST-PRETA-M", price: "R$ 89,90" },
+      { id: 1623046695, size: "G", sku: "MUNAYA-GHOST-PRETA-G", price: "R$ 89,90" },
+      { id: 1623046696, size: "GG", sku: "MUNAYA-GHOST-PRETA-GG", price: "R$ 89,90" },
     ],
-    checkoutUrl: `${STORE_URL}/produtos/`,
+    checkoutUrl: `${STORE_URL}/produtos/camiseta-ghost/`,
+  },
+  {
+    id: 4,
+    name: "Camiseta Cathedral",
+    price: "R$ 89,90",
+    rawPrice: 89.9,
+    image: "/uploads/BORN2ROCK_camiseta.jpg",
+    images: [
+      "/uploads/BORN2ROCK_camiseta.jpg",
+      "/uploads/BORN2ROCK_detalhe_01.jpg",
+    ],
+    description:
+      "Camiseta estampa Cathedral. Estética pesada, inspirada no doom/stoner metal com conforto absoluto.",
+    span: "col-span-1 md:col-span-2 row-span-1",
+    variants: [
+      { id: 1623047278, size: "P", sku: "MUNAYA-CATHEDRAL-PRETA-P", price: "R$ 89,90" },
+      { id: 1623047279, size: "M", sku: "MUNAYA-CATHEDRAL-PRETA-M", price: "R$ 89,90" },
+      { id: 1623047280, size: "G", sku: "MUNAYA-CATHEDRAL-PRETA-G", price: "R$ 89,90" },
+      { id: 1623047281, size: "GG", sku: "MUNAYA-CATHEDRAL-PRETA-GG", price: "R$ 89,90" },
+    ],
+    checkoutUrl: `${STORE_URL}/produtos/camiseta-cathedral/`,
+  },
+  {
+    id: 5,
+    name: "Camiseta Amplificador",
+    price: "R$ 89,90",
+    rawPrice: 89.9,
+    image: "/uploads/amp_detalhe_01.jpg",
+    images: [
+      "/uploads/amp_detalhe_01.jpg",
+    ],
+    description:
+      "Camiseta estampa Amplificador. O som valvulado e a distorção bruta estampados em algodão premium.",
+    span: "col-span-1 row-span-1",
+    variants: [
+      { id: 1623047745, size: "P", sku: "MUNAYA-AMPLIFICADOR-PRETA-P", price: "R$ 89,90" },
+      { id: 1623047746, size: "M", sku: "MUNAYA-AMPLIFICADOR-PRETA-M", price: "R$ 89,90" },
+      { id: 1623047747, size: "G", sku: "MUNAYA-AMPLIFICADOR-PRETA-G", price: "R$ 89,90" },
+      { id: 1623047748, size: "GG", sku: "MUNAYA-AMPLIFICADOR-PRETA-GG", price: "R$ 89,90" },
+    ],
+    checkoutUrl: `${STORE_URL}/produtos/camiseta-amplificador/`,
   },
 ];
 

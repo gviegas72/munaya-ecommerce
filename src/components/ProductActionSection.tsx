@@ -83,7 +83,7 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
           </div>
 
           {errorMsg && (
-            <p className="mt-3 text-red-500 font-bold text-sm tracking-wide">
+            <p className="mt-3 text-accent font-bold text-sm tracking-wide">
               {errorMsg}
             </p>
           )}

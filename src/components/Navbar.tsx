@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, ShoppingBag } from "lucide-react";
-import { ThemeToggle } from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
 
 export function Navbar() {
@@ -112,13 +111,6 @@ export function Navbar() {
               </span>
             </button>
           </div>
-
-          <div className="pt-6 mt-4 border-t border-foreground flex items-center justify-between">
-            <span className="font-sans text-sm font-bold uppercase opacity-60">
-              Modo Escuro / Claro
-            </span>
-            <ThemeToggle />
-          </div>
         </nav>
       )}
 
@@ -179,7 +171,7 @@ export function Navbar() {
           </nav>
         </div>
 
-        {/* Rodapé da Sidebar: Botão Sacola & Toggle de Tema */}
+        {/* Rodapé da Sidebar: Botão Sacola */}
         <div className="mt-8 flex flex-col gap-4">
           <button
             type="button"
@@ -191,7 +183,6 @@ export function Navbar() {
               {totalCount}
             </span>
           </button>
-          <ThemeToggle />
         </div>
       </aside>
     </>

@@ -29,7 +29,7 @@ export default async function ProductDetail({ params }: ProductPageProps) {
             <img
               src={src}
               alt={`${product.name} - Detalhe ${idx + 1}`}
-              className="w-full h-full object-cover object-center grayscale hover:grayscale-0 transition-all duration-700"
+              className="w-full h-full object-cover object-center transition-all duration-700 hover:scale-105"
             />
           </div>
         ))}

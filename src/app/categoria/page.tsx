@@ -29,7 +29,7 @@ export default async function Category() {
               <img
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-cover object-center grayscale hover:grayscale-0 transition-all duration-700"
+                className="w-full h-full object-cover object-center transition-all duration-700"
               />
             </div>
 
