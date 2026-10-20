@@ -1593,10 +1593,11 @@ class Component extends DCLogic {
           groupedMap[key].quantity += 1;
         });
 
-        const itemsPayload = Object.values(groupedMap);
+        const items = Object.values(groupedMap);
 
-        const fallback = () => {
-          const item = s.cart[0];
+        // Se houver apenas 1 item/tamanho (mesmo com múltiplas unidades)
+        if (items.length === 1) {
+          const item = items[0];
           const form = document.createElement("form");
           form.method = "POST";
           form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
@@ -1615,7 +1616,48 @@ class Component extends DCLogic {
           const qtyInput = document.createElement("input");
           qtyInput.type = "hidden";
           qtyInput.name = "quantity";
-          qtyInput.value = String(s.cart.filter((x) => x.name === item.name && x.size === item.size).length || 1);
+          qtyInput.value = String(item.quantity || 1);
+
+          form.appendChild(addInput);
+          form.appendChild(varInput);
+          form.appendChild(qtyInput);
+          document.body.appendChild(form);
+          form.submit();
+          return;
+        }
+
+        // Se houver múltiplos itens ou tamanhos diferentes (ex: 1 Bonzo P + 1 Bonzo G):
+        // Usa iframe oculto no navegador do usuário para enviar o primeiro item, e a janela principal para o último
+        let iframe = document.getElementById("nuvem_cart_sink");
+        if (!iframe) {
+          iframe = document.createElement("iframe");
+          iframe.id = "nuvem_cart_sink";
+          iframe.name = "nuvem_cart_sink";
+          iframe.style.display = "none";
+          document.body.appendChild(iframe);
+        }
+
+        const submitItem = (item, target) => {
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
+          form.target = target;
+          form.style.display = "none";
+
+          const addInput = document.createElement("input");
+          addInput.type = "hidden";
+          addInput.name = "add_to_cart";
+          addInput.value = String(item.nuvemshopId || "375454425");
+
+          const varInput = document.createElement("input");
+          varInput.type = "hidden";
+          varInput.name = "variation[0]";
+          varInput.value = item.size;
+
+          const qtyInput = document.createElement("input");
+          qtyInput.type = "hidden";
+          qtyInput.name = "quantity";
+          qtyInput.value = String(item.quantity || 1);
 
           form.appendChild(addInput);
           form.appendChild(varInput);
@@ -1624,20 +1666,21 @@ class Component extends DCLogic {
           form.submit();
         };
 
-        fetch("/api/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items: itemsPayload }),
-        })
-          .then((r) => r.json())
-          .then((data) => {
-            if (data.checkoutUrl) {
-              window.location.href = data.checkoutUrl;
-            } else {
-              fallback();
-            }
-          })
-          .catch(() => fallback());
+        // Envia os primeiros itens para o iframe oculto
+        let delay = 0;
+        for (let i = 0; i < items.length - 1; i++) {
+          const it = items[i];
+          setTimeout(() => {
+            submitItem(it, "nuvem_cart_sink");
+          }, delay);
+          delay += 600;
+        }
+
+        // Envia o último item na janela principal para redirecionar o usuário com o carrinho completo
+        const lastItem = items[items.length - 1];
+        setTimeout(() => {
+          submitItem(lastItem, "_self");
+        }, delay + 300);
       },
       checkoutOpacity: s.cart.length === 0 ? 0.4 : 1,
 
