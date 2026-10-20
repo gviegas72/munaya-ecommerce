@@ -1577,32 +1577,67 @@ class Component extends DCLogic {
       toggleCart: () => this.setState((st) => ({ cartOpen: !st.cartOpen, checkedOut: false })),
       checkout: () => {
         if (!s.cart.length) return;
-        const item = s.cart[0];
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
-        form.style.display = "none";
 
-        const addInput = document.createElement("input");
-        addInput.type = "hidden";
-        addInput.name = "add_to_cart";
-        addInput.value = String(item.nuvemshopId || "375454425");
+        // Agrupa todos os itens da sacola por produto e tamanho somando quantidades
+        const groupedMap = {};
+        s.cart.forEach((i) => {
+          const key = (i.nuvemshopId || "375454425") + "_" + i.size;
+          if (!groupedMap[key]) {
+            groupedMap[key] = {
+              nuvemshopId: i.nuvemshopId || "375454425",
+              productId: i.productId || "375454425",
+              size: i.size,
+              quantity: 0,
+            };
+          }
+          groupedMap[key].quantity += 1;
+        });
 
-        const varInput = document.createElement("input");
-        varInput.type = "hidden";
-        varInput.name = "variation[0]";
-        varInput.value = item.size;
+        const itemsPayload = Object.values(groupedMap);
 
-        const qtyInput = document.createElement("input");
-        qtyInput.type = "hidden";
-        qtyInput.name = "quantity";
-        qtyInput.value = String(s.cart.filter((x) => x.name === item.name && x.size === item.size).length || 1);
+        const fallback = () => {
+          const item = s.cart[0];
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "https://munayarocks.lojavirtualnuvem.com.br/comprar/";
+          form.style.display = "none";
 
-        form.appendChild(addInput);
-        form.appendChild(varInput);
-        form.appendChild(qtyInput);
-        document.body.appendChild(form);
-        form.submit();
+          const addInput = document.createElement("input");
+          addInput.type = "hidden";
+          addInput.name = "add_to_cart";
+          addInput.value = String(item.nuvemshopId || "375454425");
+
+          const varInput = document.createElement("input");
+          varInput.type = "hidden";
+          varInput.name = "variation[0]";
+          varInput.value = item.size;
+
+          const qtyInput = document.createElement("input");
+          qtyInput.type = "hidden";
+          qtyInput.name = "quantity";
+          qtyInput.value = String(s.cart.filter((x) => x.name === item.name && x.size === item.size).length || 1);
+
+          form.appendChild(addInput);
+          form.appendChild(varInput);
+          form.appendChild(qtyInput);
+          document.body.appendChild(form);
+          form.submit();
+        };
+
+        fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: itemsPayload }),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.checkoutUrl) {
+              window.location.href = data.checkoutUrl;
+            } else {
+              fallback();
+            }
+          })
+          .catch(() => fallback());
       },
       checkoutOpacity: s.cart.length === 0 ? 0.4 : 1,
 
