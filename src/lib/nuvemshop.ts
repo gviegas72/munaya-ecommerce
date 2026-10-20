@@ -93,7 +93,7 @@ export const LOCAL_FALLBACK_PRODUCTS: StoreProduct[] = [
       { id: 103, size: "G", sku: "MUNAYA-BONZO-PRETA-G", price: "R$ 119" },
       { id: 104, size: "GG", sku: "MUNAYA-BONZO-PRETA-GG", price: "R$ 119" },
     ],
-    checkoutUrl: `${STORE_URL}/produtos/camiseta-munaya-bonzo/`,
+    checkoutUrl: `${STORE_URL}/produtos/camiseta-munaya-bonzo-27l82/`,
   },
   {
     id: 2,

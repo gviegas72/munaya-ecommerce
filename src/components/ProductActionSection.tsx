@@ -30,15 +30,8 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
       (v) => v.size.toUpperCase() === selectedSize.toUpperCase()
     );
 
-    // Se tivermos a URL de checkout da Nuvemshop
-    let destinationUrl = product.checkoutUrl;
-    if (selectedVariant?.id) {
-      // Se tivermos o ID da variação, pode ir direto com parâmetro de variante
-      destinationUrl = `${product.checkoutUrl}?variant=${selectedVariant.id}`;
-    }
-
-    // Redireciona diretamente para o checkout/produto na Nuvemshop
-    window.location.href = destinationUrl;
+    // Redireciona diretamente para a página oficial do produto na Nuvemshop
+    window.location.href = product.checkoutUrl;
   };
 
   return (
