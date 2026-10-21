@@ -61,6 +61,69 @@ export async function getCatalogProducts(): Promise<DatabaseProduct[]> {
 }
 
 /**
+ * Busca todos os produtos para a tela de administração (ativos e inativos)
+ */
+export async function getAllProductsAdmin(): Promise<DatabaseProduct[]> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("products")
+      .select("*")
+      .order("display_order", { ascending: true });
+
+    if (error || !data) return [];
+    return data as DatabaseProduct[];
+  } catch (err) {
+    console.error("Erro ao buscar produtos admin no Supabase:", err);
+    return [];
+  }
+}
+
+/**
+ * Atualiza um produto no catálogo via painel administrativo
+ */
+export async function updateProductAdmin(
+  id: number,
+  updates: Partial<DatabaseProduct>
+) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("products")
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("Erro ao atualizar produto no Supabase:", msg);
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Busca todos os pedidos para a tela de administração
+ */
+export async function getDatabaseOrdersAdmin() {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error || !data) return [];
+    return data;
+  } catch (err) {
+    console.error("Erro ao listar pedidos no Supabase:", err);
+    return [];
+  }
+}
+
+/**
  * Grava ou atualiza um pedido no banco de dados
  */
 export async function saveDatabaseOrder(order: any) {

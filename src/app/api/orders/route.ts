@@ -1,7 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createDimonaOrder, DimonaOrderItem } from "@/lib/dimona";
 import { getArtworkUrl } from "@/lib/artworks";
-import { saveDatabaseOrder } from "@/lib/supabase";
+import { saveDatabaseOrder, getDatabaseOrdersAdmin } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
+
+/**
+ * Lista todos os pedidos registrados no Supabase (para o painel de admin)
+ * Rota: GET /api/orders
+ */
+export async function GET(_req: NextRequest) {
+  try {
+    const orders = await getDatabaseOrdersAdmin();
+    return NextResponse.json({
+      success: true,
+      orders,
+    });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+  }
+}
 
 /**
  * Endpoint de Criação e Despacho de Pedidos do Checkout Headless Munaya
