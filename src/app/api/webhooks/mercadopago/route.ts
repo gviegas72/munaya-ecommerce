@@ -3,6 +3,7 @@ import { getMercadoPagoOrder } from "@/lib/mercadopago";
 import { createDimonaOrder } from "@/lib/dimona";
 import { getArtworkUrl } from "@/lib/artworks";
 import { saveDatabaseOrder } from "@/lib/supabase";
+import { verifyMercadoPagoWebhookSignature } from "@/lib/mp-webhook-auth";
 
 /**
  * Webhook Oficial do Mercado Pago
@@ -17,6 +18,16 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const eventId = id || body?.data?.id || body?.id;
     const action = body?.action || topic || "order.updated";
+
+    // Validação de assinatura HMAC do Mercado Pago (Fase 1 AppSec)
+    const xSignature = req.headers.get("x-signature");
+    const xRequestId = req.headers.get("x-request-id");
+    const isValidSignature = verifyMercadoPagoWebhookSignature(xSignature, xRequestId, String(eventId || ""));
+
+    if (!isValidSignature) {
+      console.error("⛔ [WEBHOOK REJEITADO] Assinatura HMAC inválida ou forjada.");
+      return NextResponse.json({ error: "Assinatura inválida." }, { status: 403 });
+    }
 
     console.log("🔔 [WEBHOOK MERCADO PAGO]", { action, eventId });
 
