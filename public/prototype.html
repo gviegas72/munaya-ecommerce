@@ -1306,7 +1306,7 @@ class Component extends DCLogic {
     ph: d.ph,
     mode: d.mode,
     max: d.max || 80,
-    value: this.state.ckForm[d.k],
+    value: this.state.ckForm[d.k] || "",
     err: this.state.ckErrors[d.k] || "",
     border: this.state.ckErrors[d.k] ? (this.props.accent ?? "#ff66c4") : "var(--fg)",
     onChange: this.setField(d.k, d.mask),
@@ -1378,6 +1378,25 @@ class Component extends DCLogic {
       this.setState({ ckCepErr: "CEP incompleto — 8 dígitos.", ckFrete: null, ckFreteChoice: null });
       return;
     }
+
+    // Auto-preenche rua, bairro, cidade e estado instantaneamente via ViaCEP
+    fetch("https://viacep.com.br/ws/" + d + "/json/")
+      .then((r) => r.json())
+      .then((info) => {
+        if (info && !info.erro) {
+          this.setState((s) => ({
+            ckForm: Object.assign({}, s.ckForm, {
+              rua: info.logradouro || s.ckForm.rua,
+              bairro: info.bairro || s.ckForm.bairro,
+              cidade: info.localidade || s.ckForm.cidade,
+              uf: info.uf || s.ckForm.uf,
+            }),
+            ckCity: info.localidade + ", " + info.uf,
+          }));
+        }
+      })
+      .catch(() => {});
+
     try {
       const res = await fetch("/api/shipping", {
         method: "POST",
@@ -1386,13 +1405,18 @@ class Component extends DCLogic {
       });
       const data = await res.json();
       if (data.success && data.options && data.options.length) {
-        const place = (data.location || "São Paulo, SP").split(",");
-        const city = place[0]?.trim() || "São Paulo";
-        const uf = place[1]?.trim() || "SP";
+        const place = (data.location || "Porto Alegre, RS").split(",");
+        const city = data.city || place[0]?.trim() || "Porto Alegre";
+        const uf = data.state || place[1]?.trim() || "RS";
         this.setState((s) => ({
           ckCepErr: "",
           ckCity: data.location || (city + ", " + uf),
-          ckForm: Object.assign({}, s.ckForm, { cidade: city, uf: uf }),
+          ckForm: Object.assign({}, s.ckForm, {
+            rua: data.street || s.ckForm.rua,
+            bairro: data.neighborhood || s.ckForm.bairro,
+            cidade: city,
+            uf: uf,
+          }),
           ckFrete: data.options.map((o) => ({
             id: o.id,
             name: o.name,
@@ -1454,11 +1478,11 @@ class Component extends DCLogic {
       else if (!this.state.ckFreteChoice) shipErr = "Escolha um modo de envio.";
     }
     if (Object.keys(errors).length || cepErr || shipErr) {
-      this.setState({ ckErrors: errors, ckCepErr: cepErr || this.state.ckCepErr, ckShipErr: shipErr });
+      this.setState({ ckErrors: errors, ckCepErr: cepErr || this.state.ckCepErr, ckShipErr: shipErr, ckProcessing: false });
       return;
     }
-    this.setState({ ckErrors: {}, ckShipErr: "" });
-    if (step < 3) { this.setState({ ckStep: step + 1 }); return; }
+    this.setState({ ckErrors: {}, ckShipErr: "", ckProcessing: false });
+    if (step < 3) { this.setState({ ckStep: step + 1, ckProcessing: false }); return; }
     this.placeOrder();
   };
 
@@ -1817,48 +1841,17 @@ class Component extends DCLogic {
       cartOpen: s.cartOpen,
       toggleCart: () => this.setState((st) => ({ cartOpen: !st.cartOpen, checkedOut: false })),
       checkout: () => {
-        if (!s.cart.length || s.ckProcessing) return;
-        this.setState({ ckProcessing: true });
-
-        const BONZO_VARIANTS = {
-          P: "1622729750",
-          M: "1622729751",
-          G: "1622729752",
-          GG: "1622729753",
-        };
-
-        // Agrupa todos os itens da sacola por produto e tamanho somando quantidades
-        const groupedMap = {};
-        s.cart.forEach((i) => {
-          const key = String(i.productId) + "_" + String(i.size);
-          if (!groupedMap[key]) {
-            groupedMap[key] = {
-              productId: i.productId,
-              size: i.size,
-              quantity: 0,
-            };
-          }
-          groupedMap[key].quantity += 1;
+        if (!s.cart.length) return;
+        this.setState({
+          screen: "checkout",
+          cartOpen: false,
+          ckStep: 1,
+          ckErrors: {},
+          ckProcessing: false,
         });
-
-        const items = Object.values(groupedMap);
-
-        // Monta os tokens nativos da Nuvemshop: {idVariante}-{quantidade}
-        const tokens = items.map((it) => {
-          const p = PRODUCTS[it.productId] || {};
-          const variantId =
-            (p.variants && p.variants[it.size]) ||
-            BONZO_VARIANTS[it.size] ||
-            "1622729750";
-          return `${variantId}-${it.quantity || 1}`;
-        });
-
-        // Redireciona diretamente via link nativo oficial da Nuvemshop (suporta múltiplos itens separados por vírgula)
-        // Abre o Checkout Headless da Munaya (Design fiel do Claude)
-        this.setState({ screen: "checkout", cartOpen: false, ckStep: 1, ckErrors: {} });
       },
-      checkoutOpacity: s.cart.length === 0 || s.ckProcessing ? 0.4 : 1,
-      checkoutLabel: s.ckProcessing ? "Abrindo sacola..." : "Fechar pedido",
+      checkoutOpacity: s.cart.length === 0 ? 0.4 : 1,
+      checkoutLabel: "Fechar pedido",
 
       ckSteps: [
         { n: 1, label: "Entrega" },
@@ -1877,7 +1870,7 @@ class Component extends DCLogic {
       ckStep2: s.ckStep === 2,
       ckStep3: s.ckStep === 3,
       ckCanGoBack: s.ckStep > 1,
-      ckBack: () => this.setState({ ckStep: Math.max(1, s.ckStep - 1), ckErrors: {} }),
+      ckBack: () => this.setState({ ckStep: Math.max(1, s.ckStep - 1), ckErrors: {}, ckProcessing: false }),
       ckNext: this.ckNext,
       ckNextLabel: s.ckProcessing ? "Processando…" : (s.ckStep === 1 ? "Ir para pagamento" : s.ckStep === 2 ? "Revisar pedido" : "Confirmar pedido"),
       ckNextOpacity: s.ckProcessing ? 0.55 : 1,
@@ -1888,7 +1881,13 @@ class Component extends DCLogic {
       ckCardFields: this.fieldList(CK_CARD),
 
       ckCep: s.ckCep,
-      ckOnCep: (e) => this.setState({ ckCep: maskCep(e.target.value), ckCepErr: "" }),
+      ckOnCep: (e) => {
+        const val = maskCep(e.target.value);
+        this.setState({ ckCep: val, ckCepErr: "" });
+        if (dg(val).length === 8) {
+          setTimeout(() => this.ckCalcFrete(), 50);
+        }
+      },
       ckCepKey: (e) => { if (e.key === "Enter") this.ckCalcFrete(); },
       ckCalcFrete: this.ckCalcFrete,
       ckCepErr: s.ckCepErr,

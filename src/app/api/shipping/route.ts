@@ -22,8 +22,13 @@ export async function POST(req: NextRequest) {
     // Consulta frete real na API v2 da Dimona
     const dimonaQuotes = await calculateDimonaShipping(cleanZip, qty);
 
-    // Consulta cidade e estado no ViaCEP para melhor experiência do usuário
+    // Consulta endereço completo no ViaCEP (Rua, Bairro, Cidade, UF)
     let location = "";
+    let street = "";
+    let neighborhood = "";
+    let city = "";
+    let state = "";
+
     try {
       const viaCepRes = await fetch(`https://viacep.com.br/ws/${cleanZip}/json/`, {
         headers: { Accept: "application/json" },
@@ -31,7 +36,11 @@ export async function POST(req: NextRequest) {
       if (viaCepRes.ok) {
         const info = await viaCepRes.json();
         if (!info.erro) {
-          location = `${info.localidade}, ${info.uf}`;
+          street = info.logradouro || "";
+          neighborhood = info.bairro || "";
+          city = info.localidade || "";
+          state = info.uf || "";
+          location = `${city}, ${state}`;
         }
       }
     } catch {
@@ -61,6 +70,10 @@ export async function POST(req: NextRequest) {
       success: true,
       zipcode: cleanZip,
       location,
+      street,
+      neighborhood,
+      city,
+      state,
       options,
     });
   } catch (error: unknown) {
