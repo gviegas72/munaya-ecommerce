@@ -1214,6 +1214,25 @@ class Component extends DCLogic {
         }
       }
     } catch (e) {}
+
+    // Sincroniza catálogo de produtos em tempo real do Supabase
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && res.products && res.products.length) {
+          res.products.forEach((p) => {
+            if (PRODUCTS[p.id]) {
+              if (p.name) PRODUCTS[p.id].name = p.name;
+              if (p.price) PRODUCTS[p.id].price = Number(p.price);
+              if (p.badge !== undefined) PRODUCTS[p.id].badge = p.badge;
+              if (p.subtitle) PRODUCTS[p.id].subtitle = p.subtitle;
+              if (p.description) PRODUCTS[p.id].description = p.description;
+            }
+          });
+          this.forceUpdate();
+        }
+      })
+      .catch(() => {});
   }
 
   barRef = React.createRef();
