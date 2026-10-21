@@ -86,7 +86,6 @@ export async function createMercadoPagoPixOrder(params: CreatePixOrderParams) {
     total_amount: Number(params.amount).toFixed(2),
     type: "online",
     processing_mode: "automatic",
-    notification_url: params.notificationUrl,
     payer: {
       first_name: firstName,
       last_name: lastName,
