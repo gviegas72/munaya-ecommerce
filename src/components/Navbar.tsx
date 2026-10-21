@@ -31,18 +31,11 @@ export function Navbar() {
           className="flex items-center gap-2"
           aria-label="Munaya - Início"
         >
-          <div
-            className="w-12 h-12 bg-[#ff66c4]"
-            style={{
-              maskImage: "url('/logo-redondo.svg')",
-              maskSize: "contain",
-              maskRepeat: "no-repeat",
-              maskPosition: "center",
-              WebkitMaskImage: "url('/logo-redondo.svg')",
-              WebkitMaskSize: "contain",
-              WebkitMaskRepeat: "no-repeat",
-              WebkitMaskPosition: "center",
-            }}
+          {/* Imagem direta do logo redondo rosa em SVG */}
+          <img
+            src="/logo-pink.svg"
+            alt="Munaya"
+            className="w-12 h-12 object-contain"
           />
           <span className="font-oswald text-2xl font-black uppercase tracking-tighter">
             Munaya
@@ -125,18 +118,11 @@ export function Navbar() {
             className="flex flex-col items-start hover:opacity-80 transition-opacity"
             aria-label="Munaya - Início"
           >
-            <div
-              className="w-32 h-32 bg-[#ff66c4]"
-              style={{
-                maskImage: "url('/logo-redondo.svg')",
-                maskSize: "contain",
-                maskRepeat: "no-repeat",
-                maskPosition: "center",
-                WebkitMaskImage: "url('/logo-redondo.svg')",
-                WebkitMaskSize: "contain",
-                WebkitMaskRepeat: "no-repeat",
-                WebkitMaskPosition: "center",
-              }}
+            {/* Imagem direta do logo redondo rosa em SVG */}
+            <img
+              src="/logo-pink.svg"
+              alt="Munaya"
+              className="w-32 h-32 object-contain"
             />
           </Link>
 

@@ -36,7 +36,7 @@
 
   <sc-if value="{{ isCompact }}" hint-placeholder-val="{{ false }}">
     <header ref="{{ barRef }}" style="position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--fg); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; box-sizing: border-box;">
-      <div role="button" tabindex="0" onClick="{{ goHome }}" aria-label="Munaya — início" style="cursor: pointer; flex: none; width: 48px; height: 48px; background-color: {{ accent }}; mask-image: {{ logoMask }}; mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-image: {{ logoMask }}; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;"></div>
+      <img role="button" tabindex="0" onClick="{{ goHome }}" src="/logo-pink.svg" alt="Munaya — início" style="cursor: pointer; flex: none; width: 48px; height: 48px; object-fit: contain;">
       <div style="display: flex; align-items: center; gap: 10px;">
         <div role="button" tabindex="0" onClick="{{ toggleCart }}" aria-label="Sacola" style="cursor: pointer; position: relative; width: 48px; height: 48px; border: 1px solid var(--fg); display: flex; align-items: center; justify-content: center;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M4 7h16l-1.5 13H5.5L4 7zM8.5 7V5a3.5 3.5 0 0 1 7 0v2"></path></svg>
@@ -60,7 +60,7 @@
 
   <aside style="width: 15%; min-width: 200px; height: 100vh; position: sticky; top: 0; border-right: 1px solid var(--fg); display: {{ asideDisplay }}; flex-direction: column; justify-content: space-between; padding: 24px; box-sizing: border-box; flex: none; background: var(--bg); z-index: 40; overflow-y: auto; gap: 24px;">
     <div style="display: flex; flex-direction: column; gap: 40px;">
-      <div role="button" tabindex="0" onClick="{{ goHome }}" style="cursor: pointer; margin-top: 26px; width: 136px; height: 136px; background-color: {{ accent }}; mask-image: {{ logoMask }}; mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-image: {{ logoMask }}; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;" aria-label="Munaya — início"></div>
+      <img role="button" tabindex="0" onClick="{{ goHome }}" src="/logo-pink.svg" alt="Munaya — início" style="cursor: pointer; margin-top: 26px; width: 136px; height: 136px; object-fit: contain;">
       <nav style="display: flex; flex-direction: column; gap: 28px; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700; text-transform: uppercase;">
         <div role="button" tabindex="0" onClick="{{ goCategoria }}" style="cursor: pointer; transition: transform .2s;" style-hover="transform: translateX(8px);">Início</div>
         <div role="button" tabindex="0" onClick="{{ goColecoes }}" style="cursor: pointer; transition: transform .2s;" style-hover="transform: translateX(8px);">Estampas</div>
@@ -165,7 +165,7 @@
 
         <div style="display: grid; grid-template-columns: {{ gridCols }}; grid-auto-rows: {{ gridRow }}; gap: clamp(14px, 2.5vw, 32px);">
           <div role="button" tabindex="0" onClick="{{ openP1 }}" onMouseEnter="{{ g1.enter }}" onMouseLeave="{{ g1.leave }}" style="grid-column: span 2; grid-row: span 2; position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
-            <image-slot id="pt-cat-1" shape="rect" src="{{ srcP1 }}" placeholder="{{ placeholderP1 }}" style="width: 100%; height: 100%;"></image-slot>
+            <image-slot id="pt-p15-1" shape="rect" src="{{ srcP1 }}" placeholder="{{ placeholderP1 }}" style="width: 100%; height: 100%;"></image-slot>
             <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #000; color: #fff; border-top: 2px solid #fff; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; transform: translateY({{ g1.footerY }}); transition: transform .35s ease-out;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
                 <span style="font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1;">{{ g1.fname }}</span>
@@ -184,7 +184,7 @@
 
           <div role="button" tabindex="0" onClick="{{ openP2 }}" onMouseEnter="{{ g2.enter }}" onMouseLeave="{{ g2.leave }}" style="position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
             <div style="width: 100%; height: 100%; transform-origin: center; transition: transform .5s ease-out;" style-hover="transform: scale(2.6) translate(20%, -8%);">
-              <image-slot id="pt-cat-2" shape="rect" src="{{ srcP2 }}" placeholder="{{ placeholderP2 }}" style="width: 100%; height: 100%;"></image-slot>
+              <image-slot id="pt-cat-2" shape="rect" src="{{ srcP2 }}" placeholder="{{ placeholderP2 }}" style="width: 100%; height: 100%; filter: brightness(1.3) contrast(0.85);"></image-slot>
             </div>
             <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #000; color: #fff; border-top: 2px solid #fff; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; transform: translateY({{ g2.footerY }}); transition: transform .35s ease-out;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
@@ -967,7 +967,7 @@ const PRODUCTS = {
   1: {
     id: 1,
     name: "Munaya Bonzo",
-    price: 119,
+    price: 119.0,
     badge: "Destaque",
     image: "/uploads/modelo_bonzo_01.jpg",
     photos: ["/uploads/modelo_bonzo_01.jpg", "/uploads/01_BONZO_detalhe_01.jpg", "/distortion-bonzo.png"],
@@ -1220,13 +1220,24 @@ const RES_IDS = {
   "public/ecobag-bozo-mockup.png": "ecobag-bozo",
 };
 const COLLECTION_PHOTOS = {
-  "bonzo": "uploads/modelo_bonzo_01.jpg",
-  "dimebag": "uploads/DIMEBAG_camiseta.jpg",
-  "ghost": "uploads/GHOST_camiseta.jpg",
-  "stoner": "uploads/sBEGGARSSTAMP10x01.jpg",
-  "grunge": "uploads/CHICO_camiseta.jpg",
-  "classics": "uploads/ROLLING_STONES_camiseta.jpg",
+  "spiritual-beggars": "uploads/sBEGGARSSTAMP10x01.jpg",
+  "zz-top": "uploads/ZZTOP_detalhe.jpg",
 };
+const asset = (p) => {
+  if (!p) return "";
+  if (window.__resources && window.__resources[RES_IDS[p]]) return window.__resources[RES_IDS[p]];
+  let clean = String(p);
+  if (clean.startsWith("public/")) clean = clean.slice(6);
+  if (!clean.startsWith("/")) clean = "/" + clean;
+  return clean;
+};
+// Fotos provisórias do banco de imagens: no arquivo publicado não há rede, então o slot mostra o placeholder.
+const stock = (u) => (window.__resources ? "" : u);
+
+const DEFAULT_COLORS = [
+  { name: "Preto", hex: "#111111" },
+  { name: "Branco", hex: "#ffffff" },
+];
 
 const COLLECTIONS = [
   { id: "bonzo", name: "Bonzo Series", products: [1, 5] },
@@ -1316,7 +1327,7 @@ class Component extends DCLogic {
       }
     } catch (e) {}
 
-        // Sincroniza catálogo de produtos em tempo real do Supabase
+    // Sincroniza catálogo de produtos em tempo real do Supabase
     fetch("/api/products")
       .then((r) => r.json())
       .then((res) => {
@@ -1770,7 +1781,7 @@ class Component extends DCLogic {
     };
   };
 
-    rail = (key, badges) => {
+  rail = (key, badges) => {
     const ord = (this.state.catalogOrder && this.state.catalogOrder.length)
       ? this.state.catalogOrder
       : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
@@ -1795,6 +1806,97 @@ class Component extends DCLogic {
       });
     });
   };
+
+  go = (screen, extra) => this.setState(Object.assign({ screen: screen, warn: false, added: false, menuOpen: false }, extra || {}));
+
+  open = (id) => (e) => {
+    // só os controles da foto (trocar / reenquadrar) não navegam
+    const ne = e && (e.nativeEvent || e);
+    const path = ne && ne.composedPath ? ne.composedPath() : [];
+    if (path.some((n) => n && n.getAttribute && n.getAttribute("data-act"))) return;
+    this.go("produto", { productId: id, size: null, color: null, qty: 1 });
+  };
+
+  addToCart = () => {
+    const p = PRODUCTS[this.state.productId];
+    const needColor = !!(p.colors && p.colors.length);
+    if (!this.state.size || (needColor && !this.state.color)) { this.setState({ warn: true }); return; }
+    const entries = [];
+    const size = needColor ? this.state.size + " · " + this.state.color : this.state.size;
+    for (let i = 0; i < this.state.qty; i++) {
+      entries.push({ id: Date.now() + i, name: p.name, price: p.price, size: size });
+    }
+    this.setState((s) => ({ cart: s.cart.concat(entries), warn: false, added: true, checkedOut: false }));
+  };
+
+  renderVals() {
+    const s = this.state;
+    const accent = this.props.accent ?? "#ff66c4";
+    const p = PRODUCTS[s.productId] || PRODUCTS[1] || {};
+    const total = s.cart.reduce((a, i) => a + i.price, 0);
+    const ck = this.totals();
+
+    const ord = (s.catalogOrder && s.catalogOrder.length)
+      ? s.catalogOrder
+      : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    const p1Id = ord[0] || 1;
+    const p2Id = ord[1] || 2;
+    const p3Id = ord[2] || 3;
+    const p4Id = ord[3] || 4;
+    const p5Id = ord[4] || 5;
+
+    const prod1 = PRODUCTS[p1Id] || {};
+    const prod2 = PRODUCTS[p2Id] || {};
+    const prod3 = PRODUCTS[p3Id] || {};
+    const prod4 = PRODUCTS[p4Id] || {};
+    const prod5 = PRODUCTS[p5Id] || {};
+
+    return {
+      accent: accent,
+      heroRef: this.heroRef,
+
+      isDesktop: s.vw >= 1024,
+      asideDisplay: s.vw >= 1024 ? "flex" : "none",
+      isCompact: s.vw < 1024,
+      menuOpen: s.menuOpen,
+      toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }),
+      shellDir: s.vw >= 1024 ? "row" : "column",
+      barRef: this.barRef,
+      menuTop: (s.barH || 0) + "px",
+      heroH: s.vw >= 1024 ? "100vh" : "calc(100dvh - " + (s.barH || 0) + "px)",
+      ovOpacity: s.vw < 1024 ? 1 : 0,
+      gridCols: s.vw < 640 ? "1fr" : s.vw < 1024 ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
+      gridRow: s.vw < 640 ? "300px" : s.vw < 1024 ? "340px" : "400px",
+      prodDir: s.vw < 1024 ? "column" : "row",
+      prodImgH: s.vw < 640 ? "72vh" : s.vw < 1024 ? "80vh" : "100vh",
+      prodPanelW: s.vw < 1024 ? "100%" : "35%",
+      prodPanelMax: s.vw < 1024 ? "100%" : "46%",
+      prodPanelMin: s.vw < 1024 ? "0" : "300px",
+      prodBorderR: s.vw < 1024 ? "none" : "1px solid var(--fg)",
+      ckMainMin: s.vw < 900 ? "0" : "420px",
+      ckAsideW: s.vw < 900 ? "100%" : "380px",
+      ckAsideSticky: s.vw < 900 ? "static" : "sticky",
+
+
+      showCategoria: s.screen === "categoria",
+      showColecoes: s.screen === "colecoes",
+      showColecao: s.screen === "colecao",
+
+      colecoesList: COLLECTIONS.map((c) => ({
+        name: c.name,
+        isImage: true,
+        isPlain: false,
+        slotId: c.id === "inverno-26" ? "pt-colecao-stoner" : "pt-colecao-" + c.id,
+        src: COLLECTION_PHOTOS[c.id] ? asset(COLLECTION_PHOTOS[c.id]) : stock("https://picsum.photos/1000/1200?random=" + (61 + COLLECTIONS.indexOf(c))),
+        placeholder: "Foto — coleção " + c.name,
+        countLabel: c.products.length + (c.products.length === 1 ? " produto" : " produtos"),
+        aria: "Coleção " + c.name + ", " + c.products.length + " produtos",
+        openCard: (e) => {
+          const ne = e && (e.nativeEvent || e);
+          const path = ne && ne.composedPath ? ne.composedPath() : [];
+          if (path.some((n) => n && n.getAttribute && n.getAttribute("data-act"))) return;
+          this.go("colecao", { collectionId: c.id });
+        },
         open: () => this.go("colecao", { collectionId: c.id }),
       })),
       colecaoName: (COLLECTIONS.find((c) => c.id === s.collectionId) || COLLECTIONS[0]).name,
@@ -1929,21 +2031,6 @@ class Component extends DCLogic {
       goColecoes: () => this.go("colecoes"),
       goSobre: () => this.go("info", { infoTitle: "Sobre" }),
       goCaos: () => this.go("info", { infoTitle: "Caos" }),
-            const ord = (s.catalogOrder && s.catalogOrder.length)
-        ? s.catalogOrder
-        : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-      const p1Id = ord[0] || 1;
-      const p2Id = ord[1] || 2;
-      const p3Id = ord[2] || 3;
-      const p4Id = ord[3] || 4;
-      const p5Id = ord[4] || 5;
-
-      const prod1 = PRODUCTS[p1Id] || {};
-      const prod2 = PRODUCTS[p2Id] || {};
-      const prod3 = PRODUCTS[p3Id] || {};
-      const prod4 = PRODUCTS[p4Id] || {};
-      const prod5 = PRODUCTS[p5Id] || {};
-
       openP1: this.open(p1Id),
       openP2: this.open(p2Id),
       openP3: this.open(p3Id),
@@ -1970,6 +2057,17 @@ class Component extends DCLogic {
       g3: this.foot(p3Id, "g3"),
       g4: this.foot(p4Id, "g4"),
       g5: this.foot(p5Id, "g5"),
+
+      logoMask: "url('" + asset("public/logo-redondo.svg") + "')",
+      stockCat2: stock("https://picsum.photos/900/1200?random=2"),
+      stockCat4: stock("https://picsum.photos/1200/900?random=4"),
+      stockCat5: stock("https://picsum.photos/900/1200?random=5"),
+      stockLimited: stock("https://picsum.photos/1000/1000?random=34"),
+      assetDetalhe: asset("uploads/01_BONZO_detalhe_01.jpg"),
+      assetCamiseta: asset("public/distortion-bonzo.png"),
+      gL: this.foot(16, "gL"),
+      openLimited: this.open(16),
+      
       priceP1: brl(PRODUCTS[1].price),
       priceP3: brl(PRODUCTS[3].price),
       priceP4: brl(PRODUCTS[4].price),
@@ -2010,19 +2108,11 @@ class Component extends DCLogic {
         pick: () => this.setState({ color: c.name, warn: false }),
       })),
       warnText: p.colors && p.colors.length ? "Escolha cor e tamanho antes de adicionar." : "Escolha um tamanho antes de adicionar.",
-            productImages: (p.photos && p.photos.length)
-        ? p.photos.filter(Boolean).map((u, i) => ({
-            url: asset(u),
-            slotId: "pt-p" + s.productId + "-" + (i + 1),
-            alt: (p.name || "") + " — foto " + (i + 1),
-          }))
-        : [
-            {
-              url: asset(p.image || "/uploads/modelo_bonzo_01.jpg"),
-              slotId: "pt-p" + s.productId + "-1",
-              alt: (p.name || "") + " — foto",
-            }
-          ],
+      productImages: [p.img, p.img + 10, p.img + 20].map((n, i) => ({
+        url: p.photos ? asset(p.photos[i] || "") : stock("https://picsum.photos/900/1200?random=" + n),
+        slotId: "pt-p" + s.productId + "-" + (i + 1),
+        alt: p.name + " — foto " + (i + 1),
+      })),
 
       sizes: ["P", "M", "G", "GG"].map((label) => ({
         label: label,
