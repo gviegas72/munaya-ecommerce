@@ -1258,8 +1258,6 @@ class Component extends DCLogic {
         return;
       }
     } catch (e) {}
-    const digits = this.state.cep.replace(/\D/g, "");
-    if (digits.length !== 8) { this.setState({ freteError: true, frete: null }); return; }
     // Simulação: a taxa varia com a região do CEP (primeiro dígito).
     const region = Number(digits[0]);
     const far = region >= 6 ? 1 : 0;
@@ -1389,11 +1387,6 @@ class Component extends DCLogic {
         return;
       }
     } catch (e) {}
-    const d = dg(this.state.ckCep);
-    if (d.length !== 8) {
-      this.setState({ ckCepErr: "CEP incompleto — 8 dígitos.", ckFrete: null, ckFreteChoice: null });
-      return;
-    }
     const region = Number(d[0]);
     const far = region >= 6 ? 1 : 0;
     const place = CITIES[region];
