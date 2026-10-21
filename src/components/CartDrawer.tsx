@@ -101,8 +101,8 @@ export function CartDrawer() {
         return `${variantId}-${it.quantity || 1}`;
       });
 
-      const cartUrl = `https://munayarocks.lojavirtualnuvem.com.br/cart-link/${tokens.join(",")}`;
-      window.location.href = cartUrl;
+      // Redireciona para o Checkout Headless próprio na Vercel (Design fiel do Claude)
+      window.location.href = "/?screen=checkout";
     } catch (err) {
       console.error("Erro no checkout:", err);
       setErrorMsg("Erro ao iniciar finalização. Tente novamente.");

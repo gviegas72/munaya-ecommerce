@@ -695,10 +695,27 @@
         </div>
 
         <sc-if value="{{ orderIsPix }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top: 32px; border: 2px solid {{ accent }}; padding: 22px;">
-            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: {{ accent }};">Código PIX — copie e cole</div>
-            <div style="margin-top: 12px; font-family: ui-monospace, Menlo, monospace; font-size: 14px; line-height: 1.6; word-break: break-all; opacity: .85;">{{ orderPixCode }}</div>
-            <div role="button" tabindex="0" onClick="{{ copyPix }}" style="cursor: pointer; margin-top: 18px; display: inline-flex; align-items: center; gap: 10px; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 19px; font-weight: 700; text-transform: uppercase; padding: 12px 20px;">{{ copyLabel }}</div>
+          <div style="margin-top: 32px; border: 2px solid {{ accent }}; padding: clamp(20px, 4vw, 32px); display: flex; flex-direction: column; align-items: center; text-align: center; background: rgba(0,0,0,0.6);">
+            <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .2em; color: {{ accent }};">Pague com PIX — Taxa Zero & Liberação Imediata</div>
+            
+            <div style="margin-top: 20px; background: #ffffff; padding: 14px; border: 3px solid var(--fg); display: inline-block;">
+              <img src="{{ orderPixQrUrl }}" alt="QR Code PIX Munaya" style="width: 200px; height: 200px; display: block;" />
+            </div>
+
+            <div style="margin-top: 24px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; opacity: .75;">Ou copie e cole a chave Pix:</div>
+            
+            <div style="margin-top: 10px; font-family: ui-monospace, Menlo, monospace; font-size: 13px; line-height: 1.5; word-break: break-all; opacity: .9; background: #111; border: 1px solid rgba(255,255,255,.25); padding: 12px 16px; max-width: 100%; box-sizing: border-box; text-align: left;">{{ orderPixCode }}</div>
+            
+            <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+              <div role="button" tabindex="0" onClick="{{ copyPix }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 10px; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 20px; font-weight: 700; text-transform: uppercase; padding: 14px 26px;">{{ copyLabel }}</div>
+              <div role="button" tabindex="0" onClick="{{ simulatePixApproved }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; border: 2px solid {{ accent }}; background: transparent; color: {{ accent }}; font-family: Oswald, sans-serif; font-size: 17px; font-weight: 700; text-transform: uppercase; padding: 14px 22px;">⚡ Simular Pagamento Pix Aprovado</div>
+            </div>
+            
+            <sc-if value="{{ pixApprovedNote }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top: 16px; font-family: Oswald, sans-serif; font-size: 18px; font-weight: 700; color: #4bb98c; text-transform: uppercase;">
+                {{ pixApprovedNote }}
+              </div>
+            </sc-if>
           </div>
         </sc-if>
 
@@ -1129,7 +1146,7 @@ const RAILS = {
 class Component extends DCLogic {
   heroRef = React.createRef();
   state = {
-    screen: "home",
+    screen: (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("screen")) || "home",
     productId: 1,
     size: null,
     cart: [],
@@ -1459,24 +1476,56 @@ class Component extends DCLogic {
         acc[key].qty += 1;
         return acc;
       }, {}));
+      const pixCode = "00020126580014BR.GOV.BCB.PIX0136munaya-" + num.toLowerCase() + "-2027520400005303986540" + t.total.toFixed(2) + "5802BR5906MUNAYA6009SAO PAULO62070503***6304A1B2";
+      const pixQrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=" + encodeURIComponent(pixCode);
+
       const order = {
         num: num,
         email: f.email,
         date: new Date().toISOString(),
-        status: pay === "cartao" ? "Em produção" : pay === "pix" ? "Aguardando PIX" : "Aguardando boleto",
+        status: pay === "cartao" ? "Em produção na Dimona" : pay === "pix" ? "Aguardando PIX" : "Aguardando boleto",
         items: items,
         total: t.total,
         pay: pay,
         inst: this.state.ckInst,
         cardLast: pay === "cartao" ? dg(f.cnum).slice(-4) : "",
-        shipName: ship ? ship.name : "",
-        eta: ship ? ship.days : "",
+        shipName: ship ? ship.name : "J&T Express",
+        eta: ship ? ship.days : "14 dias úteis",
         city: this.state.ckCity,
         cep: this.state.ckCep,
         address: f.rua + ", " + f.num + (f.compl ? " — " + f.compl : "") + " · " + f.bairro,
         tracking: "BR" + dg(num) + String(Math.floor(Math.random() * 900) + 100) + "MY",
-        pixCode: "00020126580014BR.GOV.BCB.PIX0136munaya-" + num.toLowerCase() + "-2027520400005303986540" + t.total.toFixed(2) + "5802BR5906MUNAYA6009SAO PAULO62070503***6304A1B2",
+        pixCode: pixCode,
+        pixQrUrl: pixQrUrl,
       };
+
+      // Despacha pedido diretamente para a API da Camisa Dimona
+      fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: num,
+          customer: { name: f.nome, email: f.email, cpf: f.cpf, phone: f.fone },
+          address: {
+            street: f.rua,
+            number: f.num,
+            complement: f.compl || "",
+            neighborhood: f.bairro,
+            city: (this.state.ckCity || "Porto Alegre, RS").split(",")[0]?.trim(),
+            state: (this.state.ckCity || "Porto Alegre, RS").split(",")[1]?.trim() || "RS",
+            zipcode: this.state.ckCep,
+          },
+          shipping_speed: (ship?.id || "pac").toLowerCase(),
+          items: items.map(it => ({
+            name: it.name,
+            quantity: it.qty,
+            size: it.size,
+            price: it.unit,
+          })),
+        })
+      }).then(r => r.json()).then(res => {
+        console.log("✅ Pedido enviado à Dimona:", res);
+      }).catch(e => console.warn("Dimona dispatch:", e));
 
       const wants = this.state.ckWantAccount && !this.state.authed;
       const profile = { nome: f.nome, email: f.email, cpf: f.cpf, fone: f.fone, cep: this.state.ckCep, rua: f.rua, num: f.num, compl: f.compl, bairro: f.bairro, cidade: f.cidade, uf: f.uf };
@@ -1805,8 +1854,8 @@ class Component extends DCLogic {
         });
 
         // Redireciona diretamente via link nativo oficial da Nuvemshop (suporta múltiplos itens separados por vírgula)
-        const cartUrl = `https://munayarocks.lojavirtualnuvem.com.br/cart-link/${tokens.join(",")}`;
-        window.location.href = cartUrl;
+        // Abre o Checkout Headless da Munaya (Design fiel do Claude)
+        this.setState({ screen: "checkout", cartOpen: false, ckStep: 1, ckErrors: {} });
       },
       checkoutOpacity: s.cart.length === 0 || s.ckProcessing ? 0.4 : 1,
       checkoutLabel: s.ckProcessing ? "Abrindo sacola..." : "Fechar pedido",
@@ -1932,6 +1981,17 @@ class Component extends DCLogic {
       orderIsPix: !!s.order && s.order.pay === "pix",
       orderPixCode: s.order ? s.order.pixCode : "",
       copyLabel: s.copied ? "Código copiado" : "Copiar código",
+      orderPixQrUrl: s.order ? s.order.pixQrUrl : "",
+      pixApprovedNote: s.pixApprovedNote || "",
+      simulatePixApproved: () => {
+        if (s.order) {
+          const updatedOrder = Object.assign({}, s.order, { status: "Em produção na Dimona" });
+          this.setState({
+            order: updatedOrder,
+            pixApprovedNote: "✔ Pagamento Pix aprovado! Pedido despachado para a produção na Dimona.",
+          });
+        }
+      },
       copyPix: () => {
         if (s.order && navigator.clipboard) navigator.clipboard.writeText(s.order.pixCode).catch(() => {});
         this.setState({ copied: true });
