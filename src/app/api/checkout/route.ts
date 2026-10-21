@@ -69,25 +69,33 @@ export async function POST(req: NextRequest) {
       .select("id, name, price, is_active");
 
     const productMap = new Map<number | string, DatabaseProduct>();
+    const productNameMap = new Map<string, DatabaseProduct>();
     if (!prodErr && Array.isArray(dbProducts)) {
       dbProducts.forEach((p: any) => {
         productMap.set(p.id, p);
         productMap.set(String(p.id), p);
+        if (p.name) {
+          productNameMap.set(p.name.trim().toLowerCase(), p);
+        }
       });
     }
 
     let calculatedSubtotal = 0;
     const validatedItems = rawItems.map((it: any) => {
       const pId = it.id || it.productId;
-      const dbProd = productMap.get(pId) || productMap.get(Number(pId));
+      const cleanName = String(it.name || "").trim().toLowerCase();
+      const dbProd =
+        productMap.get(pId) ||
+        productMap.get(Number(pId)) ||
+        productNameMap.get(cleanName);
       
       // Preço oficial do banco; se não cadastrado, fallback seguro da camiseta padrão
-      const officialPrice = dbProd ? Number(dbProd.price) : Number(it.price || 89.9);
+      const officialPrice = dbProd ? Number(dbProd.price) : Number(it.price || it.unit || 89.9);
       const qty = Math.max(1, parseInt(String(it.quantity || it.qty || 1), 10));
       calculatedSubtotal += officialPrice * qty;
 
       return {
-        id: pId,
+        id: dbProd ? dbProd.id : pId,
         name: dbProd ? dbProd.name : it.name || "Camiseta Munaya",
         quantity: qty,
         unit_price: officialPrice,
@@ -102,7 +110,8 @@ export async function POST(req: NextRequest) {
       validatedItems.some((it: any) => String(it.id) === "99" || String(it.name).toLowerCase().includes("teste"));
 
     const cleanZip = String(address.zipcode || "").replace(/\D/g, "");
-    let officialShipping = 0;
+    const clientShipping = Number(body.shipping_amount ?? body.frete ?? body.shipValue ?? 0);
+    let officialShipping = clientShipping;
 
     if (isTestOrder) {
       // Homologação: Produto de R$ 1,00 possui frete cortesia R$ 0,00
@@ -112,13 +121,12 @@ export async function POST(req: NextRequest) {
         const totalQty = validatedItems.reduce((acc: number, cur: any) => acc + cur.quantity, 0);
         const quotes = await calculateDimonaShipping(cleanZip, totalQty);
         if (Array.isArray(quotes) && quotes.length > 0) {
-          const chosenSpeed = (body.shipping_speed || body.ship?.id || "pac").toLowerCase();
+          const chosenSpeed = String(body.shipping_speed || body.ship?.id || "pac").toLowerCase();
           const match = quotes.find((q: any) => (q.service || q.id || "").toLowerCase().includes(chosenSpeed)) || quotes[0];
-          officialShipping = Number(match.price || match.custom_price || 0);
+          officialShipping = Number(match.price || match.custom_price || clientShipping);
         }
       } catch (err) {
-        console.warn("⚠️ [CHECKOUT] Falha na cotação de frete no backend, usando frete padrão:", err);
-        officialShipping = Number(body.frete || body.shipValue || 0);
+        console.warn("⚠️ [CHECKOUT] Falha na cotação de frete no backend, usando frete informado:", err);
       }
     }
 

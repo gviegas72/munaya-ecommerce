@@ -21,8 +21,44 @@ import {
   LogOut,
   Mail,
   Tag,
+  Plus,
+  Trash2,
+  Upload,
+  X,
+  Image as ImageIcon,
+  AlertCircle,
 } from "lucide-react";
 import { CANONICAL_COUPONS } from "@/lib/coupons";
+
+interface NewProductForm {
+  name: string;
+  slug: string;
+  subtitle: string;
+  description: string;
+  price: string;
+  compare_at_price: string;
+  image_url: string;
+  artwork_url: string;
+  badge: string;
+  is_active: boolean;
+  is_featured: boolean;
+  display_order: number;
+}
+
+const INITIAL_NEW_PRODUCT: NewProductForm = {
+  name: "",
+  slug: "",
+  subtitle: "100% Algodão Premium Silk Screen",
+  description: "",
+  price: "89.90",
+  compare_at_price: "119.00",
+  image_url: "",
+  artwork_url: "",
+  badge: "Bonzo Series",
+  is_active: true,
+  is_featured: false,
+  display_order: 10,
+};
 
 interface OrderItem {
   name: string;
@@ -171,6 +207,16 @@ export default function AdminPage() {
   const [selectedCollection, setSelectedCollection] = useState<string>("all");
   const [catalogSearch, setCatalogSearch] = useState<string>("");
 
+  // Estados de Cadastro de Nova Estampa & Upload
+  const [showNewProductModal, setShowNewProductModal] = useState(false);
+  const [newProduct, setNewProduct] = useState<NewProductForm>(INITIAL_NEW_PRODUCT);
+  const [creatingProduct, setCreatingProduct] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingArtwork, setUploadingArtwork] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [createSuccess, setCreateSuccess] = useState("");
+  const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
+
   useEffect(() => {
     const savedPin = localStorage.getItem("munaya_admin_token");
     if (savedPin === "munaya2026") {
@@ -284,6 +330,114 @@ export default function AdminPage() {
       alert("Erro ao salvar: " + (e?.message || String(e)));
     } finally {
       setSavingProductId(null);
+    }
+  };
+
+  const handleFileUpload = async (
+    file: File,
+    field: "image_url" | "artwork_url"
+  ) => {
+    if (field === "image_url") setUploadingImage(true);
+    if (field === "artwork_url") setUploadingArtwork(true);
+    try {
+      const savedPin =
+        localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "x-admin-pin": savedPin,
+        },
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setNewProduct((prev) => ({ ...prev, [field]: data.url }));
+        setActionMsg(`Upload concluído com sucesso!`);
+        setTimeout(() => setActionMsg(""), 3000);
+      } else {
+        alert("Erro no upload da imagem: " + (data.error || "Tente novamente"));
+      }
+    } catch (e: any) {
+      alert("Falha de rede no upload: " + (e?.message || String(e)));
+    } finally {
+      if (field === "image_url") setUploadingImage(false);
+      if (field === "artwork_url") setUploadingArtwork(false);
+    }
+  };
+
+  const handleCreateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProduct.name.trim()) {
+      setCreateError("Digite o nome da estampa.");
+      return;
+    }
+    setCreatingProduct(true);
+    setCreateError("");
+    setCreateSuccess("");
+    try {
+      const savedPin =
+        localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify(newProduct),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCreateSuccess("🎸 Estampa cadastrada com sucesso!");
+        setTimeout(() => {
+          setShowNewProductModal(false);
+          setCreateSuccess("");
+          setNewProduct(INITIAL_NEW_PRODUCT);
+        }, 1200);
+        await loadProducts();
+      } else {
+        setCreateError(data.error || "Erro ao cadastrar produto.");
+      }
+    } catch (e: any) {
+      setCreateError(e?.message || "Erro de rede ao cadastrar produto.");
+    } finally {
+      setCreatingProduct(false);
+    }
+  };
+
+  const handleDeleteProduct = async (prod: Product) => {
+    if (
+      !confirm(
+        `Tem certeza que deseja excluir permanentemente a estampa "${prod.name}" (ID #${prod.id})?`
+      )
+    ) {
+      return;
+    }
+    setDeletingProductId(prod.id);
+    try {
+      const savedPin =
+        localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch(`/api/products?id=${prod.id}`, {
+        method: "DELETE",
+        headers: {
+          "x-admin-pin": savedPin,
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionMsg(
+          `Estampa #${prod.id} (${prod.name}) removida com sucesso!`
+        );
+        setTimeout(() => setActionMsg(""), 3500);
+        setProducts((prev) => prev.filter((p) => p.id !== prod.id));
+      } else {
+        alert("Erro ao excluir: " + (data.error || "Tente novamente"));
+      }
+    } catch (e: any) {
+      alert("Erro ao excluir: " + (e?.message || String(e)));
+    } finally {
+      setDeletingProductId(null);
     }
   };
 
@@ -862,6 +1016,14 @@ export default function AdminPage() {
 
                 <div className="flex items-center gap-3">
                   <button
+                    onClick={() => setShowNewProductModal(true)}
+                    className="flex items-center gap-2 bg-[#ff66c4] text-black px-4 py-2 text-xs uppercase font-bold hover:bg-white transition-colors shadow-[0_0_15px_rgba(255,102,196,0.35)]"
+                  >
+                    <Plus className="w-4 h-4 stroke-[3]" />
+                    <span>+ Nova Estampa</span>
+                  </button>
+
+                  <button
                     onClick={loadProducts}
                     disabled={loadingProducts}
                     className="flex items-center gap-2 border border-white px-4 py-2 text-xs uppercase font-bold hover:bg-white hover:text-black transition-colors"
@@ -869,7 +1031,7 @@ export default function AdminPage() {
                     <RefreshCw
                       className={`w-4 h-4 ${loadingProducts ? "animate-spin" : ""}`}
                     />
-                    <span>Recarregar Catálogo</span>
+                    <span>Recarregar</span>
                   </button>
                 </div>
               </div>
@@ -1141,14 +1303,25 @@ export default function AdminPage() {
                           </label>
                         </div>
 
-                        {/* Botão Salvar Alterações */}
-                        <button
-                          onClick={() => handleUpdateProduct(prod)}
-                          disabled={isSaving}
-                          className="w-full bg-white text-black font-oswald text-base font-black uppercase py-2 tracking-wider hover:bg-[#ff66c4] transition-colors disabled:opacity-50"
-                        >
-                          {isSaving ? "Salvando..." : "Salvar Alterações"}
-                        </button>
+                        {/* Botões Salvar Alterações e Excluir */}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleUpdateProduct(prod)}
+                            disabled={isSaving}
+                            className="flex-1 bg-white text-black font-oswald text-base font-black uppercase py-2 tracking-wider hover:bg-[#ff66c4] transition-colors disabled:opacity-50"
+                          >
+                            {isSaving ? "Salvando..." : "Salvar Alterações"}
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteProduct(prod)}
+                            disabled={deletingProductId === prod.id}
+                            title="Excluir estampa do catálogo"
+                            className="px-3 py-2 border border-red-900 bg-neutral-900 text-red-400 hover:bg-red-600 hover:text-white transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -1227,6 +1400,427 @@ export default function AdminPage() {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: CADASTRAR NOVA ESTAMPA */}
+        {showNewProductModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+            <div className="relative w-full max-w-3xl bg-neutral-950 border-2 border-white shadow-[0_0_50px_rgba(255,102,196,0.3)] p-6 space-y-6 my-8">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#ff66c4] text-black flex items-center justify-center font-black">
+                    <Plus className="w-6 h-6 stroke-[3]" />
+                  </div>
+                  <div>
+                    <h3 className="font-oswald text-2xl font-bold uppercase tracking-tight text-white">
+                      Cadastrar Nova Estampa
+                    </h3>
+                    <p className="text-xs text-neutral-400 uppercase tracking-wider">
+                      Adicione uma nova estampa e publique na vitrine da Munaya Rocks
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowNewProductModal(false)}
+                  className="text-neutral-400 hover:text-white p-2 hover:bg-neutral-900 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleCreateProduct} className="space-y-6">
+                {createError && (
+                  <div className="bg-red-950/80 border border-red-500 text-red-200 p-3 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+                    <span>{createError}</span>
+                  </div>
+                )}
+
+                {createSuccess && (
+                  <div className="bg-emerald-950/80 border border-emerald-500 text-emerald-200 p-3 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                    <span>{createSuccess}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Coluna 1: Dados do Produto */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                        Nome da Estampa *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: Camiseta Pantera Cowboys"
+                        value={newProduct.name}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const autoSlug = val
+                            .toLowerCase()
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .replace(/[^a-z0-9]+/g, "-")
+                            .replace(/^-+|-+$/g, "");
+                          setNewProduct((prev) => ({
+                            ...prev,
+                            name: val,
+                            slug:
+                              prev.slug === "" ||
+                              prev.slug === autoSlug.slice(0, -1)
+                                ? autoSlug
+                                : prev.slug,
+                          }));
+                        }}
+                        className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm text-white focus:border-[#ff66c4] focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                          Slug (URL)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="pantera-cowboys"
+                          value={newProduct.slug}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({
+                              ...prev,
+                              slug: e.target.value,
+                            }))
+                          }
+                          className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs font-mono text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                          Coleção Oficial
+                        </label>
+                        <select
+                          value={newProduct.badge}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({
+                              ...prev,
+                              badge: e.target.value,
+                            }))
+                          }
+                          className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs text-white focus:border-[#ff66c4] focus:outline-none font-bold"
+                        >
+                          {ADMIN_COLLECTIONS.map((c) => (
+                            <option key={c.id} value={c.tag}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                          Preço Venda (R$) *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="89.90"
+                          value={newProduct.price}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({
+                              ...prev,
+                              price: e.target.value,
+                            }))
+                          }
+                          className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm font-mono text-[#ff66c4] font-bold focus:border-[#ff66c4] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                          Preço "De" (R$)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="119.00"
+                          value={newProduct.compare_at_price}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({
+                              ...prev,
+                              compare_at_price: e.target.value,
+                            }))
+                          }
+                          className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm font-mono text-neutral-400 focus:border-[#ff66c4] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                        Subtítulo / Tecido
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="100% Algodão Premium Silk Screen"
+                        value={newProduct.subtitle}
+                        onChange={(e) =>
+                          setNewProduct((prev) => ({
+                            ...prev,
+                            subtitle: e.target.value,
+                          }))
+                        }
+                        className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                        Descrição Breve
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="Detalhes sobre a estampa, corte e caimento..."
+                        value={newProduct.description}
+                        onChange={(e) =>
+                          setNewProduct((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
+                        className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none resize-none"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-6 pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs">
+                        <input
+                          type="checkbox"
+                          checked={newProduct.is_active}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({
+                              ...prev,
+                              is_active: e.target.checked,
+                            }))
+                          }
+                          className="w-4 h-4 accent-[#ff66c4]"
+                        />
+                        <span className="uppercase font-bold text-neutral-200">
+                          Ativo na Loja
+                        </span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer text-xs">
+                        <input
+                          type="checkbox"
+                          checked={newProduct.is_featured}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({
+                              ...prev,
+                              is_featured: e.target.checked,
+                            }))
+                          }
+                          className="w-4 h-4 accent-[#ff66c4]"
+                        />
+                        <span className="uppercase font-bold text-neutral-200">
+                          Destaque Home
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Coluna 2: Uploads de Imagens & Arte */}
+                  <div className="space-y-4">
+                    {/* Mockup da Camiseta */}
+                    <div className="border border-neutral-800 p-3 bg-neutral-900/60 space-y-2">
+                      <label className="block text-xs uppercase font-bold text-neutral-200">
+                        1. Mockup da Camiseta (Foto da Vitrine) *
+                      </label>
+
+                      <div className="flex gap-3 items-center">
+                        {newProduct.image_url ? (
+                          <div className="w-20 h-24 bg-neutral-950 border border-neutral-700 flex-shrink-0 relative overflow-hidden group">
+                            <img
+                              src={newProduct.image_url}
+                              alt="Mockup Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setNewProduct((prev) => ({
+                                  ...prev,
+                                  image_url: "",
+                                }))
+                              }
+                              className="absolute top-1 right-1 bg-black/80 text-white p-1 hover:text-red-400"
+                              title="Remover imagem"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="w-20 h-24 bg-neutral-950 border border-dashed border-neutral-700 flex flex-col items-center justify-center flex-shrink-0 text-neutral-600">
+                            <ImageIcon className="w-6 h-6 mb-1" />
+                            <span className="text-[9px] uppercase font-bold">
+                              Sem Foto
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex-1 space-y-2">
+                          <label className="flex items-center justify-center gap-2 border border-neutral-600 bg-neutral-800 hover:bg-neutral-700 text-white px-3 py-2 text-xs font-bold uppercase cursor-pointer transition-colors">
+                            <Upload className="w-4 h-4 text-[#ff66c4]" />
+                            <span>
+                              {uploadingImage
+                                ? "Enviando arquivo..."
+                                : "Escolher do Computador"}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingImage}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFileUpload(file, "image_url");
+                              }}
+                              className="hidden"
+                            />
+                          </label>
+
+                          <input
+                            type="text"
+                            placeholder="Ou cole a URL da foto (https://...)"
+                            value={newProduct.image_url}
+                            onChange={(e) =>
+                              setNewProduct((prev) => ({
+                                ...prev,
+                                image_url: e.target.value,
+                              }))
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1.5 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Arte de Impressão Dimona */}
+                    <div className="border border-neutral-800 p-3 bg-neutral-900/60 space-y-2">
+                      <label className="block text-xs uppercase font-bold text-neutral-200">
+                        2. Arquivo da Arte de Impressão (Dimona Print File)
+                      </label>
+                      <p className="text-[10px] text-neutral-400">
+                        PNG transparente em alta resolução (300 DPI) para
+                        despacho à fábrica Dimona.
+                      </p>
+
+                      <div className="flex gap-3 items-center">
+                        {newProduct.artwork_url ? (
+                          <div className="w-16 h-16 bg-neutral-950 border border-neutral-700 flex-shrink-0 relative overflow-hidden">
+                            <img
+                              src={newProduct.artwork_url}
+                              alt="Arte Preview"
+                              className="w-full h-full object-contain p-1"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setNewProduct((prev) => ({
+                                  ...prev,
+                                  artwork_url: "",
+                                }))
+                              }
+                              className="absolute top-1 right-1 bg-black/80 text-white p-0.5 hover:text-red-400"
+                              title="Remover arte"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-neutral-950 border border-dashed border-neutral-700 flex flex-col items-center justify-center flex-shrink-0 text-neutral-600">
+                            <Upload className="w-4 h-4 mb-1" />
+                            <span className="text-[8px] uppercase font-bold">
+                              Arte
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex-1 space-y-2">
+                          <label className="flex items-center justify-center gap-2 border border-neutral-600 bg-neutral-800 hover:bg-neutral-700 text-white px-3 py-1.5 text-xs font-bold uppercase cursor-pointer transition-colors">
+                            <Upload className="w-3.5 h-3.5 text-[#ff66c4]" />
+                            <span>
+                              {uploadingArtwork
+                                ? "Enviando arte..."
+                                : "Upload da Arte"}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg"
+                              disabled={uploadingArtwork}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file)
+                                  handleFileUpload(file, "artwork_url");
+                              }}
+                              className="hidden"
+                            />
+                          </label>
+
+                          <input
+                            type="text"
+                            placeholder="Ou cole a URL da arte (https://...)"
+                            value={newProduct.artwork_url}
+                            onChange={(e) =>
+                              setNewProduct((prev) => ({
+                                ...prev,
+                                artwork_url: e.target.value,
+                              }))
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewProductModal(false)}
+                    className="px-5 py-2.5 border border-neutral-700 text-neutral-300 hover:text-white uppercase font-bold text-xs tracking-wider"
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={
+                      creatingProduct || uploadingImage || uploadingArtwork
+                    }
+                    className="flex items-center gap-2 bg-[#ff66c4] text-black font-oswald text-base font-black uppercase px-6 py-2.5 tracking-wider hover:bg-white transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(255,102,196,0.4)]"
+                  >
+                    {creatingProduct ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Cadastrando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-5 h-5 stroke-[3]" />
+                        <span>Publicar Estampa no Catálogo</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

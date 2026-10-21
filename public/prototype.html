@@ -1400,11 +1400,15 @@ class Component extends DCLogic {
         if (res.success && res.products && res.products.length) {
           res.products.forEach((p) => {
             if (!PRODUCTS[p.id]) PRODUCTS[p.id] = { id: p.id };
+            PRODUCTS[p.id].id = p.id;
+            PRODUCTS[p.id].slug = p.slug;
             PRODUCTS[p.id].name = p.name;
             PRODUCTS[p.id].price = Number(p.price);
             PRODUCTS[p.id].badge = p.badge;
-            PRODUCTS[p.id].subtitle = p.subtitle;
-            PRODUCTS[p.id].description = p.description;
+            PRODUCTS[p.id].tag = p.badge;
+            PRODUCTS[p.id].subtitle = p.subtitle || "100% Algodão Premium Silk Screen";
+            PRODUCTS[p.id].description = p.description || "";
+            if (!PRODUCTS[p.id].colors) PRODUCTS[p.id].colors = [{ name: "Preto", hex: "#111111" }];
             if (p.image_url) {
               PRODUCTS[p.id].image = p.image_url;
               if (!PRODUCTS[p.id].photos || !PRODUCTS[p.id].photos.length) {
@@ -1727,8 +1731,8 @@ class Component extends DCLogic {
     const num = "MNY-" + String(Math.floor(Math.random() * 9000) + 1000);
     const pay = this.state.ckPay;
     const items = Object.values(this.state.cart.reduce((acc, i) => {
-      const key = i.name + "|" + i.size;
-      if (!acc[key]) acc[key] = { name: i.name, size: i.size, qty: 0, unit: i.price, sku: i.sku };
+      const key = (i.id || i.name) + "|" + i.size;
+      if (!acc[key]) acc[key] = { id: i.id, name: i.name, size: i.size, qty: 0, price: i.price, unit: i.price, sku: i.sku };
       acc[key].qty += 1;
       return acc;
     }, {}));
@@ -1746,6 +1750,10 @@ class Component extends DCLogic {
           payment_method: pay,
           coupon_code: this.state.couponCode || undefined,
           total: t.total,
+          frete: ship ? ship.price : 0,
+          shipping_amount: ship ? ship.price : 0,
+          shipping_speed: ship ? ship.id : undefined,
+          shipping_carrier: ship ? ship.name : undefined,
           customer: { name: f.nome, email: f.email, cpf: f.cpf, phone: f.fone },
           address: {
             street: f.rua,

@@ -78,6 +78,81 @@ export async function getAllProductsAdmin(): Promise<DatabaseProduct[]> {
 }
 
 /**
+ * Cria um novo produto no catálogo via painel administrativo
+ */
+export async function createProductAdmin(
+  productData: Partial<DatabaseProduct>
+) {
+  try {
+    let nextId = productData.id;
+    if (!nextId) {
+      const { data: maxRow } = await supabaseAdmin
+        .from("products")
+        .select("id")
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      nextId = maxRow && maxRow.id ? maxRow.id + 1 : 1;
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("products")
+      .insert({
+        ...productData,
+        id: nextId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      const errMsg = error.message || error.details || JSON.stringify(error);
+      throw new Error(errMsg);
+    }
+    return { success: true, data };
+  } catch (err: unknown) {
+    const msg =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object" && err !== null && "message" in err
+        ? String((err as any).message)
+        : JSON.stringify(err);
+    console.error("Erro ao criar produto no Supabase:", msg);
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Remove um produto do catálogo via painel administrativo
+ */
+export async function deleteProductAdmin(id: number) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("products")
+      .delete()
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      const errMsg = error.message || error.details || JSON.stringify(error);
+      throw new Error(errMsg);
+    }
+    return { success: true, data };
+  } catch (err: unknown) {
+    const msg =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object" && err !== null && "message" in err
+        ? String((err as any).message)
+        : JSON.stringify(err);
+    console.error("Erro ao remover produto no Supabase:", msg);
+    return { success: false, error: msg };
+  }
+}
+
+/**
  * Atualiza um produto no catálogo via painel administrativo
  */
 export async function updateProductAdmin(
