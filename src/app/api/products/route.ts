@@ -1,7 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCatalogProducts } from "@/lib/supabase";
 
-export async function GET() {
+export const dynamic = "force-dynamic";
+
+export async function GET(_req: NextRequest) {
   try {
     const products = await getCatalogProducts();
     return NextResponse.json({
