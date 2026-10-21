@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createDimonaOrder, DimonaOrderItem } from "@/lib/dimona";
 import { getArtworkUrl } from "@/lib/artworks";
+import { saveDatabaseOrder } from "@/lib/supabase";
 
 /**
  * Endpoint de Criação e Despacho de Pedidos do Checkout Headless Munaya
@@ -57,6 +58,18 @@ export async function POST(req: NextRequest) {
     });
 
     const dimonaRes = await createDimonaOrder(dimonaOrderPayload);
+
+    // Salva ou atualiza o pedido no Supabase
+    await saveDatabaseOrder({
+      id: orderId,
+      customer,
+      address,
+      shipping_carrier: dimonaOrderPayload.delivery.shipping_speed,
+      dimona_id: dimonaRes.order_id,
+      dimona_status: dimonaRes.status || "recebido",
+      payment_status: "pago",
+      items: rawItems,
+    }).catch((e) => console.warn("Supabase order save:", e));
 
     return NextResponse.json({
       success: true,

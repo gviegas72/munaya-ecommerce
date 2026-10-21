@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createMercadoPagoPixOrder } from "@/lib/mercadopago";
+import { saveDatabaseOrder } from "@/lib/supabase";
 
 /**
  * Endpoint de Processamento de Pagamento no Checkout Headless Munaya
@@ -57,6 +58,18 @@ export async function POST(req: NextRequest) {
           sku: it.sku,
         })),
       });
+
+      // Registra o pedido no Supabase
+      saveDatabaseOrder({
+        id: orderId,
+        customer,
+        address,
+        total: amount,
+        payment_method: "pix",
+        payment_status: "aguardando_pagamento",
+        mp_order_id: mpResult.order_id,
+        items,
+      }).catch((e) => console.warn("Erro ao registrar pedido no Supabase:", e));
 
       return NextResponse.json({
         success: true,

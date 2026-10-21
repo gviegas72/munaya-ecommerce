@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getMercadoPagoOrder } from "@/lib/mercadopago";
 import { createDimonaOrder } from "@/lib/dimona";
 import { getArtworkUrl } from "@/lib/artworks";
+import { saveDatabaseOrder } from "@/lib/supabase";
 
 /**
  * Webhook Oficial do Mercado Pago
@@ -81,6 +82,14 @@ export async function POST(req: NextRequest) {
 
         const dimonaRes = await createDimonaOrder(dimonaPayload);
         console.log("✅ [DIMONA DISPATCH RESULT]:", dimonaRes);
+
+        // Atualiza o pedido no Supabase para 'pago' e com o ID da Dimona
+        await saveDatabaseOrder({
+          id: externalId,
+          payment_status: "pago",
+          dimona_id: dimonaRes.order_id,
+          dimona_status: dimonaRes.status || "recebido",
+        }).catch((e) => console.warn("Erro ao atualizar status no Supabase:", e));
       }
     }
 
