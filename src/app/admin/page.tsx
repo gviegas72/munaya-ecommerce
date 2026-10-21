@@ -243,6 +243,7 @@ export function getProductCollection(prod: Product): CollectionInfo | undefined 
 }
 
 export default function AdminPage() {
+  const [mounted, setMounted] = useState(false);
   const [pin, setPin] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -301,9 +302,14 @@ export default function AdminPage() {
   const [uploadingEditArtwork, setUploadingEditArtwork] = useState(false);
 
   useEffect(() => {
-    const savedPin = localStorage.getItem("munaya_admin_token");
-    if (savedPin === "munaya2026") {
-      setIsAuthed(true);
+    setMounted(true);
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token");
+      if (savedPin === "munaya2026") {
+        setIsAuthed(true);
+      }
+    } catch (e) {
+      console.warn("Storage inacessível:", e);
     }
   }, []);
 
@@ -357,13 +363,20 @@ export default function AdminPage() {
   const loadPricing = async () => {
     setLoadingPricing(true);
     try {
-      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const savedPin = typeof window !== "undefined" ? (localStorage.getItem("munaya_admin_token") || "munaya2026") : "munaya2026";
       const res = await fetch("/api/pricing", {
         headers: { "x-admin-pin": savedPin },
       });
       const data = await res.json();
-      if (data.success && data.settings) {
-        setPricingSettings(data.settings);
+      if (data.success && data.settings && data.settings.fabrics) {
+        setPricingSettings({
+          ...DEFAULT_PRICING_SETTINGS,
+          ...data.settings,
+          fabrics: {
+            ...DEFAULT_PRICING_SETTINGS.fabrics,
+            ...data.settings.fabrics,
+          },
+        });
       }
     } catch (e) {
       console.error("Erro ao carregar regras de precificação:", e);
@@ -1026,6 +1039,19 @@ export default function AdminPage() {
       (o.dimona_id && o.dimona_id.toLowerCase().includes(q))
     );
   });
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 font-sans">
+        <div className="w-full max-w-md border-2 border-neutral-800 bg-black p-8 text-center space-y-4">
+          <div className="w-8 h-8 border-2 border-[#ff66c4] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="font-oswald uppercase text-xs tracking-widest text-neutral-400">
+            Carregando Munaya Admin...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthed) {
     return (
@@ -3557,7 +3583,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-4">
-                  {Object.entries(pricingSettings.fabrics).map(([key, fabric]) => (
+                  {Object.entries(pricingSettings?.fabrics || DEFAULT_PRICING_SETTINGS.fabrics).map(([key, fabric]) => (
                     <div
                       key={key}
                       className="p-3.5 bg-neutral-900/60 border border-neutral-800 flex items-center justify-between gap-4"
@@ -3583,7 +3609,7 @@ export default function AdminPage() {
                             setPricingSettings({
                               ...pricingSettings,
                               fabrics: {
-                                ...pricingSettings.fabrics,
+                                ...(pricingSettings?.fabrics || DEFAULT_PRICING_SETTINGS.fabrics),
                                 [key]: { ...fabric, base_cost: val },
                               },
                             });
@@ -3759,12 +3785,12 @@ export default function AdminPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {Object.entries(pricingSettings.fabrics).map(([key, fabric]) => {
-                  const calculatedPrice = calculateSellingPrice(fabric.base_cost, pricingSettings);
+                {Object.entries(pricingSettings?.fabrics || DEFAULT_PRICING_SETTINGS.fabrics).map(([key, fabric]) => {
+                  const calculatedPrice = calculateSellingPrice(fabric.base_cost, pricingSettings || DEFAULT_PRICING_SETTINGS);
                   const fin = calculateFinancialSummary(
                     fabric.base_cost,
                     calculatedPrice,
-                    pricingSettings.tax_gateway_percent
+                    pricingSettings?.tax_gateway_percent ?? 4.5
                   );
 
                   return (
