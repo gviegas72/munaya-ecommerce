@@ -72,6 +72,8 @@ export async function POST(req: NextRequest) {
       items,
       delivery: {
         recipient_name: recipientName,
+        recipient_document: order.customer?.identification || order.customer?.document || shipping.id_number || "00000000000",
+        recipient_email: order.customer?.email || order.contact_email || order.email || "contato@munayarocks.com.br",
         recipient_phone: shipping.phone || order.customer?.phone || "",
         street: shipping.address || shipping.street || "Endereço não informado",
         number: shipping.number || "S/N",

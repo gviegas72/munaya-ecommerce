@@ -10,11 +10,14 @@ export interface DimonaOrderItem {
   size?: string;
   color?: string;
   artwork_url?: string;
+  mock_url?: string;
   unit_price?: number;
 }
 
 export interface DimonaDeliveryAddress {
   recipient_name: string;
+  recipient_document?: string;
+  recipient_email?: string;
   recipient_phone?: string;
   street: string;
   number: string;
@@ -23,7 +26,7 @@ export interface DimonaDeliveryAddress {
   city: string;
   state: string;
   zipcode: string;
-  shipping_speed?: "PAC" | "SEDEX" | "TRANSPORTADORA";
+  shipping_speed?: "PAC" | "SEDEX" | "TRANSPORTADORA" | "pac" | "sedex";
 }
 
 export interface DimonaCreateOrderPayload {
@@ -73,27 +76,27 @@ export async function createDimonaOrder(
 
   try {
     const payload = {
-      external_order_id: order.external_id,
-      items: order.items.map((item) => ({
-        sku: item.sku,
-        name: item.name,
-        quantity: item.qty,
-        artwork_url: item.artwork_url || "",
-        size: item.size,
-        color: item.color,
-      })),
-      delivery: {
-        name: order.delivery.recipient_name,
-        phone: order.delivery.recipient_phone || "",
+      order_id: String(order.external_id),
+      customer_name: order.delivery.recipient_name,
+      customer_document: (order.delivery.recipient_document || "00000000000").replace(/\D/g, ""),
+      customer_email: order.delivery.recipient_email || "",
+      shipping_speed: (order.delivery.shipping_speed || "PAC").toLowerCase(),
+      address: {
         street: order.delivery.street,
-        number: order.delivery.number,
+        number: String(order.delivery.number || "S/N"),
         complement: order.delivery.complement || "",
-        neighborhood: order.delivery.neighborhood,
+        neighborhood: order.delivery.neighborhood || "Centro",
         city: order.delivery.city,
         state: order.delivery.state,
         zipcode: order.delivery.zipcode.replace(/\D/g, ""),
-        shipping_speed: order.delivery.shipping_speed || "PAC",
       },
+      items: order.items.map((item) => ({
+        name: item.name,
+        sku: item.sku,
+        qty: item.qty,
+        designs: item.artwork_url ? [item.artwork_url] : [],
+        mocks: item.mock_url ? [item.mock_url] : [],
+      })),
       notes: order.notes || `Pedido Munaya #${order.external_id}`,
     };
 
@@ -101,6 +104,7 @@ export async function createDimonaOrder(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
         "api-key": apiKey,
       },
       body: JSON.stringify(payload),
@@ -123,7 +127,7 @@ export async function createDimonaOrder(
 
     return {
       success: true,
-      order_id: data?.id || data?.order_id || `DIMONA-${order.external_id}`,
+      order_id: data?.order || data?.id || data?.order_id || `DIMONA-${order.external_id}`,
       status: data?.status || "recebido",
       message: "Pedido enviado para produção com sucesso.",
       raw: data,
@@ -143,7 +147,7 @@ export async function createDimonaOrder(
  */
 export async function calculateDimonaShipping(
   zipcode: string,
-  items: Array<{ sku: string; quantity: number }>
+  totalQuantity = 1
 ) {
   const apiKey = process.env.DIMONA_API_KEY;
   if (!apiKey || apiKey === "sandbox_dimona_token") {
@@ -158,11 +162,12 @@ export async function calculateDimonaShipping(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
       "api-key": apiKey,
     },
     body: JSON.stringify({
       zipcode: zipcode.replace(/\D/g, ""),
-      items,
+      quantity: totalQuantity,
     }),
   });
 
