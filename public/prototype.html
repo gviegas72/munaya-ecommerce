@@ -1127,7 +1127,14 @@ const COLLECTION_PHOTOS = {
   "spiritual-beggars": "uploads/sBEGGARSSTAMP10x01.jpg",
   "zz-top": "uploads/ZZTOP_detalhe.jpg",
 };
-const asset = (p) => (p && window.__resources && window.__resources[RES_IDS[p]]) || p;
+const asset = (p) => {
+  if (!p) return "";
+  if (window.__resources && window.__resources[RES_IDS[p]]) return window.__resources[RES_IDS[p]];
+  let clean = String(p);
+  if (clean.startsWith("public/")) clean = clean.slice(6);
+  if (!clean.startsWith("/")) clean = "/" + clean;
+  return clean;
+};
 // Fotos provisórias do banco de imagens: no arquivo publicado não há rede, então o slot mostra o placeholder.
 const stock = (u) => (window.__resources ? "" : u);
 

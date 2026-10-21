@@ -12,10 +12,10 @@ export function Navbar() {
   const { openCart, totalCount } = useCart();
 
   const navLinks = [
-    { href: "/categoria", label: "Shop" },
-    { href: "/categoria", label: "Coleções" },
-    { href: "#", label: "Sobre" },
-    { href: "#", label: "Caos" },
+    { href: "/", label: "Início" },
+    { href: "/#colecoes", label: "Estampas" },
+    { href: "/#sobre", label: "Sobre" },
+    { href: "/admin", label: "Admin" },
   ];
 
   return (
@@ -34,11 +34,11 @@ export function Navbar() {
           <div
             className="w-12 h-12 bg-[#ff66c4]"
             style={{
-              maskImage: "url('/uploads/logo_v2027_vetor.png')",
+              maskImage: "url('/logo-redondo.svg')",
               maskSize: "contain",
               maskRepeat: "no-repeat",
               maskPosition: "center",
-              WebkitMaskImage: "url('/uploads/logo_v2027_vetor.png')",
+              WebkitMaskImage: "url('/logo-redondo.svg')",
               WebkitMaskSize: "contain",
               WebkitMaskRepeat: "no-repeat",
               WebkitMaskPosition: "center",
@@ -128,11 +128,11 @@ export function Navbar() {
             <div
               className="w-32 h-32 bg-[#ff66c4]"
               style={{
-                maskImage: "url('/uploads/logo_v2027_vetor.png')",
+                maskImage: "url('/logo-redondo.svg')",
                 maskSize: "contain",
                 maskRepeat: "no-repeat",
                 maskPosition: "center",
-                WebkitMaskImage: "url('/uploads/logo_v2027_vetor.png')",
+                WebkitMaskImage: "url('/logo-redondo.svg')",
                 WebkitMaskSize: "contain",
                 WebkitMaskRepeat: "no-repeat",
                 WebkitMaskPosition: "center",
@@ -143,30 +143,32 @@ export function Navbar() {
           {/* Links de Navegação */}
           <nav className="flex flex-col gap-6 font-oswald uppercase text-2xl font-bold tracking-tight">
             <Link
-              href="/categoria"
+              href="/"
               className={`hover:translate-x-2 transition-transform duration-200 ${
-                pathname === "/categoria" ? "text-[#ff66c4]" : ""
+                pathname === "/" ? "text-[#ff66c4]" : ""
               }`}
             >
-              Shop
+              Início
             </Link>
             <Link
-              href="/categoria"
+              href="/#colecoes"
               className="hover:translate-x-2 transition-transform duration-200 ml-3 opacity-90 hover:opacity-100"
             >
-              Coleções
+              Estampas
             </Link>
             <Link
-              href="#"
+              href="/#sobre"
               className="hover:translate-x-2 transition-transform duration-200 opacity-70 hover:opacity-100"
             >
               Sobre
             </Link>
             <Link
-              href="#"
-              className="hover:translate-x-2 transition-transform duration-200 -ml-1 opacity-70 hover:opacity-100 text-[#ff66c4]"
+              href="/admin"
+              className={`hover:translate-x-2 transition-transform duration-200 -ml-1 ${
+                pathname === "/admin" ? "text-[#ff66c4]" : "opacity-70 hover:opacity-100"
+              }`}
             >
-              Caos
+              Admin
             </Link>
           </nav>
         </div>
