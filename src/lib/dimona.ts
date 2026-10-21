@@ -56,7 +56,8 @@ export async function createDimonaOrder(
   if (!apiKey || apiKey === "sandbox_dimona_token" || apiKey === "test") {
     console.warn(
       "⚠️ [DIMONA] DIMONA_API_KEY não configurada ou em modo sandbox. Simulando sucesso do pedido:",
-      order.external_id
+      order.external_id,
+      order.items
     );
     return {
       success: true,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createDimonaOrder, DimonaOrderItem } from "@/lib/dimona";
+import { getArtworkUrl } from "@/lib/artworks";
 
 /**
  * Endpoint de Webhook da Nuvemshop
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
       size: p.variant_values?.[0] || p.size || "M",
       color: p.variant_values?.[1] || p.color || "Preto",
       unit_price: Number(p.price) || undefined,
-      artwork_url: p.artwork_url || "",
+      artwork_url: p.artwork_url || getArtworkUrl(p.sku || p.name),
     }));
 
     if (items.length === 0) {
