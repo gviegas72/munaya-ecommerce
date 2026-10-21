@@ -815,6 +815,32 @@
               </sc-for>
             </div>
 
+            <!-- Bloco de Cupom de Desconto -->
+            <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--fg);">
+              <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .7; margin-bottom: 8px;">Possui cupom?</div>
+              <div style="display: flex; gap: 8px;">
+                <input
+                  type="text"
+                  value="{{ ckCouponInput }}"
+                  onChange="{{ ckOnCouponChange }}"
+                  placeholder="EX: ROCK10"
+                  style="flex: 1; min-width: 0; background: transparent; border: 2px solid var(--fg); color: var(--fg); font-family: Oswald, sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; padding: 10px 12px; letter-spacing: .06em;"
+                />
+                <button
+                  type="button"
+                  onClick="{{ ckApplyCoupon }}"
+                  style="border: 2px solid var(--fg); background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 15px; font-weight: 700; text-transform: uppercase; padding: 10px 16px; cursor: pointer; flex: none;"
+                >
+                  Aplicar
+                </button>
+              </div>
+              <sc-if value="{{ ckHasCouponMsg }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: 8px; font-size: 12px; font-weight: 700; color: {{ ckCouponColor }}; text-transform: uppercase; letter-spacing: .04em;">
+                  {{ ckCouponMsg }}
+                </div>
+              </sc-if>
+            </div>
+
             <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
               <sc-for list="{{ ckTotals }}" as="t" hint-placeholder-count="3">
                 <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 14px; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: {{ t.color }};">
@@ -1718,6 +1744,7 @@ class Component extends DCLogic {
         body: JSON.stringify({
           id: num,
           payment_method: pay,
+          coupon_code: this.state.couponCode || undefined,
           total: t.total,
           customer: { name: f.nome, email: f.email, cpf: f.cpf, phone: f.fone },
           address: {
@@ -1835,6 +1862,42 @@ class Component extends DCLogic {
     window.removeEventListener("resize", this.onResize);
   }
 
+  applyCoupon = async () => {
+    const code = (this.state.couponInput || "").trim().toUpperCase();
+    if (!code) {
+      this.setState({ couponMsg: "Digite o código do cupom", couponSuccess: false });
+      return;
+    }
+    const subtotal = this.state.cart.reduce((a, i) => a + i.price, 0);
+    const ship = (this.state.ckFrete || []).find((x) => x.id === this.state.ckFreteChoice);
+    const shipValue = ship ? ship.price : 0;
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal, shipping: shipValue }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        this.setState({
+          couponCode: data.code,
+          couponDiscount: data.discount_amount,
+          couponMsg: "✓ Cupom " + data.code + " aplicado! (" + brl(data.discount_amount) + " OFF)",
+          couponSuccess: true,
+        });
+      } else {
+        this.setState({
+          couponCode: null,
+          couponDiscount: 0,
+          couponMsg: data.message || "Cupom inválido",
+          couponSuccess: false,
+        });
+      }
+    } catch (e) {
+      this.setState({ couponMsg: "Erro ao validar cupom", couponSuccess: false });
+    }
+  };
+
   totals = () => {
     const subtotal = this.state.cart.reduce((a, i) => a + i.price, 0);
     const isTestOrder =
@@ -1842,15 +1905,20 @@ class Component extends DCLogic {
       this.state.cart.some((it) => it.id === 99 || String(it.name).toLowerCase().includes("teste"));
     const ship = (this.state.ckFrete || []).find((x) => x.id === this.state.ckFreteChoice);
     const shipValue = isTestOrder ? 0 : (ship ? ship.price : 0);
-    const discount = (!isTestOrder && this.state.ckPay === "pix") ? subtotal * 0.05 : 0;
-    const total = isTestOrder ? 1.00 : (subtotal + shipValue - discount);
+    const couponDiscount = isTestOrder ? 0 : (this.state.couponDiscount || 0);
+    const baseAfterCoupon = Math.max(0, subtotal - couponDiscount);
+    const discount = (!isTestOrder && this.state.ckPay === "pix") ? baseAfterCoupon * 0.05 : 0;
+    const total = isTestOrder ? 1.00 : Math.max(0, baseAfterCoupon + shipValue - discount);
     return {
       subtotal: subtotal,
+      couponDiscount: couponDiscount,
+      couponCode: this.state.couponCode,
       shipValue: shipValue,
       ship: ship,
       discount: discount,
       total: total,
     };
+  };
   };
 
   foot = (id, key) => {
@@ -2386,10 +2454,22 @@ class Component extends DCLogic {
         meta: "Tam " + g.size + " · " + g.qty + " un · " + brl(g.unit),
         line: brl(g.unit * g.qty),
       })),
+      ckCouponInput: s.couponInput || "",
+      ckOnCouponChange: (e) => this.setState({ couponInput: e.target.value.toUpperCase(), couponMsg: "" }),
+      ckApplyCoupon: this.applyCoupon,
+      ckCouponMsg: s.couponMsg || "",
+      ckHasCouponMsg: !!s.couponMsg,
+      ckCouponColor: s.couponSuccess ? "#10b981" : accent,
+
       ckTotals: [
         { label: "Subtotal", value: brl(ck.subtotal), color: "var(--fg)" },
+      ].concat(
+        ck.couponDiscount > 0
+          ? [{ label: "Cupom " + ck.couponCode, value: "− " + brl(ck.couponDiscount), color: "#10b981" }]
+          : []
+      ).concat([
         { label: "Frete" + (ck.ship ? " · " + ck.ship.name : ""), value: ck.ship ? brl(ck.shipValue) : "a calcular", color: "var(--fg)" },
-      ].concat(ck.discount > 0 ? [{ label: "Desconto PIX 5%", value: "− " + brl(ck.discount), color: accent }] : []),
+      ]).concat(ck.discount > 0 ? [{ label: "Desconto PIX 5%", value: "− " + brl(ck.discount), color: accent }] : []),
       ckTotal: brl(ck.total),
       ckPayNote: s.ckPay === "cartao" ? "Em até 6x de " + brl(ck.total / 6) + " sem juros" : s.ckPay === "pix" ? "À vista no PIX, com 5% de desconto" : "Boleto à vista, vence em 2 dias úteis",
 

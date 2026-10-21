@@ -20,7 +20,9 @@ import {
   Lock,
   LogOut,
   Mail,
+  Tag,
 } from "lucide-react";
+import { CANONICAL_COUPONS } from "@/lib/coupons";
 
 interface OrderItem {
   name: string;
@@ -154,7 +156,7 @@ export default function AdminPage() {
   const [pin, setPin] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [activeTab, setActiveTab] = useState<"orders" | "catalog">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "catalog" | "coupons">("orders");
 
   // Estados de Pedidos
   const [orders, setOrders] = useState<Order[]>([]);
@@ -516,6 +518,18 @@ export default function AdminPage() {
           >
             <ShoppingBag className="w-5 h-5" />
             <span>Catálogo & Vitrine ({products.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("coupons")}
+            className={`flex items-center gap-2 px-6 py-3 font-oswald text-xl uppercase font-black tracking-tight transition-all ${
+              activeTab === "coupons"
+                ? "bg-white text-black"
+                : "text-neutral-400 hover:text-white"
+            }`}
+          >
+            <Tag className="w-5 h-5" />
+            <span>Cupons ({Object.keys(CANONICAL_COUPONS).length})</span>
           </button>
         </div>
 
@@ -1143,6 +1157,79 @@ export default function AdminPage() {
             </div>
           );
         })()}
+
+        {/* TAB 3: CUPONS DE DESCONTO */}
+        {activeTab === "coupons" && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-neutral-950 p-4 border border-neutral-800">
+              <div>
+                <h2 className="font-oswald text-2xl font-bold uppercase tracking-tight">
+                  Cupons Promocionais & Descontos
+                </h2>
+                <p className="text-xs text-neutral-400 uppercase tracking-wider">
+                  Cupons oficiais validados com segurança server-side no checkout.
+                </p>
+              </div>
+
+              <div className="text-xs uppercase font-mono bg-neutral-900 border border-neutral-700 px-3 py-1.5 text-neutral-300">
+                {Object.keys(CANONICAL_COUPONS).length} cupons ativos
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Object.values(CANONICAL_COUPONS).map((cp) => (
+                <div
+                  key={cp.code}
+                  className="border-2 border-neutral-800 bg-neutral-950 p-6 space-y-4 hover:border-white transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2 border-b border-neutral-800 pb-3">
+                    <span className="font-mono text-2xl font-black tracking-wider text-[#ff66c4]">
+                      {cp.code}
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-emerald-950 border border-emerald-500 text-emerald-400 px-2.5 py-0.5 text-xs uppercase font-bold tracking-wider">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Ativo
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <p className="font-bold text-white text-base">
+                      {cp.description}
+                    </p>
+                    <div className="flex items-center gap-2 text-xs text-neutral-400 font-mono">
+                      <span>
+                        Tipo:{" "}
+                        {cp.type === "percentage"
+                          ? `${cp.value}% OFF`
+                          : cp.type === "free_shipping"
+                          ? "Frete Grátis"
+                          : `R$ ${cp.value},00 OFF`}
+                      </span>
+                      {cp.min_subtotal && (
+                        <span>
+                          • Mínimo: R$ {cp.min_subtotal.toFixed(2).replace(".", ",")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (navigator.clipboard) {
+                        navigator.clipboard.writeText(cp.code);
+                        setActionMsg(`Código ${cp.code} copiado!`);
+                        setTimeout(() => setActionMsg(""), 2500);
+                      }
+                    }}
+                    className="w-full border border-neutral-700 bg-neutral-900 text-white font-oswald text-sm font-bold uppercase py-2 tracking-wider hover:bg-white hover:text-black transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span>Copiar Código</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

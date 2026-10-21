@@ -5,6 +5,7 @@ import { calculateDimonaShipping } from "@/lib/dimona";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sanitizeString, sanitizeDigits } from "@/lib/sanitize";
 import { sendOrderCreatedEmail } from "@/lib/email";
+import { validateCouponCode } from "@/lib/coupons";
 
 /**
  * Endpoint de Processamento de Pagamento no Checkout Headless Munaya
@@ -121,7 +122,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Cálculo do valor total oficial (com 5% de desconto exclusivo para PIX normal)
+    // 3. Validação segura de Cupom de Desconto (server-side)
+    const rawCoupon = String(body.coupon_code || body.coupon || "").trim();
+    let couponDiscount = 0;
+    let validatedCouponCodeStr = "";
+
+    if (rawCoupon && !isTestOrder) {
+      const couponRes = validateCouponCode(rawCoupon, calculatedSubtotal, officialShipping);
+      if (couponRes.valid) {
+        couponDiscount = couponRes.discount_amount;
+        validatedCouponCodeStr = couponRes.code;
+        console.log(`🎟️ [CUPOM APLICADO NO BACKEND] Código: ${couponRes.code} | Desconto: R$ ${couponDiscount}`);
+      }
+    }
+
+    // 4. Cálculo do valor total oficial (com desconto de cupom e 5% de desconto para PIX)
     let officialTotal = 0;
     let pixDiscount = 0;
 
@@ -130,8 +145,12 @@ export async function POST(req: NextRequest) {
       officialTotal = 1.00;
       pixDiscount = 0;
     } else {
-      pixDiscount = paymentMethod === "pix" ? calculatedSubtotal * 0.05 : 0;
-      officialTotal = Math.max(0.01, Number((calculatedSubtotal + officialShipping - pixDiscount).toFixed(2)));
+      const baseAfterCoupon = Math.max(0, calculatedSubtotal - couponDiscount);
+      pixDiscount = paymentMethod === "pix" ? baseAfterCoupon * 0.05 : 0;
+      officialTotal = Math.max(
+        0.01,
+        Number((baseAfterCoupon + officialShipping - pixDiscount).toFixed(2))
+      );
     }
 
     console.log("🔒 [CHECKOUT SEGURO VALIDADO]", {
@@ -139,6 +158,8 @@ export async function POST(req: NextRequest) {
       paymentMethod,
       calculatedSubtotal,
       officialShipping,
+      coupon: validatedCouponCodeStr,
+      couponDiscount,
       pixDiscount,
       officialTotal,
       customer: customer.name,
