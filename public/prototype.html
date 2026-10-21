@@ -78,6 +78,19 @@
   </aside>
 
   <main style="flex: 1; position: relative; min-width: 0;">
+    <sc-if value="{{ showFirstOrderBanner }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #111; border-bottom: 2px solid {{ accent }}; padding: 10px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; z-index: 30; position: relative;">
+        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700;">
+          <span style="color: {{ accent }}; font-size: 16px;">★</span>
+          <span>PRIMEIRA VEZ NO MOSH PIT? USE O CUPOM <span style="background: {{ accent }}; color: #000; font-family: ui-monospace, Menlo, monospace; padding: 2px 6px; font-weight: 900; letter-spacing: .05em;">PRIMEIRACOMPRA</span> E GANHE 10% OFF</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" onClick="{{ copyFirstOrderCoupon }}" style="background: #fff; color: #000; border: none; font-family: Oswald, sans-serif; font-size: 13px; font-weight: 900; text-transform: uppercase; padding: 5px 12px; cursor: pointer; transition: background-color .15s;">{{ firstOrderBtnText }}</button>
+          <button type="button" onClick="{{ dismissFirstOrderBanner }}" style="background: transparent; color: #888; border: none; font-size: 16px; cursor: pointer; padding: 0 4px;" title="Fechar">✕</button>
+        </div>
+      </div>
+    </sc-if>
+
 
     <sc-if value="{{ showColecoes }}" hint-placeholder-val="{{ false }}">
       <div style="width: 100%; min-height: 100vh; padding: clamp(16px, 4vw, 32px); box-sizing: border-box;">
@@ -1914,8 +1927,11 @@ class Component extends DCLogic {
       if (data.valid) {
         this.setState({
           couponCode: data.code,
+          couponType: data.type,
           couponDiscount: data.discount_amount,
-          couponMsg: "✓ Cupom " + data.code + " aplicado! (" + brl(data.discount_amount) + " OFF)",
+          couponMsg: data.type === "free_shipping"
+            ? "✓ Cupom " + data.code + " aplicado: Frete Grátis!"
+            : "✓ Cupom " + data.code + " aplicado! (" + brl(data.discount_amount) + " OFF)",
           couponSuccess: true,
         });
       } else {
@@ -1937,8 +1953,9 @@ class Component extends DCLogic {
       subtotal <= 1.05 ||
       this.state.cart.some((it) => it.id === 99 || String(it.name).toLowerCase().includes("teste"));
     const ship = (this.state.ckFrete || []).find((x) => x.id === this.state.ckFreteChoice);
-    const shipValue = isTestOrder ? 0 : (ship ? ship.price : 0);
-    const couponDiscount = isTestOrder ? 0 : (this.state.couponDiscount || 0);
+    const isFreeShipping = this.state.couponType === "free_shipping";
+    const shipValue = (isTestOrder || isFreeShipping) ? 0 : (ship ? ship.price : 0);
+    const couponDiscount = (isTestOrder || isFreeShipping) ? 0 : (this.state.couponDiscount || 0);
     const baseAfterCoupon = Math.max(0, subtotal - couponDiscount);
     const discount = (!isTestOrder && this.state.ckPay === "pix") ? baseAfterCoupon * 0.05 : 0;
     const total = isTestOrder ? 1.00 : Math.max(0, baseAfterCoupon + shipValue - discount);
@@ -2542,6 +2559,17 @@ class Component extends DCLogic {
       },
       checkStatusManual: this.checkOrderStatusManual,
 
+      showFirstOrderBanner: !s.firstOrderDismissed,
+      firstOrderBtnText: s.firstOrderCopied ? "Copiado! 🤘" : "Copiar Cupom",
+      copyFirstOrderCoupon: () => {
+        if (navigator.clipboard) navigator.clipboard.writeText("PRIMEIRACOMPRA");
+        this.setState({ firstOrderCopied: true, ckCouponInput: "PRIMEIRACOMPRA" });
+        setTimeout(() => this.setState({ firstOrderCopied: false }), 2500);
+      },
+      dismissFirstOrderBanner: () => {
+        try { localStorage.setItem("munaya_first_purchase_dismissed", "1"); } catch (e) {}
+        this.setState({ firstOrderDismissed: true });
+      },
       infoTitle: s.infoTitle,
     };
   }

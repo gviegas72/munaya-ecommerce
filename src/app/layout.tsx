@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Navbar } from "@/components/Navbar";
 import { CartProvider } from "@/context/CartContext";
 import { CartDrawer } from "@/components/CartDrawer";
+import { PromoBanner } from "@/components/PromoBanner";
 
 const oswald = Oswald({
   variable: "--font-oswald",
@@ -36,8 +37,11 @@ export default function RootLayout({
         <ThemeProvider attribute="class" forcedTheme="dark">
           <CartProvider>
             <Navbar />
-            <main className="flex-1 w-full md:ml-[max(15%,200px)] relative">
-              {children}
+            <main className="flex-1 w-full md:ml-[max(15%,200px)] relative flex flex-col">
+              <PromoBanner />
+              <div className="flex-1 w-full">
+                {children}
+              </div>
             </main>
             <CartDrawer />
           </CartProvider>

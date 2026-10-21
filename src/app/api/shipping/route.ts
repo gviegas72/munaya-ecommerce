@@ -67,35 +67,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Normaliza para o formato padrão do e-commerce Munaya
-    const isTest = Boolean(
-      body.is_test ||
-      body.price <= 1.05 ||
-      body.subtotal <= 1.05 ||
-      (Array.isArray(body.items) &&
-        body.items.some((it: any) => String(it.id) === "99" || String(it.name || "").toLowerCase().includes("teste")))
-    );
-
-    const baseOptions = dimonaQuotes.map((q: any) => ({
+    // Opções oficiais de frete real Dimona (PAC, SEDEX, etc.)
+    // Frete grátis para testes ou promoções é gerenciado exclusivamente via cupom (ex: TESTEFRETE)
+    const options = dimonaQuotes.map((q: any) => ({
       id: String(q.delivery_method_id || q.name).toLowerCase(),
       name: q.name,
       price: Number(q.value),
       formattedPrice: `R$ ${Number(q.value).toFixed(2).replace(".", ",")}`,
       days: `${q.business_days} dias úteis`,
     }));
-
-    const options = isTest
-      ? [
-          {
-            id: "gratis_teste",
-            name: "Frete Cortesia (Homologação R$ 1,00)",
-            price: 0,
-            formattedPrice: "Grátis (R$ 0,00)",
-            days: "Homologação Imediata",
-          },
-          ...baseOptions,
-        ]
-      : baseOptions;
 
     return NextResponse.json({
       success: true,

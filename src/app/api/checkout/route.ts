@@ -5,7 +5,7 @@ import { calculateDimonaShipping } from "@/lib/dimona";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sanitizeString, sanitizeDigits } from "@/lib/sanitize";
 import { sendOrderCreatedEmail } from "@/lib/email";
-import { validateCouponCode } from "@/lib/coupons";
+import { validateCouponCode, incrementCouponUsage } from "@/lib/coupons";
 
 /**
  * Endpoint de Processamento de Pagamento no Checkout Headless Munaya
@@ -133,20 +133,26 @@ export async function POST(req: NextRequest) {
     // 3. Validação segura de Cupom de Desconto (server-side)
     const rawCoupon = String(body.coupon_code || body.coupon || "").trim();
     let couponDiscount = 0;
+    let shippingDiscount = 0;
     let validatedCouponCodeStr = "";
 
     if (rawCoupon && !isTestOrder) {
-      const couponRes = validateCouponCode(rawCoupon, calculatedSubtotal, officialShipping);
+      const couponRes = await validateCouponCode(rawCoupon, calculatedSubtotal, officialShipping);
       if (couponRes.valid) {
-        couponDiscount = couponRes.discount_amount;
+        if (couponRes.type === "free_shipping") {
+          shippingDiscount = officialShipping;
+        } else {
+          couponDiscount = couponRes.discount_amount;
+        }
         validatedCouponCodeStr = couponRes.code;
-        console.log(`🎟️ [CUPOM APLICADO NO BACKEND] Código: ${couponRes.code} | Desconto: R$ ${couponDiscount}`);
+        console.log(`🎟️ [CUPOM APLICADO NO BACKEND] Código: ${couponRes.code} | Desconto Subtotal: R$ ${couponDiscount} | Desconto Frete: R$ ${shippingDiscount}`);
       }
     }
 
     // 4. Cálculo do valor total oficial (com desconto de cupom e 5% de desconto para PIX)
     let officialTotal = 0;
     let pixDiscount = 0;
+    const finalShipping = Math.max(0, officialShipping - shippingDiscount);
 
     if (isTestOrder) {
       // Valor exato de R$ 1,00 para teste de homologação sem cobrança de frete
@@ -157,7 +163,7 @@ export async function POST(req: NextRequest) {
       pixDiscount = paymentMethod === "pix" ? baseAfterCoupon * 0.05 : 0;
       officialTotal = Math.max(
         0.01,
-        Number((baseAfterCoupon + officialShipping - pixDiscount).toFixed(2))
+        Number((baseAfterCoupon + finalShipping - pixDiscount).toFixed(2))
       );
     }
 
@@ -166,8 +172,10 @@ export async function POST(req: NextRequest) {
       paymentMethod,
       calculatedSubtotal,
       officialShipping,
+      finalShipping,
       coupon: validatedCouponCodeStr,
       couponDiscount,
+      shippingDiscount,
       pixDiscount,
       officialTotal,
       customer: customer.name,
@@ -207,12 +215,17 @@ export async function POST(req: NextRequest) {
         address,
         total: officialTotal,
         subtotal: calculatedSubtotal,
-        shipping_amount: officialShipping,
+        shipping_amount: finalShipping,
         payment_method: "pix",
         payment_status: "aguardando_pagamento",
         mp_order_id: mpResult.order_id,
         items: validatedItems,
       }).catch((e) => console.warn("Erro ao registrar pedido no Supabase:", e));
+
+      // Contabiliza uso do cupom se aplicado
+      if (validatedCouponCodeStr) {
+        incrementCouponUsage(validatedCouponCodeStr).catch(() => {});
+      }
 
       // Dispara e-mail transacional de confirmação do pedido + Pix Copia e Cola
       if (customer.email) {

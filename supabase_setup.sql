@@ -54,9 +54,46 @@ CREATE TABLE IF NOT EXISTS public.orders (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 3. TABELA DE CUPONS PROMOCIONAIS & DESCONTOS
+CREATE TABLE IF NOT EXISTS public.coupons (
+    code TEXT PRIMARY KEY,
+    type TEXT NOT NULL DEFAULT 'percentage', -- 'percentage', 'fixed', 'free_shipping'
+    value NUMERIC(10, 2) NOT NULL DEFAULT 10.00,
+    min_subtotal NUMERIC(10, 2) DEFAULT 0.00,
+    description TEXT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    expires_at TIMESTAMPTZ, -- null = perene (sem validade)
+    max_uses INTEGER, -- null = ilimitado
+    used_count INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Habilita Row Level Security (RLS)
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
+
+-- Políticas de Acesso para Cupons:
+DROP POLICY IF EXISTS "Leitura pública de cupons ativos" ON public.coupons;
+CREATE POLICY "Leitura pública de cupons ativos"
+ON public.coupons FOR SELECT
+USING (is_active = true);
+
+DROP POLICY IF EXISTS "Admin gerencia cupons" ON public.coupons;
+CREATE POLICY "Admin gerencia cupons"
+ON public.coupons FOR ALL
+USING (auth.role() = 'service_role' OR auth.role() = 'authenticated');
+
+-- Cupons Oficiais Iniciais
+INSERT INTO public.coupons (code, type, value, min_subtotal, description, is_active, expires_at)
+VALUES 
+    ('PRIMEIRACOMPRA', 'percentage', 10.00, 0.00, '10% de boas-vindas na sua primeira compra', true, NULL),
+    ('TESTEFRETE', 'free_shipping', 100.00, 0.00, 'Cupom de Teste de Homologação (Frete Grátis R$ 0,00)', true, NULL),
+    ('ROCK10', 'percentage', 10.00, 0.00, '10% de desconto em todo o catálogo', true, NULL),
+    ('MUNAYAVIP', 'percentage', 15.00, 150.00, '15% de desconto VIP em compras acima de R$ 150', true, NULL),
+    ('BONZO20', 'fixed', 20.00, 100.00, 'R$ 20,00 OFF em compras acima de R$ 100', true, NULL)
+ON CONFLICT (code) DO NOTHING;
 
 -- Políticas de Acesso para Produtos:
 -- Leitura pública (qualquer visitante pode ver os produtos ativos na loja)

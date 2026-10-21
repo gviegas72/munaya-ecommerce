@@ -28,8 +28,13 @@ import {
   Image as ImageIcon,
   AlertCircle,
   Pencil,
+  Calendar,
+  Infinity as InfinityIcon,
+  ToggleLeft,
+  ToggleRight,
+  Percent,
 } from "lucide-react";
-import { CANONICAL_COUPONS } from "@/lib/coupons";
+import { Coupon } from "@/lib/coupons";
 import {
   OFFICIAL_COLORS,
   OFFICIAL_SIZES,
@@ -37,6 +42,31 @@ import {
   generateVariantSku,
   ProductColor,
 } from "@/lib/variants";
+
+
+interface CouponFormData {
+  code: string;
+  type: "percentage" | "fixed" | "free_shipping";
+  value: number;
+  min_subtotal: number;
+  description: string;
+  is_active: boolean;
+  is_perennial: boolean;
+  expires_at: string;
+  max_uses: string;
+}
+
+const INITIAL_COUPON_FORM: CouponFormData = {
+  code: "",
+  type: "percentage",
+  value: 10,
+  min_subtotal: 0,
+  description: "",
+  is_active: true,
+  is_perennial: true,
+  expires_at: "",
+  max_uses: "",
+};
 
 interface NewProductForm {
   name: string;
@@ -218,6 +248,18 @@ export default function AdminPage() {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderSearch, setOrderSearch] = useState("");
   const [actionMsg, setActionMsg] = useState("");
+  // Estados de Gestão de Cupons
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(false);
+  const [couponSearch, setCouponSearch] = useState("");
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const [editingCouponCode, setEditingCouponCode] = useState<string | null>(null);
+  const [couponForm, setCouponForm] = useState<CouponFormData>(INITIAL_COUPON_FORM);
+  const [savingCoupon, setSavingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [couponSuccess, setCouponSuccess] = useState("");
+  const [deletingCouponCode, setDeletingCouponCode] = useState<string | null>(null);
+
 
   // Estados do Catálogo
   const [products, setProducts] = useState<Product[]>([]);
@@ -257,6 +299,7 @@ export default function AdminPage() {
     if (isAuthed) {
       loadOrders();
       loadProducts();
+      loadCoupons();
     }
   }, [isAuthed]);
 
@@ -293,6 +336,147 @@ export default function AdminPage() {
       console.error("Erro ao carregar pedidos:", e);
     } finally {
       setLoadingOrders(false);
+    }
+  };
+
+
+  const loadCoupons = async () => {
+    setLoadingCoupons(true);
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/coupons", {
+        headers: { "x-admin-pin": savedPin },
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.coupons)) {
+        setCoupons(data.coupons);
+      }
+    } catch (e) {
+      console.error("Erro ao carregar cupons:", e);
+    } finally {
+      setLoadingCoupons(false);
+    }
+  };
+
+  const openCreateCoupon = () => {
+    setEditingCouponCode(null);
+    setCouponForm(INITIAL_COUPON_FORM);
+    setCouponError("");
+    setCouponSuccess("");
+    setShowCouponModal(true);
+  };
+
+  const openEditCoupon = (cp: Coupon) => {
+    setEditingCouponCode(cp.code);
+    setCouponForm({
+      code: cp.code,
+      type: cp.type,
+      value: cp.value,
+      min_subtotal: cp.min_subtotal || 0,
+      description: cp.description || "",
+      is_active: cp.is_active,
+      is_perennial: !cp.expires_at,
+      expires_at: cp.expires_at ? cp.expires_at.slice(0, 10) : "",
+      max_uses: cp.max_uses ? String(cp.max_uses) : "",
+    });
+    setCouponError("");
+    setCouponSuccess("");
+    setShowCouponModal(true);
+  };
+
+  const handleSaveCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanCode = couponForm.code.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
+    if (!cleanCode) {
+      setCouponError("Informe o código do cupom (ex: ROCK10, TESTEFRETE).");
+      return;
+    }
+    setSavingCoupon(true);
+    setCouponError("");
+    setCouponSuccess("");
+
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/coupons", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify({
+          code: cleanCode,
+          type: couponForm.type,
+          value: couponForm.type === "free_shipping" ? 100 : Number(couponForm.value || 0),
+          min_subtotal: Number(couponForm.min_subtotal || 0),
+          description: couponForm.description.trim() || ("Cupom " + cleanCode),
+          is_active: couponForm.is_active,
+          expires_at: couponForm.is_perennial ? null : (couponForm.expires_at || null),
+          max_uses: couponForm.max_uses ? Number(couponForm.max_uses) : null,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setCouponError(data.error || "Erro ao salvar cupom.");
+      } else {
+        setCouponSuccess("Cupom salvo com sucesso!");
+        loadCoupons();
+        setTimeout(() => {
+          setShowCouponModal(false);
+          setCouponSuccess("");
+        }, 1200);
+      }
+    } catch {
+      setCouponError("Falha de conexão ao salvar cupom.");
+    } finally {
+      setSavingCoupon(false);
+    }
+  };
+
+  const handleToggleCoupon = async (cp: Coupon) => {
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const newStatus = !cp.is_active;
+      // Atualização otimista
+      setCoupons((prev) =>
+        prev.map((item) => (item.code === cp.code ? { ...item, is_active: newStatus } : item))
+      );
+
+      await fetch("/api/coupons", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify({
+          ...cp,
+          is_active: newStatus,
+        }),
+      });
+
+      setActionMsg("Cupom " + cp.code + " " + (newStatus ? "ativado" : "inativado") + " com sucesso!");
+      setTimeout(() => setActionMsg(""), 2500);
+    } catch {
+      loadCoupons();
+    }
+  };
+
+  const handleDeleteCoupon = async (code: string) => {
+    if (!confirm("Tem certeza que deseja excluir permanentemente o cupom " + code + "?")) return;
+    setDeletingCouponCode(code);
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      await fetch("/api/coupons?code=" + encodeURIComponent(code), {
+        method: "DELETE",
+        headers: { "x-admin-pin": savedPin },
+      });
+      setCoupons((prev) => prev.filter((c) => c.code !== code));
+      setActionMsg("Cupom " + code + " excluído.");
+      setTimeout(() => setActionMsg(""), 2500);
+    } catch {
+      loadCoupons();
+    } finally {
+      setDeletingCouponCode(null);
     }
   };
 
@@ -881,7 +1065,7 @@ export default function AdminPage() {
             }`}
           >
             <Tag className="w-5 h-5" />
-            <span>Cupons ({Object.keys(CANONICAL_COUPONS).length})</span>
+            <span>Cupons ({coupons.length})</span>
           </button>
         </div>
 
@@ -1583,76 +1767,489 @@ export default function AdminPage() {
         {/* TAB 3: CUPONS DE DESCONTO */}
         {activeTab === "coupons" && (
           <div className="space-y-6">
+            {/* Header com Estatísticas e Botão Novo Cupom */}
             <div className="flex flex-wrap items-center justify-between gap-4 bg-neutral-950 p-4 border border-neutral-800">
               <div>
-                <h2 className="font-oswald text-2xl font-bold uppercase tracking-tight">
+                <h2 className="font-oswald text-2xl font-bold uppercase tracking-tight flex items-center gap-2">
+                  <Tag className="w-6 h-6 text-[#ff66c4]" />
                   Cupons Promocionais & Descontos
                 </h2>
                 <p className="text-xs text-neutral-400 uppercase tracking-wider">
-                  Cupons oficiais validados com segurança server-side no checkout.
+                  Crie, edite, ative, inative e configure validade para cupons da loja e homologação.
                 </p>
               </div>
 
-              <div className="text-xs uppercase font-mono bg-neutral-900 border border-neutral-700 px-3 py-1.5 text-neutral-300">
-                {Object.keys(CANONICAL_COUPONS).length} cupons ativos
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={loadCoupons}
+                  disabled={loadingCoupons}
+                  title="Atualizar lista"
+                  className="p-2 border border-neutral-700 bg-neutral-900 text-neutral-300 hover:text-white hover:border-white transition-colors"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingCoupons ? "animate-spin" : ""}`} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={openCreateCoupon}
+                  className="bg-[#ff66c4] text-black font-oswald text-sm font-black uppercase px-4 py-2 hover:bg-white transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(255,102,196,0.3)]"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <span>Novo Cupom</span>
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.values(CANONICAL_COUPONS).map((cp) => (
-                <div
-                  key={cp.code}
-                  className="border-2 border-neutral-800 bg-neutral-950 p-6 space-y-4 hover:border-white transition-colors"
-                >
-                  <div className="flex items-center justify-between gap-2 border-b border-neutral-800 pb-3">
-                    <span className="font-mono text-2xl font-black tracking-wider text-[#ff66c4]">
-                      {cp.code}
-                    </span>
-                    <span className="inline-flex items-center gap-1 bg-emerald-950 border border-emerald-500 text-emerald-400 px-2.5 py-0.5 text-xs uppercase font-bold tracking-wider">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Ativo
-                    </span>
-                  </div>
+            {/* Barra de Busca e Filtros Rápidos */}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="relative flex-1 min-w-[260px] max-w-md">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                <input
+                  type="text"
+                  placeholder="Buscar cupom por código ou descrição..."
+                  value={couponSearch}
+                  onChange={(e) => setCouponSearch(e.target.value)}
+                  className="w-full bg-neutral-950 border border-neutral-800 pl-9 pr-4 py-2 text-sm text-white placeholder-neutral-500 font-mono focus:outline-none focus:border-[#ff66c4]"
+                />
+              </div>
 
-                  <div className="space-y-2 text-sm">
-                    <p className="font-bold text-white text-base">
-                      {cp.description}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-neutral-400 font-mono">
-                      <span>
-                        Tipo:{" "}
-                        {cp.type === "percentage"
-                          ? `${cp.value}% OFF`
-                          : cp.type === "free_shipping"
-                          ? "Frete Grátis"
-                          : `R$ ${cp.value},00 OFF`}
-                      </span>
-                      {cp.min_subtotal && (
-                        <span>
-                          • Mínimo: R$ {cp.min_subtotal.toFixed(2).replace(".", ",")}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      if (navigator.clipboard) {
-                        navigator.clipboard.writeText(cp.code);
-                        setActionMsg(`Código ${cp.code} copiado!`);
-                        setTimeout(() => setActionMsg(""), 2500);
-                      }
-                    }}
-                    className="w-full border border-neutral-700 bg-neutral-900 text-white font-oswald text-sm font-bold uppercase py-2 tracking-wider hover:bg-white hover:text-black transition-colors flex items-center justify-center gap-2"
-                  >
-                    <span>Copiar Código</span>
-                  </button>
-                </div>
-              ))}
+              <div className="flex items-center gap-2 text-xs font-mono uppercase">
+                <span className="bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-neutral-300">
+                  Total: <strong className="text-white">{coupons.length}</strong>
+                </span>
+                <span className="bg-emerald-950/60 border border-emerald-500/30 px-3 py-1.5 text-emerald-400">
+                  Ativos: <strong>{coupons.filter((c) => c.is_active).length}</strong>
+                </span>
+                <span className="bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-neutral-400">
+                  Inativos: <strong>{coupons.filter((c) => !c.is_active).length}</strong>
+                </span>
+              </div>
             </div>
+
+            {/* Grid de Cupons */}
+            {loadingCoupons && coupons.length === 0 ? (
+              <div className="text-center py-16 border border-neutral-800 bg-neutral-950">
+                <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[#ff66c4] mb-3" />
+                <p className="font-oswald text-lg uppercase tracking-wider text-neutral-400">
+                  Carregando cupons da loja...
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {coupons
+                  .filter((cp) => {
+                    if (!couponSearch) return true;
+                    const q = couponSearch.toLowerCase();
+                    return cp.code.toLowerCase().includes(q) || (cp.description || "").toLowerCase().includes(q);
+                  })
+                  .map((cp) => {
+                    const isExpired = cp.expires_at && new Date() > new Date(cp.expires_at);
+                    const formattedExp = cp.expires_at
+                      ? new Date(cp.expires_at).toLocaleDateString("pt-BR")
+                      : null;
+
+                    return (
+                      <div
+                        key={cp.code}
+                        className={`border-2 bg-neutral-950 p-5 space-y-4 transition-all ${
+                          cp.is_active && !isExpired
+                            ? "border-neutral-800 hover:border-[#ff66c4]"
+                            : "border-neutral-900 opacity-75 bg-neutral-950/50"
+                        }`}
+                      >
+                        {/* Header do Card com Código e Status Toggle */}
+                        <div className="flex items-center justify-between gap-2 border-b border-neutral-800 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xl font-black tracking-wider text-[#ff66c4]">
+                              {cp.code}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleCoupon(cp)}
+                            title={cp.is_active ? "Clique para inativar" : "Clique para ativar"}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                              cp.is_active
+                                ? "bg-emerald-950 border border-emerald-500 text-emerald-400 hover:bg-emerald-900"
+                                : "bg-neutral-900 border border-neutral-700 text-neutral-400 hover:bg-neutral-800"
+                            }`}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${cp.is_active ? "bg-emerald-400 animate-pulse" : "bg-neutral-500"}`} />
+                            {cp.is_active ? "Ativo" : "Inativo"}
+                          </button>
+                        </div>
+
+                        {/* Descrição e Tipo */}
+                        <div className="space-y-2 text-sm">
+                          <p className="font-bold text-white text-base leading-snug">
+                            {cp.description}
+                          </p>
+
+                          <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+                            <span className="bg-white/10 px-2 py-0.5 rounded text-white font-bold">
+                              {cp.type === "percentage"
+                                ? `${cp.value}% OFF`
+                                : cp.type === "free_shipping"
+                                ? "Frete Grátis (R$ 0)"
+                                : `R$ ${Number(cp.value).toFixed(2).replace(".", ",")} OFF`}
+                            </span>
+
+                            {cp.min_subtotal ? (
+                              <span className="text-neutral-400">
+                                Mín: R$ {Number(cp.min_subtotal).toFixed(2).replace(".", ",")}
+                              </span>
+                            ) : (
+                              <span className="text-neutral-500">Sem pedido mínimo</span>
+                            )}
+                          </div>
+
+                          {/* Validade */}
+                          <div className="pt-2 border-t border-neutral-900 text-xs font-mono flex items-center justify-between">
+                            {formattedExp ? (
+                              isExpired ? (
+                                <span className="text-red-400 font-bold flex items-center gap-1">
+                                  <AlertCircle className="w-3.5 h-3.5" />
+                                  Expirou em {formattedExp}
+                                </span>
+                              ) : (
+                                <span className="text-neutral-300 flex items-center gap-1">
+                                  <Calendar className="w-3.5 h-3.5 text-neutral-400" />
+                                  Validade: {formattedExp}
+                                </span>
+                              )
+                            ) : (
+                              <span className="text-emerald-400 flex items-center gap-1">
+                                <InfinityIcon className="w-3.5 h-3.5" />
+                                Cupom Perene (Sem Validade)
+                              </span>
+                            )}
+
+                            <span className="text-neutral-400">
+                              {cp.max_uses ? `${cp.used_count || 0} / ${cp.max_uses} usos` : `${cp.used_count || 0} usos`}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Ações: Copiar, Editar, Excluir */}
+                        <div className="pt-2 border-t border-neutral-800 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (navigator.clipboard) {
+                                navigator.clipboard.writeText(cp.code);
+                                setActionMsg(`Código ${cp.code} copiado!`);
+                                setTimeout(() => setActionMsg(""), 2000);
+                              }
+                            }}
+                            className="flex-1 border border-neutral-700 bg-neutral-900 text-white font-oswald text-xs font-bold uppercase py-2 tracking-wider hover:bg-white hover:text-black transition-colors text-center"
+                          >
+                            Copiar
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => openEditCoupon(cp)}
+                            title="Editar cupom"
+                            className="p-2 border border-neutral-700 bg-neutral-900 text-neutral-300 hover:text-white hover:border-[#ff66c4] transition-colors"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCoupon(cp.code)}
+                            disabled={deletingCouponCode === cp.code}
+                            title="Excluir cupom"
+                            className="p-2 border border-neutral-700 bg-neutral-900 text-neutral-400 hover:text-red-400 hover:border-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
           </div>
         )}
 
+        {/* MODAL: CRIAR / EDITAR CUPOM */}
+        {showCouponModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+            <div className="relative w-full max-w-xl bg-neutral-950 border-2 border-[#ff66c4] shadow-[0_0_50px_rgba(255,102,196,0.3)] p-6 space-y-6 my-8">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#ff66c4] text-black flex items-center justify-center font-black">
+                    <Tag className="w-6 h-6 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h3 className="font-oswald text-2xl font-bold uppercase tracking-tight text-white">
+                      {editingCouponCode ? `Editar Cupom: ${editingCouponCode}` : "Cadastrar Novo Cupom"}
+                    </h3>
+                    <p className="text-xs text-neutral-400 uppercase tracking-wider">
+                      Configure descontos, tipo de benefício, regras e validade
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCouponModal(false)}
+                  className="text-neutral-400 hover:text-white p-2 hover:bg-neutral-900 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Formulário */}
+              <form onSubmit={handleSaveCoupon} className="space-y-4">
+                {/* Código */}
+                <div>
+                  <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                    Código do Cupom *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    disabled={!!editingCouponCode}
+                    placeholder="EX: PRIMEIRACOMPRA, TESTEFRETE, ROCK10"
+                    value={couponForm.code}
+                    onChange={(e) =>
+                      setCouponForm({
+                        ...couponForm,
+                        code: e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ""),
+                      })
+                    }
+                    className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-white font-mono text-base uppercase tracking-wider focus:outline-none focus:border-[#ff66c4] disabled:opacity-50"
+                  />
+                  {editingCouponCode && (
+                    <p className="text-[11px] text-neutral-500 mt-1">
+                      O código é o identificador único e não pode ser renomeado. Para mudar, crie outro.
+                    </p>
+                  )}
+                </div>
+
+                {/* Descrição Amigável */}
+                <div>
+                  <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                    Descrição Promocional
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: 10% OFF na primeira compra ou Frete Grátis de Homologação"
+                    value={couponForm.description}
+                    onChange={(e) => setCouponForm({ ...couponForm, description: e.target.value })}
+                    className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-white text-sm focus:outline-none focus:border-[#ff66c4]"
+                  />
+                </div>
+
+                {/* Tipo de Desconto */}
+                <div>
+                  <label className="block text-xs uppercase font-bold text-neutral-300 mb-2">
+                    Tipo de Benefício
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setCouponForm({ ...couponForm, type: "percentage" })}
+                      className={`p-3 border-2 text-center transition-all cursor-pointer ${
+                        couponForm.type === "percentage"
+                          ? "border-[#ff66c4] bg-[#ff66c4]/10 text-white font-bold"
+                          : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-600"
+                      }`}
+                    >
+                      <Percent className="w-5 h-5 mx-auto mb-1 text-[#ff66c4]" />
+                      <span className="font-oswald text-sm uppercase block">Porcentagem</span>
+                      <span className="text-[10px] font-mono text-neutral-400">% de desconto</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setCouponForm({ ...couponForm, type: "fixed" })}
+                      className={`p-3 border-2 text-center transition-all cursor-pointer ${
+                        couponForm.type === "fixed"
+                          ? "border-[#ff66c4] bg-[#ff66c4]/10 text-white font-bold"
+                          : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-600"
+                      }`}
+                    >
+                      <DollarSign className="w-5 h-5 mx-auto mb-1 text-emerald-400" />
+                      <span className="font-oswald text-sm uppercase block">Valor Fixo</span>
+                      <span className="text-[10px] font-mono text-neutral-400">R$ de desconto</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setCouponForm({ ...couponForm, type: "free_shipping", value: 100 })}
+                      className={`p-3 border-2 text-center transition-all cursor-pointer ${
+                        couponForm.type === "free_shipping"
+                          ? "border-[#ff66c4] bg-[#ff66c4]/10 text-white font-bold"
+                          : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-600"
+                      }`}
+                    >
+                      <Truck className="w-5 h-5 mx-auto mb-1 text-cyan-400" />
+                      <span className="font-oswald text-sm uppercase block">Frete Grátis</span>
+                      <span className="text-[10px] font-mono text-neutral-400">Zera frete (R$ 0)</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Valor do Desconto e Pedido Mínimo */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                      {couponForm.type === "percentage"
+                        ? "Valor (% OFF) *"
+                        : couponForm.type === "fixed"
+                        ? "Valor (R$ OFF) *"
+                        : "Desconto no Frete"}
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      disabled={couponForm.type === "free_shipping"}
+                      value={couponForm.type === "free_shipping" ? "100" : couponForm.value}
+                      onChange={(e) => setCouponForm({ ...couponForm, value: parseFloat(e.target.value) || 0 })}
+                      className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-white font-mono text-base focus:outline-none focus:border-[#ff66c4] disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                      Pedido Mínimo (R$)
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      placeholder="0.00 (sem mínimo)"
+                      value={couponForm.min_subtotal}
+                      onChange={(e) =>
+                        setCouponForm({ ...couponForm, min_subtotal: parseFloat(e.target.value) || 0 })
+                      }
+                      className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-white font-mono text-base focus:outline-none focus:border-[#ff66c4]"
+                    />
+                  </div>
+                </div>
+
+                {/* Validade: Perene vs Data Específica */}
+                <div className="p-4 bg-neutral-900/50 border border-neutral-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-xs uppercase text-white block">
+                        Validade do Cupom
+                      </span>
+                      <span className="text-[11px] text-neutral-400">
+                        {couponForm.is_perennial
+                          ? "Cupom perene: nunca expira, fica ativo enquanto você desejar."
+                          : "Expira automaticamente no final do dia selecionado."}
+                      </span>
+                    </div>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={couponForm.is_perennial}
+                        onChange={(e) => setCouponForm({ ...couponForm, is_perennial: e.target.checked })}
+                        className="w-4 h-4 accent-[#ff66c4]"
+                      />
+                      <span className="text-xs font-bold uppercase text-white font-mono">
+                        Perene (Sem Validade)
+                      </span>
+                    </label>
+                  </div>
+
+                  {!couponForm.is_perennial && (
+                    <div className="pt-2 border-t border-neutral-800">
+                      <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                        Data de Expiração *
+                      </label>
+                      <input
+                        type="date"
+                        required={!couponForm.is_perennial}
+                        value={couponForm.expires_at}
+                        onChange={(e) => setCouponForm({ ...couponForm, expires_at: e.target.value })}
+                        className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-[#ff66c4]"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Limite de Usos & Status Ativo */}
+                <div className="grid grid-cols-2 gap-4 items-center">
+                  <div>
+                    <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                      Limite de Usos (Opcional)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="Ilimitado"
+                      value={couponForm.max_uses}
+                      onChange={(e) => setCouponForm({ ...couponForm, max_uses: e.target.value })}
+                      className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-[#ff66c4]"
+                    />
+                  </div>
+
+                  <div className="pt-5">
+                    <label className="flex items-center gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={couponForm.is_active}
+                        onChange={(e) => setCouponForm({ ...couponForm, is_active: e.target.checked })}
+                        className="w-4 h-4 accent-[#ff66c4]"
+                      />
+                      <span className="text-sm font-bold uppercase text-white">
+                        Cupom Ativo na Loja
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Mensagens de Feedback */}
+                {couponError && (
+                  <p className="text-xs font-bold text-[#ff66c4] bg-[#ff66c4]/10 p-2.5 border border-[#ff66c4]/30">
+                    {couponError}
+                  </p>
+                )}
+                {couponSuccess && (
+                  <p className="text-xs font-bold text-emerald-400 bg-emerald-950/40 p-2.5 border border-emerald-500/30">
+                    {couponSuccess}
+                  </p>
+                )}
+
+                {/* Botões de Ação */}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowCouponModal(false)}
+                    className="border border-neutral-700 bg-neutral-900 text-neutral-300 font-oswald text-sm uppercase px-5 py-2.5 hover:text-white hover:border-white transition-colors"
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={savingCoupon}
+                    className="bg-[#ff66c4] text-black font-oswald text-sm font-black uppercase px-6 py-2.5 hover:bg-white transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {savingCoupon ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Salvando...</span>
+                      </>
+                    ) : (
+                      <span>{editingCouponCode ? "Salvar Alterações" : "Criar Cupom"}</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        
         {/* MODAL: CADASTRAR NOVA ESTAMPA */}
         {showNewProductModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">

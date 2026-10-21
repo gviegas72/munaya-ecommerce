@@ -27,7 +27,34 @@ No modelo de negócios com fornecedores terceirizados de produção/fulfillment 
 - **Tipo de Parceria:** Produção sob demanda (Print-on-Demand / Dropshipping)
 - **Produtos:** Camisetas, vestuário estampado e itens têxteis personalizados.
 
-#### A. Produto com Defeito de Produção, Avaria ou Não Conformidade
+#### A. Requisitos de Produção da Esteira: O que a Dimona precisa saber para produzir?
+
+Quando a Munaya fecha uma venda e dispara a ordem para a Dimona via integração de API (`src/lib/dimona.ts`), a esteira fabril deles precisa de **3 respostas essenciais**:
+
+1. **Qual é o Blank (a camiseta crua)?**
+   - **Tipo de malha:** (ex: Classic 30.1, Quality, ou Estonada Rockwear).
+   - **Cor do tecido:** Preta, Branca ou Cinza.
+   - **Tamanho:** PP, P, M, G, GG ou XGG.
+   *(Essas informações são compiladas diretamente no código do SKU e nos atributos do item do pedido).*
+
+2. **Qual é a Arte para estampar?**
+   - **Arquivo em alta definição:** Formato PNG em 300 DPI, com fundo transparente, que nós já deixamos preparado e mapeado no campo `artwork_url` de cada produto no Supabase (e no utilitário `src/lib/artworks.ts`).
+   - **Posição de estampa:** Frente (formato A3/A4) ou Costas.
+   *(Transmitido no array `designs` do payload da API).*
+
+3. **Qual é o Mockup de conferência?**
+   - **Imagem da camiseta pronta:** Visualização final para o operador da fábrica bater o olho e conferir se a estampa não ficou invertida, torta ou fora de escala em relação à gola.
+   *(Transmitido no array `mocks` do payload da API).*
+
+| Parâmetro Dimona | Campo no Sistema Munaya | Descrição / Requisito Técnico |
+| :--- | :--- | :--- |
+| **Blank (Peça crua)** | `sku`, `size`, `color` | Malha (Classic/Quality/Estonada), cor e grade de tamanho (PP ao XGG). |
+| **Arte de Impressão** | `artwork_url` (designs) | PNG 300 DPI transparente de alta resolução, formato A3/A4. |
+| **Mockup de Conferência** | `mock_url` (mocks) | Foto/render da camiseta pronta para conferência visual do operador. |
+
+---
+
+#### B. Produto com Defeito de Produção, Avaria ou Não Conformidade
 | Item | Especificação |
 | :--- | :--- |
 | **Responsabilidade** | **Dimona** (assume integralmente a reposição/troca). |
@@ -36,7 +63,7 @@ No modelo de negócios com fornecedores terceirizados de produção/fulfillment 
 | **Canal de Contato** | E-mail do suporte B2B / atendimento ao parceiro Dimona. |
 | **Logística Reversa** | Sendo identificado e aprovado o erro de fabricação/qualidade, a Dimona emite e fornece o código de logística reversa para envio da peça defeituosa e procede com a reexecução/troca sem custos. |
 
-#### B. Troca por Tamanho, Cor ou Arrependimento de Compra
+#### C. Troca por Tamanho, Cor ou Arrependimento de Compra
 | Item | Especificação |
 | :--- | :--- |
 | **Responsabilidade** | **Munaya** (a Dimona **não** aceita trocas ou devoluções por escolha de tamanho incorreto ou desistência). |
@@ -45,7 +72,7 @@ No modelo de negócios com fornecedores terceirizados de produção/fulfillment 
 | **Gestão Logística** | A Munaya é responsável por gerar a etiqueta de logística reversa diretamente com os Correios/transportadora e receber a peça indesejada em endereço próprio. |
 | **Destinação da Peça Recebida** | - Incorporar ao estoque próprio para pronta entrega;<br>- Venda em campanhas promocionais / bazar;<br>- Descarte ou doação conforme política interna de sustentabilidade. |
 
-#### C. Fluxograma de Atendimento — Dimona
+#### D. Fluxograma de Atendimento — Dimona
 
 ```
 Cliente solicita suporte pós-recebimento

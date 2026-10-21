@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const subtotal = Number(body.subtotal || 0);
     const shipping = Number(body.shipping || body.shipping_amount || 0);
 
-    const result = validateCouponCode(code, subtotal, shipping);
+    const result = await validateCouponCode(code, subtotal, shipping);
 
     if (!result.valid) {
       return NextResponse.json(
