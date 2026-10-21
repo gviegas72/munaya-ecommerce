@@ -220,6 +220,30 @@ export async function PATCH(req: NextRequest) {
       updates.price = cleanPrice;
     }
 
+    if (updates.compare_at_price !== undefined) {
+      if (updates.compare_at_price === "" || updates.compare_at_price === null) {
+        updates.compare_at_price = null;
+      } else {
+        const cleanCompare = Number(
+          String(updates.compare_at_price).replace(",", ".")
+        );
+        updates.compare_at_price =
+          isNaN(cleanCompare) || cleanCompare <= 0 ? null : cleanCompare;
+      }
+    }
+
+    if (updates.slug !== undefined) {
+      updates.slug = String(updates.slug)
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    if (updates.badge !== undefined) {
+      updates.badge = updates.badge ? String(updates.badge).trim() : null;
+    }
+
     if (updates.display_order !== undefined) {
       const cleanOrder = parseInt(String(updates.display_order), 10);
       if (!isNaN(cleanOrder)) {

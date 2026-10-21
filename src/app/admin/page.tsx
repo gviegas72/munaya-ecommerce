@@ -27,6 +27,7 @@ import {
   X,
   Image as ImageIcon,
   AlertCircle,
+  Pencil,
 } from "lucide-react";
 import { CANONICAL_COUPONS } from "@/lib/coupons";
 
@@ -102,9 +103,11 @@ interface Product {
   slug: string;
   name: string;
   subtitle?: string;
+  description?: string;
   price: number;
   compare_at_price?: number;
   image_url: string;
+  artwork_url?: string;
   is_active: boolean;
   is_featured: boolean;
   display_order: number;
@@ -216,6 +219,16 @@ export default function AdminPage() {
   const [createError, setCreateError] = useState("");
   const [createSuccess, setCreateSuccess] = useState("");
   const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
+
+  // Estados de Edição Completa de Estampa
+  const [editingProduct, setEditingProduct] = useState<
+    (NewProductForm & { id: number }) | null
+  >(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [editSuccess, setEditSuccess] = useState("");
+  const [uploadingEditImage, setUploadingEditImage] = useState(false);
+  const [uploadingEditArtwork, setUploadingEditArtwork] = useState(false);
 
   useEffect(() => {
     const savedPin = localStorage.getItem("munaya_admin_token");
@@ -438,6 +451,160 @@ export default function AdminPage() {
       alert("Erro ao excluir: " + (e?.message || String(e)));
     } finally {
       setDeletingProductId(null);
+    }
+  };
+
+  const handleOpenEdit = (prod: Product) => {
+    setEditingProduct({
+      id: prod.id,
+      name: prod.name || "",
+      slug: prod.slug || "",
+      subtitle: prod.subtitle || "100% Algodão Premium Silk Screen",
+      description: prod.description || "",
+      price: String(prod.price || "89.90"),
+      compare_at_price: prod.compare_at_price
+        ? String(prod.compare_at_price)
+        : "",
+      image_url: prod.image_url || "",
+      artwork_url: prod.artwork_url || prod.image_url || "",
+      badge: prod.badge || "",
+      is_active: prod.is_active !== undefined ? prod.is_active : true,
+      is_featured: prod.is_featured !== undefined ? prod.is_featured : false,
+      display_order: prod.display_order || 10,
+    });
+    setEditError("");
+    setEditSuccess("");
+  };
+
+  const handleEditFileUpload = async (
+    file: File,
+    field: "image_url" | "artwork_url"
+  ) => {
+    if (field === "image_url") setUploadingEditImage(true);
+    if (field === "artwork_url") setUploadingEditArtwork(true);
+    try {
+      const savedPin =
+        localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "x-admin-pin": savedPin,
+        },
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setEditingProduct((prev) =>
+          prev ? { ...prev, [field]: data.url } : null
+        );
+        setActionMsg(`Upload de nova imagem concluído!`);
+        setTimeout(() => setActionMsg(""), 3000);
+      } else {
+        alert("Erro no upload da imagem: " + (data.error || "Tente novamente"));
+      }
+    } catch (e: any) {
+      alert("Falha de rede no upload: " + (e?.message || String(e)));
+    } finally {
+      if (field === "image_url") setUploadingEditImage(false);
+      if (field === "artwork_url") setUploadingEditArtwork(false);
+    }
+  };
+
+  const handleSaveEditProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    if (!editingProduct.name.trim()) {
+      setEditError("O nome da estampa é obrigatório.");
+      return;
+    }
+    const cleanPrice = Number(String(editingProduct.price).replace(",", "."));
+    if (isNaN(cleanPrice) || cleanPrice < 0) {
+      setEditError("Preço numérico inválido.");
+      return;
+    }
+
+    setSavingEdit(true);
+    setEditError("");
+    setEditSuccess("");
+
+    try {
+      const savedPin =
+        localStorage.getItem("munaya_admin_token") || "munaya2026";
+
+      const updatesPayload: any = {
+        id: editingProduct.id,
+        name: editingProduct.name.trim(),
+        slug: editingProduct.slug.trim(),
+        subtitle: editingProduct.subtitle.trim(),
+        description: editingProduct.description.trim(),
+        price: cleanPrice,
+        compare_at_price: editingProduct.compare_at_price
+          ? Number(String(editingProduct.compare_at_price).replace(",", "."))
+          : null,
+        image_url: editingProduct.image_url,
+        artwork_url: editingProduct.artwork_url,
+        badge: editingProduct.badge || null,
+        is_active: editingProduct.is_active,
+        is_featured: editingProduct.is_featured,
+        display_order:
+          parseInt(String(editingProduct.display_order), 10) || 10,
+      };
+
+      const res = await fetch("/api/products", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify(updatesPayload),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setEditSuccess("🎸 Estampa atualizada com sucesso!");
+        // Atualiza a lista local de produtos
+        setProducts((prev) =>
+          prev.map((p) =>
+            p.id === editingProduct.id
+              ? {
+                  ...p,
+                  name: editingProduct.name.trim(),
+                  slug: editingProduct.slug.trim(),
+                  subtitle: editingProduct.subtitle.trim(),
+                  description: editingProduct.description.trim(),
+                  price: cleanPrice,
+                  compare_at_price: editingProduct.compare_at_price
+                    ? Number(
+                        String(editingProduct.compare_at_price).replace(
+                          ",",
+                          "."
+                        )
+                      )
+                    : undefined,
+                  image_url: editingProduct.image_url,
+                  artwork_url: editingProduct.artwork_url,
+                  badge: editingProduct.badge || undefined,
+                  is_active: editingProduct.is_active,
+                  is_featured: editingProduct.is_featured,
+                  display_order:
+                    parseInt(String(editingProduct.display_order), 10) || 10,
+                }
+              : p
+          )
+        );
+        setTimeout(() => {
+          setEditingProduct(null);
+          setEditSuccess("");
+        }, 1200);
+      } else {
+        setEditError(data.error || "Erro ao atualizar estampa.");
+      }
+    } catch (e: any) {
+      setEditError(e?.message || "Erro de rede ao atualizar estampa.");
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -1303,14 +1470,24 @@ export default function AdminPage() {
                           </label>
                         </div>
 
-                        {/* Botões Salvar Alterações e Excluir */}
-                        <div className="flex items-center gap-2">
+                        {/* Botões: Editar Completo, Salvar Rápido e Excluir */}
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(prod)}
+                            className="flex items-center justify-center gap-1.5 border border-[#ff66c4] bg-[#ff66c4]/10 text-[#ff66c4] hover:bg-[#ff66c4] hover:text-black font-oswald text-xs font-bold uppercase px-3 py-2 transition-colors"
+                            title="Editar todos os dados, fotos, arte e descrição da estampa"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                            <span>Editar</span>
+                          </button>
+
                           <button
                             onClick={() => handleUpdateProduct(prod)}
                             disabled={isSaving}
-                            className="flex-1 bg-white text-black font-oswald text-base font-black uppercase py-2 tracking-wider hover:bg-[#ff66c4] transition-colors disabled:opacity-50"
+                            className="flex-1 bg-white text-black font-oswald text-sm font-black uppercase py-2 tracking-wider hover:bg-[#ff66c4] transition-colors disabled:opacity-50"
                           >
-                            {isSaving ? "Salvando..." : "Salvar Alterações"}
+                            {isSaving ? "Salvando..." : "Salvar Rápido"}
                           </button>
 
                           <button
@@ -1816,6 +1993,436 @@ export default function AdminPage() {
                       <>
                         <Plus className="w-5 h-5 stroke-[3]" />
                         <span>Publicar Estampa no Catálogo</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: EDITAR ESTAMPA EXISTENTE */}
+        {editingProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+            <div className="relative w-full max-w-3xl bg-neutral-950 border-2 border-[#ff66c4] shadow-[0_0_50px_rgba(255,102,196,0.35)] p-6 space-y-6 my-8">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#ff66c4] text-black flex items-center justify-center font-black">
+                    <Pencil className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-oswald text-2xl font-bold uppercase tracking-tight text-white">
+                        Editar Estampa #{editingProduct.id}
+                      </h3>
+                      <span className="font-mono text-xs text-[#ff66c4] bg-[#ff66c4]/10 border border-[#ff66c4]/30 px-2 py-0.5">
+                        {editingProduct.slug}
+                      </span>
+                    </div>
+                    <p className="text-xs text-neutral-400 uppercase tracking-wider">
+                      Atualize fotos, arte Dimona, preços, coleção e informações na vitrine
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setEditingProduct(null)}
+                  className="text-neutral-400 hover:text-white p-2 hover:bg-neutral-900 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSaveEditProduct} className="space-y-6">
+                {editError && (
+                  <div className="bg-red-950/80 border border-red-500 text-red-200 p-3 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+                    <span>{editError}</span>
+                  </div>
+                )}
+
+                {editSuccess && (
+                  <div className="bg-emerald-950/80 border border-emerald-500 text-emerald-200 p-3 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                    <span>{editSuccess}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Coluna 1: Dados Principais */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                        Nome da Estampa *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={editingProduct.name}
+                        onChange={(e) =>
+                          setEditingProduct((prev) =>
+                            prev ? { ...prev, name: e.target.value } : null
+                          )
+                        }
+                        className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm text-white focus:border-[#ff66c4] focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                          Slug (URL)
+                        </label>
+                        <input
+                          type="text"
+                          value={editingProduct.slug}
+                          onChange={(e) =>
+                            setEditingProduct((prev) =>
+                              prev ? { ...prev, slug: e.target.value } : null
+                            )
+                          }
+                          className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs font-mono text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                          Coleção Oficial
+                        </label>
+                        <select
+                          value={editingProduct.badge}
+                          onChange={(e) =>
+                            setEditingProduct((prev) =>
+                              prev ? { ...prev, badge: e.target.value } : null
+                            )
+                          }
+                          className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs text-white focus:border-[#ff66c4] focus:outline-none font-bold"
+                        >
+                          <option value="">(Sem coleção específica)</option>
+                          {ADMIN_COLLECTIONS.map((c) => (
+                            <option key={c.id} value={c.tag}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                          Preço Venda (R$) *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={editingProduct.price}
+                          onChange={(e) =>
+                            setEditingProduct((prev) =>
+                              prev ? { ...prev, price: e.target.value } : null
+                            )
+                          }
+                          className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm font-mono text-[#ff66c4] font-bold focus:border-[#ff66c4] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                          Preço "De" (R$)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="119.00"
+                          value={editingProduct.compare_at_price}
+                          onChange={(e) =>
+                            setEditingProduct((prev) =>
+                              prev
+                                ? { ...prev, compare_at_price: e.target.value }
+                                : null
+                            )
+                          }
+                          className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm font-mono text-neutral-400 focus:border-[#ff66c4] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                          Ordem Vitrine
+                        </label>
+                        <input
+                          type="number"
+                          value={editingProduct.display_order}
+                          onChange={(e) =>
+                            setEditingProduct((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    display_order: Number(e.target.value),
+                                  }
+                                : null
+                            )
+                          }
+                          className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm font-mono text-white focus:border-[#ff66c4] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                          Subtítulo / Tecido
+                        </label>
+                        <input
+                          type="text"
+                          value={editingProduct.subtitle}
+                          onChange={(e) =>
+                            setEditingProduct((prev) =>
+                              prev ? { ...prev, subtitle: e.target.value } : null
+                            )
+                          }
+                          className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                        Descrição da Estampa
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={editingProduct.description}
+                        onChange={(e) =>
+                          setEditingProduct((prev) =>
+                            prev
+                              ? { ...prev, description: e.target.value }
+                              : null
+                          )
+                        }
+                        className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none resize-none"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-6 pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs">
+                        <input
+                          type="checkbox"
+                          checked={editingProduct.is_active}
+                          onChange={(e) =>
+                            setEditingProduct((prev) =>
+                              prev
+                                ? { ...prev, is_active: e.target.checked }
+                                : null
+                            )
+                          }
+                          className="w-4 h-4 accent-[#ff66c4]"
+                        />
+                        <span className="uppercase font-bold text-neutral-200">
+                          {editingProduct.is_active ? "Ativo na Loja" : "Pausado"}
+                        </span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer text-xs">
+                        <input
+                          type="checkbox"
+                          checked={editingProduct.is_featured}
+                          onChange={(e) =>
+                            setEditingProduct((prev) =>
+                              prev
+                                ? { ...prev, is_featured: e.target.checked }
+                                : null
+                            )
+                          }
+                          className="w-4 h-4 accent-[#ff66c4]"
+                        />
+                        <span className="uppercase font-bold text-neutral-200">
+                          Destaque Home
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Coluna 2: Uploads & Mídia */}
+                  <div className="space-y-4">
+                    {/* Mockup da Camiseta */}
+                    <div className="border border-neutral-800 p-3 bg-neutral-900/60 space-y-2">
+                      <label className="block text-xs uppercase font-bold text-neutral-200">
+                        1. Mockup da Camiseta (Foto da Vitrine)
+                      </label>
+
+                      <div className="flex gap-3 items-center">
+                        {editingProduct.image_url ? (
+                          <div className="w-20 h-24 bg-neutral-950 border border-neutral-700 flex-shrink-0 relative overflow-hidden group">
+                            <img
+                              src={editingProduct.image_url}
+                              alt="Mockup Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditingProduct((prev) =>
+                                  prev ? { ...prev, image_url: "" } : null
+                                )
+                              }
+                              className="absolute top-1 right-1 bg-black/80 text-white p-1 hover:text-red-400"
+                              title="Remover foto"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="w-20 h-24 bg-neutral-950 border border-dashed border-neutral-700 flex flex-col items-center justify-center flex-shrink-0 text-neutral-600">
+                            <ImageIcon className="w-6 h-6 mb-1" />
+                            <span className="text-[9px] uppercase font-bold">
+                              Sem Foto
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex-1 space-y-2">
+                          <label className="flex items-center justify-center gap-2 border border-neutral-600 bg-neutral-800 hover:bg-neutral-700 text-white px-3 py-2 text-xs font-bold uppercase cursor-pointer transition-colors">
+                            <Upload className="w-4 h-4 text-[#ff66c4]" />
+                            <span>
+                              {uploadingEditImage
+                                ? "Enviando arquivo..."
+                                : "Substituir Foto do Computador"}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingEditImage}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file)
+                                  handleEditFileUpload(file, "image_url");
+                              }}
+                              className="hidden"
+                            />
+                          </label>
+
+                          <input
+                            type="text"
+                            placeholder="Ou cole a URL da foto (https://...)"
+                            value={editingProduct.image_url}
+                            onChange={(e) =>
+                              setEditingProduct((prev) =>
+                                prev ? { ...prev, image_url: e.target.value } : null
+                              )
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1.5 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Arte de Impressão Dimona */}
+                    <div className="border border-neutral-800 p-3 bg-neutral-900/60 space-y-2">
+                      <label className="block text-xs uppercase font-bold text-neutral-200">
+                        2. Arquivo da Arte de Impressão (Dimona Print File)
+                      </label>
+                      <p className="text-[10px] text-neutral-400">
+                        PNG transparente em alta resolução (300 DPI) para envio à fábrica Dimona.
+                      </p>
+
+                      <div className="flex gap-3 items-center">
+                        {editingProduct.artwork_url ? (
+                          <div className="w-16 h-16 bg-neutral-950 border border-neutral-700 flex-shrink-0 relative overflow-hidden">
+                            <img
+                              src={editingProduct.artwork_url}
+                              alt="Arte Preview"
+                              className="w-full h-full object-contain p-1"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditingProduct((prev) =>
+                                  prev ? { ...prev, artwork_url: "" } : null
+                                )
+                              }
+                              className="absolute top-1 right-1 bg-black/80 text-white p-0.5 hover:text-red-400"
+                              title="Remover arte"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-neutral-950 border border-dashed border-neutral-700 flex flex-col items-center justify-center flex-shrink-0 text-neutral-600">
+                            <Upload className="w-4 h-4 mb-1" />
+                            <span className="text-[8px] uppercase font-bold">
+                              Arte
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex-1 space-y-2">
+                          <label className="flex items-center justify-center gap-2 border border-neutral-600 bg-neutral-800 hover:bg-neutral-700 text-white px-3 py-1.5 text-xs font-bold uppercase cursor-pointer transition-colors">
+                            <Upload className="w-3.5 h-3.5 text-[#ff66c4]" />
+                            <span>
+                              {uploadingEditArtwork
+                                ? "Enviando arte..."
+                                : "Substituir Arte Dimona"}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg"
+                              disabled={uploadingEditArtwork}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file)
+                                  handleEditFileUpload(file, "artwork_url");
+                              }}
+                              className="hidden"
+                            />
+                          </label>
+
+                          <input
+                            type="text"
+                            placeholder="Ou cole a URL da arte (https://...)"
+                            value={editingProduct.artwork_url}
+                            onChange={(e) =>
+                              setEditingProduct((prev) =>
+                                prev
+                                  ? { ...prev, artwork_url: e.target.value }
+                                  : null
+                              )
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-800">
+                  <button
+                    type="button"
+                    onClick={() => setEditingProduct(null)}
+                    className="px-5 py-2.5 border border-neutral-700 text-neutral-300 hover:text-white uppercase font-bold text-xs tracking-wider"
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={
+                      savingEdit || uploadingEditImage || uploadingEditArtwork
+                    }
+                    className="flex items-center gap-2 bg-[#ff66c4] text-black font-oswald text-base font-black uppercase px-6 py-2.5 tracking-wider hover:bg-white transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(255,102,196,0.4)]"
+                  >
+                    {savingEdit ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Salvando Alterações...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-5 h-5" />
+                        <span>Salvar Alterações da Estampa</span>
                       </>
                     )}
                   </button>
