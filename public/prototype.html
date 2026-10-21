@@ -1208,6 +1208,7 @@ class Component extends DCLogic {
           this.setState({
             account: data.account,
             orders: data.orders || [],
+            authed: true,
             acctForm: Object.assign({}, EMPTY_ACCT, data.account, { senha: undefined }),
           });
         }
@@ -1386,12 +1387,12 @@ class Component extends DCLogic {
         if (info && !info.erro) {
           this.setState((s) => ({
             ckForm: Object.assign({}, s.ckForm, {
-              rua: info.logradouro || s.ckForm.rua,
-              bairro: info.bairro || s.ckForm.bairro,
-              cidade: info.localidade || s.ckForm.cidade,
-              uf: info.uf || s.ckForm.uf,
+              rua: s.ckForm.rua || info.logradouro || "",
+              bairro: s.ckForm.bairro || info.bairro || "",
+              cidade: s.ckForm.cidade || info.localidade || "",
+              uf: s.ckForm.uf || info.uf || "",
             }),
-            ckCity: info.localidade + ", " + info.uf,
+            ckCity: (s.ckForm.cidade || info.localidade) + ", " + (s.ckForm.uf || info.uf),
           }));
         }
       })
@@ -1412,10 +1413,10 @@ class Component extends DCLogic {
           ckCepErr: "",
           ckCity: data.location || (city + ", " + uf),
           ckForm: Object.assign({}, s.ckForm, {
-            rua: data.street || s.ckForm.rua,
-            bairro: data.neighborhood || s.ckForm.bairro,
-            cidade: city,
-            uf: uf,
+            rua: s.ckForm.rua || data.street || "",
+            bairro: s.ckForm.bairro || data.neighborhood || "",
+            cidade: s.ckForm.cidade || city,
+            uf: s.ckForm.uf || uf,
           }),
           ckFrete: data.options.map((o) => ({
             id: o.id,
@@ -1884,12 +1885,28 @@ class Component extends DCLogic {
       toggleCart: () => this.setState((st) => ({ cartOpen: !st.cartOpen, checkedOut: false })),
       checkout: () => {
         if (!s.cart.length) return;
+        const acc = s.account || (s.authed ? s.acctForm : null);
+        const newForm = Object.assign({}, s.ckForm);
+        let cepVal = s.ckCep;
+        if (acc) {
+          ["email", "nome", "cpf", "fone", "rua", "num", "compl", "bairro", "cidade", "uf"].forEach((k) => {
+            if (acc[k]) newForm[k] = acc[k];
+          });
+          if (acc.cep) cepVal = acc.cep;
+        }
         this.setState({
           screen: "checkout",
           cartOpen: false,
           ckStep: 1,
           ckErrors: {},
           ckProcessing: false,
+          ckForm: newForm,
+          ckCep: cepVal || s.ckCep,
+          ckWantAccount: false,
+        }, () => {
+          if (cepVal && dg(cepVal).length === 8 && !this.state.ckFrete) {
+            this.ckCalcFrete();
+          }
         });
       },
       checkoutOpacity: s.cart.length === 0 ? 0.4 : 1,
