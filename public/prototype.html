@@ -1317,12 +1317,18 @@ class Component extends DCLogic {
       if (raw) {
         const data = JSON.parse(raw);
         if (data && data.account) {
+          const acc = data.account;
           this.setState({
-            account: data.account,
+            account: acc,
             orders: data.orders || [],
             authed: true,
-            acctForm: Object.assign({}, EMPTY_ACCT, data.account, { senha: undefined }),
+            acctForm: Object.assign({}, EMPTY_ACCT, acc, { senha: undefined }),
+            ckCep: acc.cep || "",
+            ckForm: Object.assign({}, EMPTY_ACCT, acc, { senha: "", senha2: "", cnum: "", cname: "", cexp: "", ccvv: "" }),
           });
+          if (acc.cep && String(acc.cep).replace(/\D/g, '').length === 8) {
+            setTimeout(() => { if (this.ckCalcFrete) this.ckCalcFrete(); }, 150);
+          }
         }
       }
     } catch (e) {}
@@ -2142,10 +2148,23 @@ class Component extends DCLogic {
       toggleCart: () => this.setState((st) => ({ cartOpen: !st.cartOpen, checkedOut: false })),
       checkout: () => {
         if (!s.cart.length) return;
-        this.setState((st) => ({
-          screen: "checkout", cartOpen: false, ckStep: 1, ckErrors: {}, ckShipErr: "",
-          ckForm: Object.assign({}, st.ckForm, { cnum: "", cname: "", cexp: "", ccvv: "" }),
-        }));
+        const acc = s.account || (s.acctForm && s.acctForm.nome ? s.acctForm : null);
+        this.setState((st) => {
+          const baseForm = acc ? Object.assign({}, st.ckForm, acc) : st.ckForm;
+          return {
+            screen: "checkout",
+            cartOpen: false,
+            ckStep: 1,
+            ckErrors: {},
+            ckShipErr: "",
+            ckCep: st.ckCep || (acc && acc.cep) || "",
+            ckForm: Object.assign({}, baseForm, { cnum: "", cname: "", cexp: "", ccvv: "" }),
+          };
+        }, () => {
+          if (this.state.ckCep && String(this.state.ckCep).replace(/\D/g, '').length === 8 && !this.state.ckFrete) {
+            this.ckCalcFrete();
+          }
+        });
       },
       checkoutOpacity: s.cart.length === 0 ? 0.4 : 1,
 
