@@ -1233,7 +1233,31 @@ class Component extends DCLogic {
     return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d;
   };
 
-  calcFrete = () => {
+  calcFrete = async () => {
+    const digits = this.state.cep.replace(/\D/g, "");
+    if (digits.length !== 8) { this.setState({ freteError: true, frete: null }); return; }
+    try {
+      const res = await fetch("/api/shipping", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ zipcode: digits, quantity: this.state.qty || 1 }),
+      });
+      const data = await res.json();
+      if (data.success && data.options && data.options.length) {
+        this.setState({
+          freteError: false,
+          freteCity: data.location || "Brasil",
+          frete: data.options.map((o) => ({
+            id: o.id,
+            name: o.name,
+            price: o.price,
+            days: o.days,
+          })),
+          freteChoice: data.options[0]?.id || null,
+        });
+        return;
+      }
+    } catch (e) {}
     const digits = this.state.cep.replace(/\D/g, "");
     if (digits.length !== 8) { this.setState({ freteError: true, frete: null }); return; }
     // Simulação: a taxa varia com a região do CEP (primeiro dígito).
@@ -1333,7 +1357,38 @@ class Component extends DCLogic {
     this.setState({ account: account, pwForm: { atual: "", nova: "", conf: "" }, pwErr: "", pwMsg: "Senha atualizada." });
   };
 
-  ckCalcFrete = () => {
+  ckCalcFrete = async () => {
+    const d = dg(this.state.ckCep);
+    if (d.length !== 8) {
+      this.setState({ ckCepErr: "CEP incompleto — 8 dígitos.", ckFrete: null, ckFreteChoice: null });
+      return;
+    }
+    try {
+      const res = await fetch("/api/shipping", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ zipcode: d, quantity: this.state.cart.length || 1 }),
+      });
+      const data = await res.json();
+      if (data.success && data.options && data.options.length) {
+        const place = (data.location || "São Paulo, SP").split(",");
+        const city = place[0]?.trim() || "São Paulo";
+        const uf = place[1]?.trim() || "SP";
+        this.setState((s) => ({
+          ckCepErr: "",
+          ckCity: data.location || (city + ", " + uf),
+          ckForm: Object.assign({}, s.ckForm, { cidade: city, uf: uf }),
+          ckFrete: data.options.map((o) => ({
+            id: o.id,
+            name: o.name,
+            price: o.price,
+            days: o.days,
+          })),
+          ckFreteChoice: data.options[0]?.id || null,
+        }));
+        return;
+      }
+    } catch (e) {}
     const d = dg(this.state.ckCep);
     if (d.length !== 8) {
       this.setState({ ckCepErr: "CEP incompleto — 8 dígitos.", ckFrete: null, ckFreteChoice: null });
