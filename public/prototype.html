@@ -165,7 +165,7 @@
 
         <div style="display: grid; grid-template-columns: {{ gridCols }}; grid-auto-rows: {{ gridRow }}; gap: clamp(14px, 2.5vw, 32px);">
           <div role="button" tabindex="0" onClick="{{ openP1 }}" onMouseEnter="{{ g1.enter }}" onMouseLeave="{{ g1.leave }}" style="grid-column: span 2; grid-row: span 2; position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
-            <image-slot id="pt-p15-1" shape="rect" src="{{ assetDetalhe }}" placeholder="Foto — Camiseta Bozo" style="width: 100%; height: 100%;"></image-slot>
+            <image-slot id="pt-cat-1" shape="rect" src="{{ srcP1 }}" placeholder="{{ placeholderP1 }}" style="width: 100%; height: 100%;"></image-slot>
             <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #000; color: #fff; border-top: 2px solid #fff; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; transform: translateY({{ g1.footerY }}); transition: transform .35s ease-out;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
                 <span style="font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1;">{{ g1.fname }}</span>
@@ -184,7 +184,7 @@
 
           <div role="button" tabindex="0" onClick="{{ openP2 }}" onMouseEnter="{{ g2.enter }}" onMouseLeave="{{ g2.leave }}" style="position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
             <div style="width: 100%; height: 100%; transform-origin: center; transition: transform .5s ease-out;" style-hover="transform: scale(2.6) translate(20%, -8%);">
-              <image-slot id="pt-cat-2" shape="rect" src="{{ stockCat2 }}" placeholder="Foto — Ghost" style="width: 100%; height: 100%; filter: brightness(1.3) contrast(0.85);"></image-slot>
+              <image-slot id="pt-cat-2" shape="rect" src="{{ srcP2 }}" placeholder="{{ placeholderP2 }}" style="width: 100%; height: 100%;"></image-slot>
             </div>
             <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #000; color: #fff; border-top: 2px solid #fff; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; transform: translateY({{ g2.footerY }}); transition: transform .35s ease-out;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
@@ -203,7 +203,7 @@
           </div>
 
           <div role="button" tabindex="0" onClick="{{ openP3 }}" onMouseEnter="{{ g3.enter }}" onMouseLeave="{{ g3.leave }}" style="position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
-            <image-slot id="pt-cat-3" shape="rect" src="{{ assetCamiseta }}" placeholder="Foto — Clapton x Hendrix" style="width: 100%; height: 100%;"></image-slot>
+            <image-slot id="pt-cat-3" shape="rect" src="{{ srcP3 }}" placeholder="{{ placeholderP3 }}" style="width: 100%; height: 100%;"></image-slot>
             <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #000; color: #fff; border-top: 2px solid #fff; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; transform: translateY({{ g3.footerY }}); transition: transform .35s ease-out;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
                 <span style="font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1;">{{ g3.fname }}</span>
@@ -221,7 +221,7 @@
           </div>
 
           <div role="button" tabindex="0" onClick="{{ openP4 }}" onMouseEnter="{{ g4.enter }}" onMouseLeave="{{ g4.leave }}" style="grid-column: span 2; position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
-            <image-slot id="pt-cat-4" shape="rect" src="{{ stockCat4 }}" placeholder="Foto — Dimebag" style="width: 100%; height: 100%;"></image-slot>
+            <image-slot id="pt-cat-4" shape="rect" src="{{ srcP4 }}" placeholder="{{ placeholderP4 }}" style="width: 100%; height: 100%;"></image-slot>
             <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #000; color: #fff; border-top: 2px solid #fff; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; transform: translateY({{ g4.footerY }}); transition: transform .35s ease-out;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
                 <span style="font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1;">{{ g4.fname }}</span>
@@ -239,7 +239,7 @@
           </div>
 
           <div role="button" tabindex="0" onClick="{{ openP5 }}" onMouseEnter="{{ g5.enter }}" onMouseLeave="{{ g5.leave }}" style="position: relative; overflow: hidden; cursor: pointer; background: var(--fg);" style-hover="outline: 3px solid var(--fg);">
-            <image-slot id="pt-cat-5" shape="rect" src="{{ stockCat5 }}" placeholder="Foto — Munaya" style="width: 100%; height: 100%;"></image-slot>
+            <image-slot id="pt-cat-5" shape="rect" src="{{ srcP5 }}" placeholder="{{ placeholderP5 }}" style="width: 100%; height: 100%;"></image-slot>
             <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #000; color: #fff; border-top: 2px solid #fff; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; transform: translateY({{ g5.footerY }}); transition: transform .35s ease-out;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
                 <span style="font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1;">{{ g5.fname }}</span>
@@ -964,30 +964,126 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#ff66c4&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#ff66c4&quot;,&quot;#ff3131&quot;,&quot;#3b82f6&quot;,&quot;#ffffff&quot;]}}">
 const PRODUCTS = {
-  1: { name: "Chaos Theory", price: 40, img: 1 },
-  2: { name: "Ghost", price: 35, img: 2 },
-  3: { name: "Clapton x Hendrix", price: 45, img: 3 },
-  4: { name: "Dimebag", price: 30, img: 4 },
-  5: { name: "Munaya", price: 40, img: 5 },
-  6: { name: "Bonzo", price: 40, img: 31 },
-  7: { name: "Lion Heart", price: 45, img: 32 },
-  8: { name: "Spiritual Beggars", price: 35, img: 33 },
-  9: { name: "Ruína 001", price: 90, img: 34 },
-  10: { name: "Estática", price: 85, img: 35 },
-  11: { name: "Última Faixa", price: 95, img: 36 },
-  12: { name: "Boné Gilmour", price: 30, img: 37 },
-  13: { name: "Boné Suicidal Tendencies", price: 30, img: 38 },
-  14: { name: "Boné MICK JAGGERMEISTER", price: 35, img: 39 },
-  15: {
-    name: "Camiseta Bozo", price: 40, img: 40,
-    photos: ["uploads/01_BONZO_detalhe_01.jpg", "public/distortion-bonzo.png", "uploads/modelo_bonzo_01.jpg"],
-    colors: [{ name: "Preto", hex: "#111111" }, { name: "Verde", hex: "#2f5d3a" }, { name: "Branco", hex: "#ffffff" }],
-  },
-  16: { name: "Raglan Macca", price: 90, img: 34 },
-  17: {
-    name: "Boné Bozo", price: 35, img: 41,
-    photos: ["public/bone-bozo-mockup-v2.png"],
+  1: {
+    id: 1,
+    name: "Munaya Bonzo",
+    price: 119,
+    badge: "Destaque",
+    image: "/uploads/modelo_bonzo_01.jpg",
+    photos: ["/uploads/modelo_bonzo_01.jpg", "/uploads/01_BONZO_detalhe_01.jpg", "/distortion-bonzo.png"],
     colors: [{ name: "Preto", hex: "#111111" }, { name: "Branco", hex: "#ffffff" }],
+  },
+  2: {
+    id: 2,
+    name: "Camiseta Dimebag",
+    price: 89.9,
+    image: "/uploads/DIMEBAG_camiseta.jpg",
+    photos: ["/uploads/DIMEBAG_camiseta.jpg", "/uploads/DIMEBAG_detalhe_02.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  3: {
+    id: 3,
+    name: "Camiseta Ghost",
+    price: 89.9,
+    image: "/uploads/GHOST_camiseta.jpg",
+    photos: ["/uploads/GHOST_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  4: {
+    id: 4,
+    name: "Camiseta Cathedral",
+    price: 89.9,
+    image: "/uploads/CATHEDRAL_camiseta.jpg",
+    photos: ["/uploads/CATHEDRAL_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  5: {
+    id: 5,
+    name: "Camiseta Amplificador",
+    price: 89.9,
+    image: "/uploads/AMPLIFICADOR_camiseta.jpg",
+    photos: ["/uploads/AMPLIFICADOR_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  6: {
+    id: 6,
+    name: "Camiseta Clutch",
+    price: 89.9,
+    image: "/uploads/CLUTCH_camiseta.jpg",
+    photos: ["/uploads/CLUTCH_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  7: {
+    id: 7,
+    name: "Camiseta Soundgarden",
+    price: 89.9,
+    image: "/uploads/SOUNDGARDEN_camiseta.jpg",
+    photos: ["/uploads/SOUNDGARDEN_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  8: {
+    id: 8,
+    name: "Camiseta Chico Science",
+    price: 89.9,
+    image: "/uploads/CHICO_camiseta.jpg",
+    photos: ["/uploads/CHICO_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  9: {
+    id: 9,
+    name: "Camiseta Rolling Stones",
+    price: 89.9,
+    image: "/uploads/ROLLING_STONES_camiseta.jpg",
+    photos: ["/uploads/ROLLING_STONES_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  10: {
+    id: 10,
+    name: "Camiseta Spiritual Beggars",
+    price: 89.9,
+    image: "/uploads/SPIRITUAL_BEGGARS_camiseta.jpg",
+    photos: ["/uploads/SPIRITUAL_BEGGARS_camiseta.jpg", "/uploads/sBEGGARSSTAMP10x01.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  11: {
+    id: 11,
+    name: "Camiseta Lionheart",
+    price: 89.9,
+    image: "/uploads/LIONHEART_camiseta.jpg",
+    photos: ["/uploads/LIONHEART_camiseta.jpg", "/uploads/MUNAYA_LionHeart_mostra02.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  12: {
+    id: 12,
+    name: "Camiseta Suicidal Tendencies",
+    price: 89.9,
+    image: "/uploads/SUICIDAL_TENDENCIES_camiseta.jpg",
+    photos: ["/uploads/SUICIDAL_TENDENCIES_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  13: {
+    id: 13,
+    name: "Camiseta 3R Árvore",
+    price: 89.9,
+    image: "/uploads/3R_ARVORE_camiseta.jpg",
+    photos: ["/uploads/3R_ARVORE_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  14: {
+    id: 14,
+    name: "Camiseta Monster Magnet",
+    price: 89.9,
+    image: "/uploads/MONSTER_MAGNET_camiseta.jpg",
+    photos: ["/uploads/MONSTER_MAGNET_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
+  15: {
+    id: 15,
+    name: "Camiseta C.O.C.",
+    price: 89.9,
+    image: "/uploads/COC_camiseta.jpg",
+    photos: ["/uploads/COC_camiseta.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
   },
 };
 
@@ -1124,38 +1220,27 @@ const RES_IDS = {
   "public/ecobag-bozo-mockup.png": "ecobag-bozo",
 };
 const COLLECTION_PHOTOS = {
-  "spiritual-beggars": "uploads/sBEGGARSSTAMP10x01.jpg",
-  "zz-top": "uploads/ZZTOP_detalhe.jpg",
+  "bonzo": "uploads/modelo_bonzo_01.jpg",
+  "dimebag": "uploads/DIMEBAG_camiseta.jpg",
+  "ghost": "uploads/GHOST_camiseta.jpg",
+  "stoner": "uploads/sBEGGARSSTAMP10x01.jpg",
+  "grunge": "uploads/CHICO_camiseta.jpg",
+  "classics": "uploads/ROLLING_STONES_camiseta.jpg",
 };
-const asset = (p) => {
-  if (!p) return "";
-  if (window.__resources && window.__resources[RES_IDS[p]]) return window.__resources[RES_IDS[p]];
-  let clean = String(p);
-  if (clean.startsWith("public/")) clean = clean.slice(6);
-  if (!clean.startsWith("/")) clean = "/" + clean;
-  return clean;
-};
-// Fotos provisórias do banco de imagens: no arquivo publicado não há rede, então o slot mostra o placeholder.
-const stock = (u) => (window.__resources ? "" : u);
-
-const DEFAULT_COLORS = [
-  { name: "Preto", hex: "#111111" },
-  { name: "Branco", hex: "#ffffff" },
-];
 
 const COLLECTIONS = [
-  { id: "inverno-26", name: "Bozo", products: [15, 17, 3] },
-  { id: "trilha-sonora", name: "Clepton x Hendrix", products: [6, 7, 8] },
-  { id: "edicao-limitada", name: "Dimebag", products: [9, 10, 11] },
-  { id: "bones", name: "Ghost", products: [12, 13, 14] },
-  { id: "spiritual-beggars", name: "Spiritual Beggars", products: [1, 6, 9] },
-  { id: "zz-top", name: "ZZ Top", products: [3, 7, 13] },
+  { id: "bonzo", name: "Bonzo Series", products: [1, 5] },
+  { id: "dimebag", name: "Dimebag & Heavy", products: [2, 4] },
+  { id: "ghost", name: "Ghost Division", products: [3, 11] },
+  { id: "stoner", name: "Stoner & Sludge", products: [6, 10, 14, 15] },
+  { id: "grunge", name: "Grunge & Roots", products: [7, 8, 13] },
+  { id: "classics", name: "Rock Classics", products: [9, 12] },
 ];
 
 const RAILS = {
-  railBest: [15, 7, 8],
-  railLimited: [9, 10],
-  railCaps: [12, 17, 14],
+  railBest: [6, 7, 8],
+  railLimited: [9, 10, 11],
+  railCaps: [12, 13, 14, 15],
 };
 
 class Component extends DCLogic {
@@ -1231,22 +1316,29 @@ class Component extends DCLogic {
       }
     } catch (e) {}
 
-    // Sincroniza catálogo de produtos em tempo real do Supabase
+        // Sincroniza catálogo de produtos em tempo real do Supabase
     fetch("/api/products")
       .then((r) => r.json())
       .then((res) => {
         if (res.success && res.products && res.products.length) {
           res.products.forEach((p) => {
-            if (PRODUCTS[p.id]) {
-              if (p.name) PRODUCTS[p.id].name = p.name;
-              if (p.price) PRODUCTS[p.id].price = Number(p.price);
-              if (p.badge !== undefined) PRODUCTS[p.id].badge = p.badge;
-              if (p.subtitle) PRODUCTS[p.id].subtitle = p.subtitle;
-              if (p.description) PRODUCTS[p.id].description = p.description;
-              if (p.image_url) PRODUCTS[p.id].image = p.image_url;
-              if (p.display_order !== undefined) PRODUCTS[p.id].display_order = Number(p.display_order);
+            if (!PRODUCTS[p.id]) PRODUCTS[p.id] = { id: p.id };
+            PRODUCTS[p.id].name = p.name;
+            PRODUCTS[p.id].price = Number(p.price);
+            PRODUCTS[p.id].badge = p.badge;
+            PRODUCTS[p.id].subtitle = p.subtitle;
+            PRODUCTS[p.id].description = p.description;
+            if (p.image_url) {
+              PRODUCTS[p.id].image = p.image_url;
+              if (!PRODUCTS[p.id].photos || !PRODUCTS[p.id].photos.length) {
+                PRODUCTS[p.id].photos = [p.image_url];
+              }
             }
+            PRODUCTS[p.id].display_order = Number(p.display_order) || 99;
           });
+          const sorted = res.products.slice().sort((a, b) => (Number(a.display_order) || 99) - (Number(b.display_order) || 99));
+          const order = sorted.map((p) => p.id);
+          this.setState({ catalogOrder: order });
         }
       })
       .catch(() => {});
@@ -1678,94 +1770,31 @@ class Component extends DCLogic {
     };
   };
 
-  rail = (key, badges) => RAILS[key].map((id, i) => {
-    const p = PRODUCTS[id];
-    return Object.assign(this.foot(id, key + "-" + id), {
-      name: p.name,
-      price: brl(p.price),
-      slotId: id === 15 ? "pt-p15-2" : id === 17 ? "pt-col-bone-bozo" : "pt-" + key + "-" + id,
-      src: p.photos ? asset(id === 15 ? p.photos[1] : p.photos[0]) : stock("https://picsum.photos/900/1200?random=" + p.img),
-      placeholder: "Foto — " + p.name,
-      badge: badges ? badges[i] : "",
-      open: this.open(id),
+    rail = (key, badges) => {
+    const ord = (this.state.catalogOrder && this.state.catalogOrder.length)
+      ? this.state.catalogOrder
+      : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    const railIds = key === "railBest"
+      ? ord.slice(5, 8)
+      : key === "railLimited"
+      ? ord.slice(8, 11)
+      : ord.slice(11, 15);
+    const ids = railIds.length ? railIds : (RAILS[key] || [1, 2, 3]);
+
+    return ids.map((id, i) => {
+      const p = PRODUCTS[id] || {};
+      const colors = p.colors || DEFAULT_COLORS;
+      return Object.assign(this.foot(id, key + "-" + id), {
+        name: p.name || "",
+        price: brl(Number(p.price) || 89.9),
+        slotId: "pt-" + key + "-" + id,
+        src: asset(p.image || (p.photos && p.photos[0]) || "/uploads/modelo_bonzo_01.jpg"),
+        placeholder: "Foto — " + (p.name || ""),
+        badge: badges ? badges[i] : (p.badge || ""),
+        open: this.open(id),
+      });
     });
-  });
-
-  go = (screen, extra) => this.setState(Object.assign({ screen: screen, warn: false, added: false, menuOpen: false }, extra || {}));
-
-  open = (id) => (e) => {
-    // só os controles da foto (trocar / reenquadrar) não navegam
-    const ne = e && (e.nativeEvent || e);
-    const path = ne && ne.composedPath ? ne.composedPath() : [];
-    if (path.some((n) => n && n.getAttribute && n.getAttribute("data-act"))) return;
-    this.go("produto", { productId: id, size: null, color: null, qty: 1 });
   };
-
-  addToCart = () => {
-    const p = PRODUCTS[this.state.productId];
-    const needColor = !!(p.colors && p.colors.length);
-    if (!this.state.size || (needColor && !this.state.color)) { this.setState({ warn: true }); return; }
-    const entries = [];
-    const size = needColor ? this.state.size + " · " + this.state.color : this.state.size;
-    for (let i = 0; i < this.state.qty; i++) {
-      entries.push({ id: Date.now() + i, name: p.name, price: p.price, size: size });
-    }
-    this.setState((s) => ({ cart: s.cart.concat(entries), warn: false, added: true, checkedOut: false }));
-  };
-
-  renderVals() {
-    const s = this.state;
-    const accent = this.props.accent ?? "#ff66c4";
-    const p = PRODUCTS[s.productId];
-    const total = s.cart.reduce((a, i) => a + i.price, 0);
-    const ck = this.totals();
-
-    return {
-      accent: accent,
-      heroRef: this.heroRef,
-
-      isDesktop: s.vw >= 1024,
-      asideDisplay: s.vw >= 1024 ? "flex" : "none",
-      isCompact: s.vw < 1024,
-      menuOpen: s.menuOpen,
-      toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }),
-      shellDir: s.vw >= 1024 ? "row" : "column",
-      barRef: this.barRef,
-      menuTop: (s.barH || 0) + "px",
-      heroH: s.vw >= 1024 ? "100vh" : "calc(100dvh - " + (s.barH || 0) + "px)",
-      ovOpacity: s.vw < 1024 ? 1 : 0,
-      gridCols: s.vw < 640 ? "1fr" : s.vw < 1024 ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
-      gridRow: s.vw < 640 ? "300px" : s.vw < 1024 ? "340px" : "400px",
-      prodDir: s.vw < 1024 ? "column" : "row",
-      prodImgH: s.vw < 640 ? "72vh" : s.vw < 1024 ? "80vh" : "100vh",
-      prodPanelW: s.vw < 1024 ? "100%" : "35%",
-      prodPanelMax: s.vw < 1024 ? "100%" : "46%",
-      prodPanelMin: s.vw < 1024 ? "0" : "300px",
-      prodBorderR: s.vw < 1024 ? "none" : "1px solid var(--fg)",
-      ckMainMin: s.vw < 900 ? "0" : "420px",
-      ckAsideW: s.vw < 900 ? "100%" : "380px",
-      ckAsideSticky: s.vw < 900 ? "static" : "sticky",
-
-
-      showCategoria: s.screen === "categoria",
-      showColecoes: s.screen === "colecoes",
-      showColecao: s.screen === "colecao",
-
-      colecoesList: COLLECTIONS.map((c) => ({
-        name: c.name,
-        isImage: true,
-        isPlain: false,
-        slotId: c.id === "inverno-26" ? "pt-colecao-stoner" : "pt-colecao-" + c.id,
-        src: COLLECTION_PHOTOS[c.id] ? asset(COLLECTION_PHOTOS[c.id]) : stock("https://picsum.photos/1000/1200?random=" + (61 + COLLECTIONS.indexOf(c))),
-        placeholder: "Foto — coleção " + c.name,
-        countLabel: c.products.length + (c.products.length === 1 ? " produto" : " produtos"),
-        aria: "Coleção " + c.name + ", " + c.products.length + " produtos",
-        openCard: (e) => {
-          const ne = e && (e.nativeEvent || e);
-          const path = ne && ne.composedPath ? ne.composedPath() : [];
-          if (path.some((n) => n && n.getAttribute && n.getAttribute("data-act"))) return;
-          this.go("colecao", { collectionId: c.id });
-        },
         open: () => this.go("colecao", { collectionId: c.id }),
       })),
       colecaoName: (COLLECTIONS.find((c) => c.id === s.collectionId) || COLLECTIONS[0]).name,
@@ -1900,26 +1929,47 @@ class Component extends DCLogic {
       goColecoes: () => this.go("colecoes"),
       goSobre: () => this.go("info", { infoTitle: "Sobre" }),
       goCaos: () => this.go("info", { infoTitle: "Caos" }),
-      openP1: this.open(15),
-      openP2: this.open(2),
-      openP3: this.open(3),
-      openP4: this.open(4),
-      openP5: this.open(5),
+            const ord = (s.catalogOrder && s.catalogOrder.length)
+        ? s.catalogOrder
+        : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+      const p1Id = ord[0] || 1;
+      const p2Id = ord[1] || 2;
+      const p3Id = ord[2] || 3;
+      const p4Id = ord[3] || 4;
+      const p5Id = ord[4] || 5;
 
-      logoMask: "url('" + asset("public/logo-redondo.svg") + "')",
-      stockCat2: stock("https://picsum.photos/900/1200?random=2"),
-      stockCat4: stock("https://picsum.photos/1200/900?random=4"),
-      stockCat5: stock("https://picsum.photos/900/1200?random=5"),
-      stockLimited: stock("https://picsum.photos/1000/1000?random=34"),
-      assetDetalhe: asset("uploads/01_BONZO_detalhe_01.jpg"),
-      assetCamiseta: asset("public/distortion-bonzo.png"),
-      gL: this.foot(16, "gL"),
-      openLimited: this.open(16),
-      g1: this.foot(15, "g1"),
-      g2: this.foot(2, "g2"),
-      g3: this.foot(3, "g3"),
-      g4: this.foot(4, "g4"),
-      g5: this.foot(5, "g5"),
+      const prod1 = PRODUCTS[p1Id] || {};
+      const prod2 = PRODUCTS[p2Id] || {};
+      const prod3 = PRODUCTS[p3Id] || {};
+      const prod4 = PRODUCTS[p4Id] || {};
+      const prod5 = PRODUCTS[p5Id] || {};
+
+      openP1: this.open(p1Id),
+      openP2: this.open(p2Id),
+      openP3: this.open(p3Id),
+      openP4: this.open(p4Id),
+      openP5: this.open(p5Id),
+
+      srcP1: asset(prod1.image || (prod1.photos && prod1.photos[0]) || "/uploads/modelo_bonzo_01.jpg"),
+      placeholderP1: "Foto — " + (prod1.name || "Bonzo"),
+
+      srcP2: asset(prod2.image || (prod2.photos && prod2.photos[0]) || "/uploads/DIMEBAG_camiseta.jpg"),
+      placeholderP2: "Foto — " + (prod2.name || "Dimebag"),
+
+      srcP3: asset(prod3.image || (prod3.photos && prod3.photos[0]) || "/uploads/GHOST_camiseta.jpg"),
+      placeholderP3: "Foto — " + (prod3.name || "Ghost"),
+
+      srcP4: asset(prod4.image || (prod4.photos && prod4.photos[0]) || "/uploads/CATHEDRAL_camiseta.jpg"),
+      placeholderP4: "Foto — " + (prod4.name || "Cathedral"),
+
+      srcP5: asset(prod5.image || (prod5.photos && prod5.photos[0]) || "/uploads/AMPLIFICADOR_camiseta.jpg"),
+      placeholderP5: "Foto — " + (prod5.name || "Amplificador"),
+
+      g1: this.foot(p1Id, "g1"),
+      g2: this.foot(p2Id, "g2"),
+      g3: this.foot(p3Id, "g3"),
+      g4: this.foot(p4Id, "g4"),
+      g5: this.foot(p5Id, "g5"),
       priceP1: brl(PRODUCTS[1].price),
       priceP3: brl(PRODUCTS[3].price),
       priceP4: brl(PRODUCTS[4].price),
@@ -1960,11 +2010,19 @@ class Component extends DCLogic {
         pick: () => this.setState({ color: c.name, warn: false }),
       })),
       warnText: p.colors && p.colors.length ? "Escolha cor e tamanho antes de adicionar." : "Escolha um tamanho antes de adicionar.",
-      productImages: [p.img, p.img + 10, p.img + 20].map((n, i) => ({
-        url: p.photos ? asset(p.photos[i] || "") : stock("https://picsum.photos/900/1200?random=" + n),
-        slotId: "pt-p" + s.productId + "-" + (i + 1),
-        alt: p.name + " — foto " + (i + 1),
-      })),
+            productImages: (p.photos && p.photos.length)
+        ? p.photos.filter(Boolean).map((u, i) => ({
+            url: asset(u),
+            slotId: "pt-p" + s.productId + "-" + (i + 1),
+            alt: (p.name || "") + " — foto " + (i + 1),
+          }))
+        : [
+            {
+              url: asset(p.image || "/uploads/modelo_bonzo_01.jpg"),
+              slotId: "pt-p" + s.productId + "-1",
+              alt: (p.name || "") + " — foto",
+            }
+          ],
 
       sizes: ["P", "M", "G", "GG"].map((label) => ({
         label: label,
