@@ -1085,6 +1085,15 @@ const PRODUCTS = {
     photos: ["/uploads/COC_camiseta.jpg"],
     colors: [{ name: "Preto", hex: "#111111" }],
   },
+  99: {
+    id: 99,
+    name: "Estampa Teste (Homologação)",
+    price: 1.0,
+    badge: "Teste R$ 1",
+    image: "/uploads/modelo_bonzo_01.jpg",
+    photos: ["/uploads/modelo_bonzo_01.jpg"],
+    colors: [{ name: "Preto", hex: "#111111" }],
+  },
 };
 
 const brl = (v) => "R$ " + v.toFixed(2).replace(".", ",");
@@ -1240,7 +1249,7 @@ const DEFAULT_COLORS = [
 ];
 
 const COLLECTIONS = [
-  { id: "bonzo", name: "Bonzo Series", products: [1, 5] },
+  { id: "bonzo", name: "Bonzo Series", products: [1, 5, 99] },
   { id: "dimebag", name: "Dimebag & Heavy", products: [2, 4] },
   { id: "ghost", name: "Ghost Division", products: [3, 11] },
   { id: "stoner", name: "Stoner & Sludge", products: [6, 10, 14, 15] },
@@ -1564,10 +1573,20 @@ class Component extends DCLogic {
       .catch(() => {});
 
     try {
+      const subtotalVal = this.state.cart.reduce((a, i) => a + i.price, 0);
+      const isTestCart =
+        subtotalVal <= 1.05 ||
+        this.state.cart.some((it) => it.id === 99 || String(it.name).toLowerCase().includes("teste"));
+
       const res = await fetch("/api/shipping", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ zipcode: d, quantity: this.state.cart.length || 1 }),
+        body: JSON.stringify({
+          zipcode: d,
+          quantity: this.state.cart.length || 1,
+          is_test: isTestCart,
+          subtotal: subtotalVal,
+        }),
       });
       const data = await res.json();
       if (data.success && data.options && data.options.length) {
@@ -1778,10 +1797,20 @@ class Component extends DCLogic {
 
   totals = () => {
     const subtotal = this.state.cart.reduce((a, i) => a + i.price, 0);
+    const isTestOrder =
+      subtotal <= 1.05 ||
+      this.state.cart.some((it) => it.id === 99 || String(it.name).toLowerCase().includes("teste"));
     const ship = (this.state.ckFrete || []).find((x) => x.id === this.state.ckFreteChoice);
-    const shipValue = ship ? ship.price : 0;
-    const discount = this.state.ckPay === "pix" ? subtotal * 0.05 : 0;
-    return { subtotal: subtotal, shipValue: shipValue, ship: ship, discount: discount, total: subtotal + shipValue - discount };
+    const shipValue = isTestOrder ? 0 : (ship ? ship.price : 0);
+    const discount = (!isTestOrder && this.state.ckPay === "pix") ? subtotal * 0.05 : 0;
+    const total = isTestOrder ? 1.00 : (subtotal + shipValue - discount);
+    return {
+      subtotal: subtotal,
+      shipValue: shipValue,
+      ship: ship,
+      discount: discount,
+      total: total,
+    };
   };
 
   foot = (id, key) => {

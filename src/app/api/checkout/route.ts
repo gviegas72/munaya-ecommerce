@@ -95,10 +95,17 @@ export async function POST(req: NextRequest) {
     });
 
     // 2. Validação segura do valor do frete
+    const isTestOrder =
+      calculatedSubtotal <= 1.05 ||
+      validatedItems.some((it: any) => String(it.id) === "99" || String(it.name).toLowerCase().includes("teste"));
+
     const cleanZip = String(address.zipcode || "").replace(/\D/g, "");
     let officialShipping = 0;
 
-    if (cleanZip.length === 8) {
+    if (isTestOrder) {
+      // Homologação: Produto de R$ 1,00 possui frete cortesia R$ 0,00
+      officialShipping = 0;
+    } else if (cleanZip.length === 8) {
       try {
         const totalQty = validatedItems.reduce((acc: number, cur: any) => acc + cur.quantity, 0);
         const quotes = await calculateDimonaShipping(cleanZip, totalQty);
@@ -113,9 +120,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Cálculo do valor total oficial (com 5% de desconto exclusivo para PIX)
-    const pixDiscount = paymentMethod === "pix" ? calculatedSubtotal * 0.05 : 0;
-    const officialTotal = Math.max(0.01, Number((calculatedSubtotal + officialShipping - pixDiscount).toFixed(2)));
+    // 3. Cálculo do valor total oficial (com 5% de desconto exclusivo para PIX normal)
+    let officialTotal = 0;
+    let pixDiscount = 0;
+
+    if (isTestOrder) {
+      // Valor exato de R$ 1,00 para teste de homologação sem cobrança de frete
+      officialTotal = 1.00;
+      pixDiscount = 0;
+    } else {
+      pixDiscount = paymentMethod === "pix" ? calculatedSubtotal * 0.05 : 0;
+      officialTotal = Math.max(0.01, Number((calculatedSubtotal + officialShipping - pixDiscount).toFixed(2)));
+    }
 
     console.log("🔒 [CHECKOUT SEGURO VALIDADO]", {
       orderId,
