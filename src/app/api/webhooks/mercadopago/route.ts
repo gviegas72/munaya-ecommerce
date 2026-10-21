@@ -4,6 +4,7 @@ import { createDimonaOrder } from "@/lib/dimona";
 import { getArtworkUrl } from "@/lib/artworks";
 import { saveDatabaseOrder } from "@/lib/supabase";
 import { verifyMercadoPagoWebhookSignature } from "@/lib/mp-webhook-auth";
+import { sendPaymentConfirmedEmail } from "@/lib/email";
 
 /**
  * Webhook Oficial do Mercado Pago
@@ -101,6 +102,17 @@ export async function POST(req: NextRequest) {
           dimona_id: dimonaRes.order_id,
           dimona_status: dimonaRes.status || "recebido",
         }).catch((e) => console.warn("Erro ao atualizar status no Supabase:", e));
+
+        // Dispara e-mail transacional de pagamento aprovado
+        if (payer.email) {
+          sendPaymentConfirmedEmail({
+            id: externalId,
+            customer_name: `${payer.first_name || "Cliente"} ${payer.last_name || ""}`.trim(),
+            customer_email: payer.email,
+            total_amount: Number(mpOrder.total_amount) || 1,
+            items: dimonaPayload.items,
+          }).catch((e) => console.warn("⚠️ [EMAIL] Falha ao enviar confirmação de pagamento webhook:", e));
+        }
       }
     }
 

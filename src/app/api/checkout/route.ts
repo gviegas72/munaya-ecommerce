@@ -4,6 +4,7 @@ import { saveDatabaseOrder, supabaseAdmin, DatabaseProduct } from "@/lib/supabas
 import { calculateDimonaShipping } from "@/lib/dimona";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sanitizeString, sanitizeDigits } from "@/lib/sanitize";
+import { sendOrderCreatedEmail } from "@/lib/email";
 
 /**
  * Endpoint de Processamento de Pagamento no Checkout Headless Munaya
@@ -183,6 +184,27 @@ export async function POST(req: NextRequest) {
         mp_order_id: mpResult.order_id,
         items: validatedItems,
       }).catch((e) => console.warn("Erro ao registrar pedido no Supabase:", e));
+
+      // Dispara e-mail transacional de confirmação do pedido + Pix Copia e Cola
+      if (customer.email) {
+        sendOrderCreatedEmail({
+          id: orderId,
+          customer_name: customer.name || "Cliente Munaya",
+          customer_email: customer.email,
+          total_amount: officialTotal,
+          payment_method: "pix",
+          pix_code: mpResult.pix.qr_code,
+          pix_qr_url: mpResult.pix.ticket_url,
+          street: address.street,
+          number: address.number,
+          complement: address.complement,
+          neighborhood: address.neighborhood,
+          city: address.city,
+          state: address.state,
+          zipcode: address.zipcode,
+          items: validatedItems,
+        }).catch((e) => console.warn("⚠️ [EMAIL] Falha ao disparar e-mail de pedido criado:", e));
+      }
 
       return NextResponse.json({
         success: true,

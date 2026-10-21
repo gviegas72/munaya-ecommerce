@@ -3,6 +3,7 @@ import { supabaseAdmin, saveDatabaseOrder } from "@/lib/supabase";
 import { createDimonaOrder } from "@/lib/dimona";
 import { getArtworkUrl } from "@/lib/artworks";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { sendPaymentConfirmedEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -109,6 +110,17 @@ export async function GET(req: NextRequest) {
               dimona_id: dimonaRes.order_id,
               dimona_status: dimonaRes.status || "recebido",
             });
+
+            // Dispara e-mail de confirmação de pagamento
+            if (order.customer_email) {
+              sendPaymentConfirmedEmail({
+                id: order.id,
+                customer_name: order.customer_name,
+                customer_email: order.customer_email,
+                total_amount: order.total_amount,
+                items: order.items,
+              }).catch((e) => console.warn("⚠️ [EMAIL] Falha ao enviar confirmação de pagamento:", e));
+            }
 
             return NextResponse.json({
               success: true,

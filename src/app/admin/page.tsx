@@ -19,6 +19,7 @@ import {
   Layers,
   Lock,
   LogOut,
+  Mail,
 } from "lucide-react";
 
 interface OrderItem {
@@ -289,6 +290,45 @@ export default function AdminPage() {
       return;
     }
     await handleDispatchDimona(order);
+  };
+
+  const handleSendEmail = async (order: Order, type: "created" | "paid" | "shipped") => {
+    let trackingCode = order.tracking_code;
+    if (type === "shipped" && !trackingCode) {
+      const input = prompt(
+        "Digite o código de rastreamento da transportadora/Correios:",
+        "BR" + order.id.replace(/\D/g, "") + "MY"
+      );
+      if (!input) return;
+      trackingCode = input.trim();
+    }
+
+    setActionMsg(`Enviando e-mail (${type}) para ${order.customer_email}...`);
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/orders/email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify({
+          order_id: order.id,
+          type,
+          tracking_code: trackingCode,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionMsg(`✉️ E-mail enviado com sucesso para ${order.customer_email}!`);
+        setTimeout(() => setActionMsg(""), 3500);
+        loadOrders();
+      } else {
+        alert("Erro no envio do e-mail: " + (data.error || "Falha"));
+      }
+    } catch (e: any) {
+      alert("Erro ao enviar e-mail: " + (e?.message || String(e)));
+    }
   };
 
   const handleDispatchDimona = async (order: Order) => {
@@ -705,25 +745,45 @@ export default function AdminPage() {
                           )}
                         </div>
 
-                        {!isPaid && (
+                        <div className="flex flex-wrap items-center gap-2">
                           <button
-                            onClick={() => handleConfirmPayment(order)}
-                            className="inline-flex items-center gap-2 bg-emerald-500 text-black px-4 py-2 text-xs uppercase font-black tracking-wider hover:bg-white transition-colors"
+                            onClick={() => handleSendEmail(order, isPaid ? "paid" : "created")}
+                            title="Reenviar e-mail de notificação para o cliente"
+                            className="inline-flex items-center gap-1.5 border border-neutral-700 bg-neutral-900 text-neutral-300 px-3 py-1.5 text-xs uppercase font-bold tracking-wider hover:text-white hover:border-neutral-500 transition-colors"
                           >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Confirmar Pagamento & Despachar</span>
+                            <Mail className="w-3.5 h-3.5 text-[#ff66c4]" />
+                            <span>{isPaid ? "E-mail Pago" : "E-mail Pix"}</span>
                           </button>
-                        )}
 
-                        {!hasDimona && isPaid && (
                           <button
-                            onClick={() => handleDispatchDimona(order)}
-                            className="inline-flex items-center gap-2 bg-[#ff66c4] text-black px-4 py-2 text-xs uppercase font-black tracking-wider hover:bg-white transition-colors"
+                            onClick={() => handleSendEmail(order, "shipped")}
+                            title="Enviar código de rastreamento por e-mail"
+                            className="inline-flex items-center gap-1.5 border border-sky-800 bg-sky-950/40 text-sky-400 px-3 py-1.5 text-xs uppercase font-bold tracking-wider hover:bg-sky-900/60 transition-colors"
                           >
-                            <Send className="w-3.5 h-3.5" />
-                            <span>Despachar Agora na Dimona</span>
+                            <Truck className="w-3.5 h-3.5" />
+                            <span>E-mail Rastreio</span>
                           </button>
-                        )}
+
+                          {!isPaid && (
+                            <button
+                              onClick={() => handleConfirmPayment(order)}
+                              className="inline-flex items-center gap-2 bg-emerald-500 text-black px-4 py-2 text-xs uppercase font-black tracking-wider hover:bg-white transition-colors"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Confirmar Pagamento & Despachar</span>
+                            </button>
+                          )}
+
+                          {!hasDimona && isPaid && (
+                            <button
+                              onClick={() => handleDispatchDimona(order)}
+                              className="inline-flex items-center gap-2 bg-[#ff66c4] text-black px-4 py-2 text-xs uppercase font-black tracking-wider hover:bg-white transition-colors"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                              <span>Despachar Agora na Dimona</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
