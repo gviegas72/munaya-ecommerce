@@ -122,7 +122,12 @@ export default function AdminPage() {
   const loadOrders = async () => {
     setLoadingOrders(true);
     try {
-      const res = await fetch("/api/orders");
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/orders", {
+        headers: {
+          "x-admin-pin": savedPin,
+        },
+      });
       const data = await res.json();
       if (data.success && Array.isArray(data.orders)) {
         setOrders(data.orders);
@@ -137,7 +142,12 @@ export default function AdminPage() {
   const loadProducts = async () => {
     setLoadingProducts(true);
     try {
-      const res = await fetch("/api/products?admin=true");
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/products?admin=true", {
+        headers: {
+          "x-admin-pin": savedPin,
+        },
+      });
       const data = await res.json();
       if (data.success && Array.isArray(data.products)) {
         setProducts(data.products);
@@ -160,9 +170,13 @@ export default function AdminPage() {
     const cleanOrder = parseInt(String(prod.display_order), 10) || 1;
 
     try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
       const res = await fetch("/api/products", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
         body: JSON.stringify({
           id: prod.id,
           price: cleanPrice,
@@ -196,9 +210,13 @@ export default function AdminPage() {
     }
     setActionMsg(`Despachando pedido ${order.id} para a Dimona...`);
     try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
       const res = await fetch("/api/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
         body: JSON.stringify({
           id: order.id,
           customer: {

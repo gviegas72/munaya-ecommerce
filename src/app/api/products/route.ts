@@ -4,6 +4,7 @@ import {
   getAllProductsAdmin,
   updateProductAdmin,
 } from "@/lib/supabase";
+import { verifyAdminAuth } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,13 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const isAdmin = searchParams.get("admin") === "true";
+
+    if (isAdmin && !verifyAdminAuth(req)) {
+      return NextResponse.json(
+        { success: false, error: "Acesso administrativo não autorizado." },
+        { status: 401 }
+      );
+    }
 
     const products = isAdmin
       ? await getAllProductsAdmin()
@@ -29,6 +37,16 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    if (!verifyAdminAuth(req)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Acesso administrativo obrigatório para alteração de catálogo.",
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const { id, ...updates } = body;
 

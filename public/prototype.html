@@ -1702,32 +1702,8 @@ class Component extends DCLogic {
       mpOrderId: mpOrderId,
     };
 
-    if (pay === "cartao") {
-      fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: num,
-          customer: { name: f.nome, email: f.email, cpf: f.cpf, phone: f.fone },
-          address: {
-            street: f.rua,
-            number: f.num,
-            complement: f.compl || "",
-            neighborhood: f.bairro,
-            city: (this.state.ckCity || "Porto Alegre, RS").split(",")[0]?.trim(),
-            state: (this.state.ckCity || "Porto Alegre, RS").split(",")[1]?.trim() || "RS",
-            zipcode: this.state.ckCep,
-          },
-          shipping_speed: (ship?.id || "pac").toLowerCase(),
-          items: items.map(it => ({
-            name: it.name,
-            quantity: it.qty,
-            size: it.size,
-            price: it.unit,
-          })),
-        })
-      }).catch(e => console.warn("Dimona dispatch:", e));
-    }
+    // Segurança: Despacho para fábrica Dimona ocorre exclusivamente via Webhook após confirmação de pagamento.
+    // O front-end não dispara POST /api/orders arbitrário sem confirmação bancária.
 
     const wants = this.state.ckWantAccount && !this.state.authed;
     const profile = { nome: f.nome, email: f.email, cpf: f.cpf, fone: f.fone, cep: this.state.ckCep, rua: f.rua, num: f.num, compl: f.compl, bairro: f.bairro, cidade: f.cidade, uf: f.uf };

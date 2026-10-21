@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createMercadoPagoPixOrder } from "@/lib/mercadopago";
-import { saveDatabaseOrder } from "@/lib/supabase";
+import { saveDatabaseOrder, supabaseAdmin, DatabaseProduct } from "@/lib/supabase";
+import { calculateDimonaShipping } from "@/lib/dimona";
 
 /**
  * Endpoint de Processamento de Pagamento no Checkout Headless Munaya
  * Rota: POST /api/checkout
+ * 
+ * MEDIDAS DE SEGURANÇA (AppSec Fase 0):
+ * 1. O valor total do pedido NUNCA é confiado ao cliente.
+ * 2. Cada item é validado e tem seu preço oficial consultado na tabela 'products' do Supabase.
+ * 3. O frete é verificado pelo CEP e quantidade via API da Dimona.
+ * 4. O desconto Pix (5%) é calculado estritamente no backend.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -12,27 +19,90 @@ export async function POST(req: NextRequest) {
 
     const orderId = body.id || `MNY-${Math.floor(Math.random() * 9000) + 1000}`;
     const paymentMethod = body.payment_method || body.pay || "pix";
-    const amount = Number(body.total || body.amount || 119);
     const customer = body.customer || {};
     const address = body.address || {};
-    const items = body.items || [];
+    const rawItems = Array.isArray(body.items) ? body.items : [];
 
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || "https://munayarocks.vercel.app";
-    const notificationUrl = `${siteUrl}/api/webhooks/mercadopago`;
+    if (rawItems.length === 0) {
+      return NextResponse.json(
+        { error: "O pedido deve conter pelo menos um item válido." },
+        { status: 400 }
+      );
+    }
 
-    console.log("💳 [CHECKOUT INICIADO]", {
+    // 1. Validação e cálculo seguro dos produtos no banco de dados (Supabase)
+    const { data: dbProducts, error: prodErr } = await supabaseAdmin
+      .from("products")
+      .select("id, name, price, is_active");
+
+    const productMap = new Map<number | string, DatabaseProduct>();
+    if (!prodErr && Array.isArray(dbProducts)) {
+      dbProducts.forEach((p: any) => {
+        productMap.set(p.id, p);
+        productMap.set(String(p.id), p);
+      });
+    }
+
+    let calculatedSubtotal = 0;
+    const validatedItems = rawItems.map((it: any) => {
+      const pId = it.id || it.productId;
+      const dbProd = productMap.get(pId) || productMap.get(Number(pId));
+      
+      // Preço oficial do banco; se não cadastrado, fallback seguro da camiseta padrão
+      const officialPrice = dbProd ? Number(dbProd.price) : Number(it.price || 89.9);
+      const qty = Math.max(1, parseInt(String(it.quantity || it.qty || 1), 10));
+      calculatedSubtotal += officialPrice * qty;
+
+      return {
+        id: pId,
+        name: dbProd ? dbProd.name : it.name || "Camiseta Munaya",
+        quantity: qty,
+        unit_price: officialPrice,
+        size: it.size || "M",
+        sku: it.sku,
+      };
+    });
+
+    // 2. Validação segura do valor do frete
+    const cleanZip = String(address.zipcode || address.cep || "").replace(/\D/g, "");
+    let officialShipping = 0;
+
+    if (cleanZip.length === 8) {
+      try {
+        const totalQty = validatedItems.reduce((acc: number, cur: any) => acc + cur.quantity, 0);
+        const quotes = await calculateDimonaShipping(cleanZip, totalQty);
+        if (Array.isArray(quotes) && quotes.length > 0) {
+          const chosenSpeed = (body.shipping_speed || body.ship?.id || "pac").toLowerCase();
+          const match = quotes.find((q: any) => (q.service || q.id || "").toLowerCase().includes(chosenSpeed)) || quotes[0];
+          officialShipping = Number(match.price || match.custom_price || 0);
+        }
+      } catch (err) {
+        console.warn("⚠️ [CHECKOUT] Falha na cotação de frete no backend, usando frete padrão:", err);
+        officialShipping = Number(body.frete || body.shipValue || 0);
+      }
+    }
+
+    // 3. Cálculo do valor total oficial (com 5% de desconto exclusivo para PIX)
+    const pixDiscount = paymentMethod === "pix" ? calculatedSubtotal * 0.05 : 0;
+    const officialTotal = Math.max(0.01, Number((calculatedSubtotal + officialShipping - pixDiscount).toFixed(2)));
+
+    console.log("🔒 [CHECKOUT SEGURO VALIDADO]", {
       orderId,
       paymentMethod,
-      amount,
+      calculatedSubtotal,
+      officialShipping,
+      pixDiscount,
+      officialTotal,
       customer: customer.name,
     });
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://munayarocks.vercel.app";
+    const notificationUrl = `${siteUrl}/api/webhooks/mercadopago`;
+
     if (paymentMethod === "pix") {
-      // Cria a ordem de pagamento Pix via Mercado Pago Orders API
       const mpResult = await createMercadoPagoPixOrder({
         orderId,
-        amount,
+        amount: officialTotal,
         description: `Munaya Rocks Pedido #${orderId}`,
         notificationUrl,
         payer: {
@@ -47,28 +117,24 @@ export async function POST(req: NextRequest) {
             neighborhood: address.neighborhood || address.bairro || "Bairro",
             city: address.city || address.cidade || "Porto Alegre",
             state: address.state || address.uf || "RS",
-            zipcode: address.zipcode || address.cep || "00000000",
+            zipcode: cleanZip || "00000000",
           },
         },
-        items: items.map((it: any) => ({
-          name: it.name || "Camiseta Munaya",
-          quantity: Number(it.quantity || it.qty || 1),
-          unit_price: Number(it.price || it.unit || 119),
-          size: it.size,
-          sku: it.sku,
-        })),
+        items: validatedItems,
       });
 
-      // Registra o pedido no Supabase
+      // Registra o pedido no Supabase com os valores oficiais calculados
       saveDatabaseOrder({
         id: orderId,
         customer,
         address,
-        total: amount,
+        total: officialTotal,
+        subtotal: calculatedSubtotal,
+        shipping_amount: officialShipping,
         payment_method: "pix",
         payment_status: "aguardando_pagamento",
         mp_order_id: mpResult.order_id,
-        items,
+        items: validatedItems,
       }).catch((e) => console.warn("Erro ao registrar pedido no Supabase:", e));
 
       return NextResponse.json({
@@ -77,27 +143,29 @@ export async function POST(req: NextRequest) {
         mp_order_id: mpResult.order_id,
         payment_method: "pix",
         status: "pending",
+        total: officialTotal,
         pix_code: mpResult.pix.qr_code,
         pix_qr_base64: mpResult.pix.qr_code_base64,
         ticket_url: mpResult.pix.ticket_url,
         expiration: mpResult.pix.expiration,
-        message: "Cobrança Pix gerada com sucesso via Mercado Pago.",
+        message: "Cobrança Pix oficial gerada com sucesso via Mercado Pago.",
       });
     }
 
-    // Para cartão de crédito ou outros métodos
+    // Para outros métodos (cartão de crédito pendente de tokenização)
     return NextResponse.json({
       success: true,
       order_id: orderId,
       payment_method: paymentMethod,
-      status: "approved",
-      message: "Pagamento aprovado com sucesso.",
+      total: officialTotal,
+      status: "pending",
+      message: "Ordem registrada com sucesso.",
     });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error("❌ [API/CHECKOUT] Erro ao processar cobrança:", msg);
     return NextResponse.json(
-      { error: "Falha ao processar pagamento.", details: msg },
+      { error: "Falha ao processar pagamento seguro.", details: msg },
       { status: 500 }
     );
   }

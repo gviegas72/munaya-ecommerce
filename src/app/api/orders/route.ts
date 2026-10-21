@@ -2,15 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { createDimonaOrder, DimonaOrderItem } from "@/lib/dimona";
 import { getArtworkUrl } from "@/lib/artworks";
 import { saveDatabaseOrder, getDatabaseOrdersAdmin } from "@/lib/supabase";
+import { verifyAdminAuth } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Lista todos os pedidos registrados no Supabase (para o painel de admin)
- * Rota: GET /api/orders
+ * Rota protegida: GET /api/orders
  */
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
+    if (!verifyAdminAuth(req)) {
+      return NextResponse.json(
+        { success: false, error: "Acesso não autorizado. Autenticação administrativa obrigatória." },
+        { status: 401 }
+      );
+    }
+
     const orders = await getDatabaseOrdersAdmin();
     return NextResponse.json({
       success: true,
@@ -24,10 +32,23 @@ export async function GET(_req: NextRequest) {
 
 /**
  * Endpoint de Criação e Despacho de Pedidos do Checkout Headless Munaya
- * Rota: POST /api/orders
+ * Rota protegida: POST /api/orders
+ * NOTA DE SEGURANÇA: Esta rota agora exige autorização administrativa ou de webhook interno.
+ * Pedidos públicos de clientes só podem ser despachados para a Dimona após liquidação de pagamento
+ * confirmada pelo Webhook do Mercado Pago.
  */
 export async function POST(req: NextRequest) {
   try {
+    if (!verifyAdminAuth(req)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Despacho direto de pedidos não permitido sem confirmação de pagamento prévia.",
+        },
+        { status: 403 }
+      );
+    }
     const body = await req.json();
 
     const orderId = body.id || `MNY-${Math.floor(Math.random() * 9000) + 1000}`;
