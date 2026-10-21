@@ -11,10 +11,10 @@ const supabaseServiceRoleKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 // Cliente público para leitura no navegador e servidor
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey || 'placeholder-anon-key');
 
 // Cliente administrativo com privilégios de escrita segura (apenas no backend)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey || 'placeholder-role-key', {
   auth: {
     persistSession: false,
     autoRefreshToken: false,
