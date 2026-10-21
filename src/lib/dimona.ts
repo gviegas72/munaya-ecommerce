@@ -54,22 +54,25 @@ export async function createDimonaOrder(
   order: DimonaCreateOrderPayload
 ): Promise<DimonaOrderResponse> {
   const apiKey = process.env.DIMONA_API_KEY;
+  const isDryRun =
+    process.env.DIMONA_DRY_RUN === "true" ||
+    process.env.DIMONA_SIMULATION === "true";
 
-  // Se a chave não estiver configurada ou estiver em modo de teste/simulação
-  if (!apiKey || apiKey === "sandbox_dimona_token" || apiKey === "test") {
+  // Se a chave não estiver configurada ou estiver em modo de teste/simulação/dry-run
+  if (!apiKey || apiKey === "sandbox_dimona_token" || apiKey === "test" || isDryRun) {
     console.warn(
-      "⚠️ [DIMONA] DIMONA_API_KEY não configurada ou em modo sandbox. Simulando sucesso do pedido:",
+      "⚠️ [DIMONA] Modo DRY-RUN / Simulação ativo. Pedido não enviado para impressão física:",
       order.external_id,
       order.items
     );
     return {
       success: true,
-      order_id: `SIMULATED-DIMONA-${order.external_id}-${Date.now()}`,
-      status: "aguardando_producao_simulado",
-      message: "Pedido simulado com sucesso (modo sandbox/desenvolvimento).",
+      order_id: `DRYRUN-DIMONA-${order.external_id}`,
+      status: "homologacao_sem_impressao",
+      message: "Pedido homologado com sucesso em modo Dry-Run (sem impressão física).",
       raw: {
         received_order: order,
-        mode: "sandbox",
+        mode: "dry-run",
       },
     };
   }
