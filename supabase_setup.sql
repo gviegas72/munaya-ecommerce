@@ -121,6 +121,17 @@ CREATE POLICY "Admin gerencia pedidos"
 ON public.orders FOR ALL 
 USING (auth.role() = 'service_role');
 
+-- 4. TABELA DE CONFIGURAÇÕES GERAIS DA LOJA (PREÇOS, MARKUP, CUSTOS DIMONA)
+CREATE TABLE IF NOT EXISTS public.store_settings (
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Leitura pública de configurações" ON public.store_settings FOR SELECT USING (true);
+CREATE POLICY "Admin gerencia configurações" ON public.store_settings FOR ALL TO service_role USING (true) WITH CHECK (true);
+
 -- ==============================================================================
 -- 3. CARGA INICIAL DO CATÁLOGO MUNAYA ROCKS
 -- ==============================================================================

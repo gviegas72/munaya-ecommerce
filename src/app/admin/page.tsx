@@ -33,8 +33,13 @@ import {
   ToggleLeft,
   ToggleRight,
   Percent,
+  Calculator,
+  TrendingUp,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { Coupon } from "@/lib/coupons";
+import { PricingSettings, DEFAULT_PRICING_SETTINGS, calculateSellingPrice, calculateFinancialSummary } from "@/lib/pricing";
 import {
   OFFICIAL_COLORS,
   OFFICIAL_SIZES,
@@ -241,7 +246,7 @@ export default function AdminPage() {
   const [pin, setPin] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [activeTab, setActiveTab] = useState<"orders" | "catalog" | "coupons">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "catalog" | "coupons" | "pricing">("orders");
 
   // Estados de Pedidos
   const [orders, setOrders] = useState<Order[]>([]);
@@ -259,6 +264,13 @@ export default function AdminPage() {
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
   const [deletingCouponCode, setDeletingCouponCode] = useState<string | null>(null);
+  // Estados de Precificação Dinâmica & Custos Dimona
+  const [pricingSettings, setPricingSettings] = useState<PricingSettings>(DEFAULT_PRICING_SETTINGS);
+  const [loadingPricing, setLoadingPricing] = useState(false);
+  const [savingPricing, setSavingPricing] = useState(false);
+  const [applyingPricing, setApplyingPricing] = useState(false);
+  const [pricingFeedback, setPricingFeedback] = useState("");
+
 
 
   // Estados do Catálogo
@@ -300,6 +312,7 @@ export default function AdminPage() {
       loadOrders();
       loadProducts();
       loadCoupons();
+      loadPricing();
     }
   }, [isAuthed]);
 
@@ -339,6 +352,87 @@ export default function AdminPage() {
     }
   };
 
+
+
+  const loadPricing = async () => {
+    setLoadingPricing(true);
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/pricing", {
+        headers: { "x-admin-pin": savedPin },
+      });
+      const data = await res.json();
+      if (data.success && data.settings) {
+        setPricingSettings(data.settings);
+      }
+    } catch (e) {
+      console.error("Erro ao carregar regras de precificação:", e);
+    } finally {
+      setLoadingPricing(false);
+    }
+  };
+
+  const handleSavePricing = async () => {
+    setSavingPricing(true);
+    setPricingFeedback("");
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/pricing", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify(pricingSettings),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPricingFeedback("Regras de precificação e custos salvas com sucesso!");
+        setTimeout(() => setPricingFeedback(""), 3500);
+      } else {
+        setPricingFeedback("Erro ao salvar: " + (data.error || "Tente novamente."));
+      }
+    } catch {
+      setPricingFeedback("Falha de conexão ao salvar regras.");
+    } finally {
+      setSavingPricing(false);
+    }
+  };
+
+  const handleApplyPricingBatch = async () => {
+    if (
+      !confirm(
+        "Deseja recalcular e atualizar os preços de venda de todas as peças do catálogo da loja com base nos custos Dimona e na margem de markup configurada?"
+      )
+    ) {
+      return;
+    }
+
+    setApplyingPricing(true);
+    setPricingFeedback("");
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/pricing/apply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPricingFeedback("✓ " + (data.updated_count || 0) + " produtos tiveram seus preços atualizados no catálogo!");
+        loadProducts();
+        setTimeout(() => setPricingFeedback(""), 4500);
+      } else {
+        setPricingFeedback("Erro ao aplicar: " + (data.error || "Tente novamente."));
+      }
+    } catch {
+      setPricingFeedback("Falha de conexão ao atualizar em lote.");
+    } finally {
+      setApplyingPricing(false);
+    }
+  };
 
   const loadCoupons = async () => {
     setLoadingCoupons(true);
@@ -1066,6 +1160,17 @@ export default function AdminPage() {
           >
             <Tag className="w-5 h-5" />
             <span>Cupons ({coupons.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("pricing")}
+            className={`flex items-center gap-2 px-6 py-3 font-oswald text-xl uppercase font-black tracking-tight transition-all ${
+              activeTab === "pricing"
+                ? "bg-white text-black"
+                : "text-neutral-400 hover:text-white"
+            }`}
+          >
+            <Calculator className="w-5 h-5" />
+            <span>Custos & Markup</span>
           </button>
         </div>
 
@@ -3362,6 +3467,359 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* TAB 4: PRECIFICAÇÃO DINÂMICA & CUSTOS DIMONA */}
+        {activeTab === "pricing" && (
+          <div className="space-y-8">
+            {/* Header com Ações Principais */}
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-neutral-950 p-6 border-2 border-neutral-800">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded bg-[#ff66c4] text-black flex items-center justify-center font-black">
+                    <TrendingUp className="w-5 h-5 stroke-[2.5]" />
+                  </div>
+                  <h2 className="font-oswald text-3xl font-black uppercase tracking-tight text-white">
+                    Motor de Precificação Dinâmica & Markup
+                  </h2>
+                </div>
+                <p className="text-xs text-neutral-400 uppercase tracking-wider">
+                  Ajuste os custos de produção da Dimona e sua margem de lucro. Quando a Dimona reajustar no portal, você altera aqui e o catálogo inteiro atualiza com 1 clique.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={loadPricing}
+                  disabled={loadingPricing}
+                  title="Recarregar configurações"
+                  className="p-2.5 border border-neutral-700 bg-neutral-900 text-neutral-300 hover:text-white hover:border-white transition-colors"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingPricing ? "animate-spin" : ""}`} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSavePricing}
+                  disabled={savingPricing}
+                  className="bg-neutral-800 border border-neutral-700 hover:border-white text-white font-oswald text-sm font-bold uppercase px-4 py-2.5 transition-colors flex items-center gap-2"
+                >
+                  {savingPricing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Salvando...</span>
+                    </>
+                  ) : (
+                    <span>Salvar Regras</span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleApplyPricingBatch}
+                  disabled={applyingPricing}
+                  className="bg-[#ff66c4] text-black font-oswald text-sm font-black uppercase px-5 py-2.5 hover:bg-white transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(255,102,196,0.3)] disabled:opacity-50"
+                >
+                  {applyingPricing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin text-black" />
+                      <span>Atualizando Catálogo...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Recalcular Preços no Catálogo</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {pricingFeedback && (
+              <div className="p-4 bg-emerald-950/60 border border-emerald-500 text-emerald-300 text-sm font-mono flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span>{pricingFeedback}</span>
+              </div>
+            )}
+
+            {/* Grid Principal: Custos Dimona e Regra de Markup */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Bloco 1: Custos Base da Dimona */}
+              <div className="border-2 border-neutral-800 bg-neutral-950 p-6 space-y-5">
+                <div className="border-b border-neutral-800 pb-3">
+                  <h3 className="font-oswald text-xl font-bold uppercase text-white flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-emerald-400" />
+                    1. Custos de Produção Dimona (Blanks / Malhas)
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    Informe quanto a Dimona debita da sua carteira por cada peça pronta (malha + estampa DTG).
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {Object.entries(pricingSettings.fabrics).map(([key, fabric]) => (
+                    <div
+                      key={key}
+                      className="p-3.5 bg-neutral-900/60 border border-neutral-800 flex items-center justify-between gap-4"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <span className="font-oswald text-base font-bold uppercase text-white block">
+                          {fabric.name}
+                        </span>
+                        <span className="text-[11px] text-neutral-400 block truncate">
+                          {fabric.description}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="font-mono text-xs text-neutral-400">R$</span>
+                        <input
+                          type="number"
+                          step="0.50"
+                          min="0"
+                          value={fabric.base_cost}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setPricingSettings({
+                              ...pricingSettings,
+                              fabrics: {
+                                ...pricingSettings.fabrics,
+                                [key]: { ...fabric, base_cost: val },
+                              },
+                            });
+                          }}
+                          className="w-24 bg-neutral-950 border border-neutral-700 px-3 py-1.5 font-mono text-base font-bold text-white text-right focus:outline-none focus:border-[#ff66c4]"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bloco 2: Regras de Markup & Arredondamento */}
+              <div className="border-2 border-neutral-800 bg-neutral-950 p-6 space-y-6">
+                <div className="border-b border-neutral-800 pb-3">
+                  <h3 className="font-oswald text-xl font-bold uppercase text-white flex items-center gap-2">
+                    <Percent className="w-5 h-5 text-[#ff66c4]" />
+                    2. Margem de Lucro & Regra de Markup
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    Como o preço final ao consumidor é calculado a partir do custo base.
+                  </p>
+                </div>
+
+                {/* Tipo de Markup */}
+                <div className="space-y-2">
+                  <label className="block text-xs uppercase font-bold text-neutral-300">
+                    Tipo de Cálculo da Margem
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPricingSettings({ ...pricingSettings, markup_type: "percentage" })}
+                      className={`p-3 border-2 text-center transition-all cursor-pointer ${
+                        pricingSettings.markup_type === "percentage"
+                          ? "border-[#ff66c4] bg-[#ff66c4]/10 text-white font-bold"
+                          : "border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-600"
+                      }`}
+                    >
+                      <Percent className="w-5 h-5 mx-auto mb-1 text-[#ff66c4]" />
+                      <span className="font-oswald text-sm uppercase block">Margem Percentual (%)</span>
+                      <span className="text-[10px] text-neutral-400 font-mono">Ex: Custo + 114%</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPricingSettings({ ...pricingSettings, markup_type: "multiplier" })}
+                      className={`p-3 border-2 text-center transition-all cursor-pointer ${
+                        pricingSettings.markup_type === "multiplier"
+                          ? "border-[#ff66c4] bg-[#ff66c4]/10 text-white font-bold"
+                          : "border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-600"
+                      }`}
+                    >
+                      <TrendingUp className="w-5 h-5 mx-auto mb-1 text-emerald-400" />
+                      <span className="font-oswald text-sm uppercase block">Multiplicador Direto (x)</span>
+                      <span className="text-[10px] text-neutral-400 font-mono">Ex: Custo × 2.14x</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Valor do Markup */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                      {pricingSettings.markup_type === "percentage"
+                        ? "Margem / Markup (%) *"
+                        : "Multiplicador de Custo (x) *"}
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      value={pricingSettings.markup_value}
+                      onChange={(e) =>
+                        setPricingSettings({
+                          ...pricingSettings,
+                          markup_value: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 font-mono text-base font-bold text-white focus:outline-none focus:border-[#ff66c4]"
+                    />
+                    <span className="text-[11px] text-neutral-500 mt-1 block">
+                      {pricingSettings.markup_type === "percentage"
+                        ? "114% transforma R$ 42 em R$ 89,90"
+                        : "2.14x transforma R$ 42 em R$ 89,90"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase font-bold text-neutral-300 mb-1">
+                      Taxa Gateway Estimada (%)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={pricingSettings.tax_gateway_percent}
+                      onChange={(e) =>
+                        setPricingSettings({
+                          ...pricingSettings,
+                          tax_gateway_percent: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 font-mono text-base font-bold text-white focus:outline-none focus:border-[#ff66c4]"
+                    />
+                    <span className="text-[11px] text-neutral-500 mt-1 block">
+                      Mercado Pago / Taxas financeiras
+                    </span>
+                  </div>
+                </div>
+
+                {/* Arredondamento Comercial */}
+                <div className="space-y-2">
+                  <label className="block text-xs uppercase font-bold text-neutral-300">
+                    Regra de Arredondamento Comercial
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPricingSettings({ ...pricingSettings, rounding_mode: "90_cents" })}
+                      className={`p-3 border-2 text-center transition-all cursor-pointer ${
+                        pricingSettings.rounding_mode === "90_cents"
+                          ? "border-[#ff66c4] bg-[#ff66c4]/10 text-white font-bold"
+                          : "border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-600"
+                      }`}
+                    >
+                      <span className="font-oswald text-base uppercase block">,90</span>
+                      <span className="text-[10px] text-neutral-400 font-mono">Psicológico (R$ 89,90)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPricingSettings({ ...pricingSettings, rounding_mode: "00_cents" })}
+                      className={`p-3 border-2 text-center transition-all cursor-pointer ${
+                        pricingSettings.rounding_mode === "00_cents"
+                          ? "border-[#ff66c4] bg-[#ff66c4]/10 text-white font-bold"
+                          : "border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-600"
+                      }`}
+                    >
+                      <span className="font-oswald text-base uppercase block">,00</span>
+                      <span className="text-[10px] text-neutral-400 font-mono">Redondo (R$ 90,00)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPricingSettings({ ...pricingSettings, rounding_mode: "exact" })}
+                      className={`p-3 border-2 text-center transition-all cursor-pointer ${
+                        pricingSettings.rounding_mode === "exact"
+                          ? "border-[#ff66c4] bg-[#ff66c4]/10 text-white font-bold"
+                          : "border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-600"
+                      }`}
+                    >
+                      <span className="font-oswald text-base uppercase block">Exato</span>
+                      <span className="text-[10px] text-neutral-400 font-mono">Sem arredondar</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bloco 3: Simulador de Margem e Preço ao Vivo */}
+            <div className="border-2 border-neutral-800 bg-neutral-950 p-6 space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-800 pb-3">
+                <div>
+                  <h3 className="font-oswald text-xl font-bold uppercase text-white flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-[#ff66c4]" />
+                    3. Simulador de Margens & Preço de Venda em Tempo Real
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    Veja como os preços e o lucro por peça ficam com as configurações atuais antes de aplicar na vitrine.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {Object.entries(pricingSettings.fabrics).map(([key, fabric]) => {
+                  const calculatedPrice = calculateSellingPrice(fabric.base_cost, pricingSettings);
+                  const fin = calculateFinancialSummary(
+                    fabric.base_cost,
+                    calculatedPrice,
+                    pricingSettings.tax_gateway_percent
+                  );
+
+                  return (
+                    <div
+                      key={key}
+                      className="border border-neutral-800 bg-neutral-900/60 p-5 space-y-4 relative overflow-hidden"
+                    >
+                      <div className="flex items-baseline justify-between border-b border-neutral-800 pb-3">
+                        <span className="font-oswald text-lg font-bold uppercase text-white">
+                          {fabric.name}
+                        </span>
+                        <span className="text-[11px] font-mono text-neutral-400">
+                          Custo: R$ {fabric.base_cost.toFixed(2).replace(".", ",")}
+                        </span>
+                      </div>
+
+                      {/* Preço de Venda em Destaque */}
+                      <div className="space-y-1">
+                        <span className="text-xs uppercase font-mono text-neutral-400 block">
+                          Preço de Venda Sugerido
+                        </span>
+                        <span className="font-oswald text-4xl font-black text-[#ff66c4] tracking-tight">
+                          R$ {calculatedPrice.toFixed(2).replace(".", ",")}
+                        </span>
+                      </div>
+
+                      {/* Detalhamento de Margem e Lucro */}
+                      <div className="space-y-2 pt-2 border-t border-neutral-800 text-xs font-mono">
+                        <div className="flex justify-between items-center text-neutral-300">
+                          <span>Lucro Bruto por Peça:</span>
+                          <strong className="text-emerald-400">
+                            + R$ {fin.gross_profit.toFixed(2).replace(".", ",")} ({fin.gross_margin_percent}%)
+                          </strong>
+                        </div>
+
+                        <div className="flex justify-between items-center text-neutral-400 text-[11px]">
+                          <span>Taxa Gateway (~{pricingSettings.tax_gateway_percent}%):</span>
+                          <span>− R$ {fin.tax_amount.toFixed(2).replace(".", ",")}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center text-white pt-1 border-t border-neutral-800/80 font-bold">
+                          <span>Lucro Líquido Estimado:</span>
+                          <span className="text-emerald-300">
+                            R$ {fin.net_profit.toFixed(2).replace(".", ",")} ({fin.net_margin_percent}%)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
