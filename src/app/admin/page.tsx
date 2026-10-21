@@ -284,6 +284,13 @@ export default function AdminPage() {
     }
   };
 
+  const handleConfirmPayment = async (order: Order) => {
+    if (!confirm(`Confirmar o recebimento do pagamento do pedido #${order.id} e despachar agora?`)) {
+      return;
+    }
+    await handleDispatchDimona(order);
+  };
+
   const handleDispatchDimona = async (order: Order) => {
     if (!confirm(`Deseja despachar o pedido ${order.id} para a fábrica Dimona agora?`)) {
       return;
@@ -697,6 +704,16 @@ export default function AdminPage() {
                             </a>
                           )}
                         </div>
+
+                        {!isPaid && (
+                          <button
+                            onClick={() => handleConfirmPayment(order)}
+                            className="inline-flex items-center gap-2 bg-emerald-500 text-black px-4 py-2 text-xs uppercase font-black tracking-wider hover:bg-white transition-colors"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Confirmar Pagamento & Despachar</span>
+                          </button>
+                        )}
 
                         {!hasDimona && isPaid && (
                           <button

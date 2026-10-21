@@ -851,11 +851,22 @@
           </sc-for>
         </div>
 
-                <sc-if value="{{ orderIsPix }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ orderIsPaid }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top: 32px; border: 2px solid #10b981; background: rgba(16, 185, 129, 0.12); padding: 24px;">
+            <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; color: #10b981;">Pagamento Confirmado 🤘</div>
+            <div style="margin-top: 8px; font-family: Oswald, sans-serif; font-size: 32px; font-weight: 700; text-transform: uppercase; line-height: 1.1;">Recebemos seu Pix!</div>
+            <p style="margin: 8px 0 0 0; font-size: 16px; opacity: .85; line-height: 1.5;">O pagamento foi aprovado com sucesso. Seu pedido já foi registrado na esteira e está em preparação!</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ orderIsPix }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top: 32px; border: 2px solid {{ accent }}; padding: 22px;">
             <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: {{ accent }};">Código PIX — copie e cole</div>
             <div style="margin-top: 12px; font-family: ui-monospace, Menlo, monospace; font-size: 14px; line-height: 1.6; word-break: break-all; opacity: .85;">{{ orderPixCode }}</div>
-            <div role="button" tabindex="0" onClick="{{ copyPix }}" style="cursor: pointer; margin-top: 18px; display: inline-flex; align-items: center; gap: 10px; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 19px; font-weight: 700; text-transform: uppercase; padding: 12px 20px;">{{ copyLabel }}</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 18px;">
+              <div role="button" tabindex="0" onClick="{{ copyPix }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 10px; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 19px; font-weight: 700; text-transform: uppercase; padding: 12px 20px;">{{ copyLabel }}</div>
+              <div role="button" tabindex="0" onClick="{{ checkStatusManual }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; border: 2px solid var(--fg); background: transparent; color: var(--fg); font-family: Oswald, sans-serif; font-size: 19px; font-weight: 700; text-transform: uppercase; padding: 12px 20px;"><span>🔄 Já fiz o Pix / Verificar</span></div>
+            </div>
           </div>
           <sc-if value="{{ orderPixQrUrl }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top: 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px;">
@@ -1777,6 +1788,7 @@ class Component extends DCLogic {
       ckProcessing: false,
       screen: "pedido",
       order: order,
+      orderPaid: false,
       cart: [],
       copied: false,
       ckStep: 1,
@@ -1787,11 +1799,39 @@ class Component extends DCLogic {
       orders: orders,
       authed: this.state.authed || wants,
       acctForm: account ? Object.assign({}, EMPTY_ACCT, account, { senha: undefined }) : this.state.acctForm,
+    }, () => {
+      this.startOrderPolling(order.num);
     });
   };
 
+  startOrderPolling = (orderNum) => {
+    if (this.orderTimer) clearInterval(this.orderTimer);
+    if (!orderNum) return;
+    const check = async () => {
+      try {
+        const res = await fetch("/api/orders/status?id=" + encodeURIComponent(orderNum));
+        const data = await res.json();
+        if (data.success && (data.is_paid || data.payment_status === "pago")) {
+          if (this.orderTimer) clearInterval(this.orderTimer);
+          this.setState((s) => ({
+            orderPaid: true,
+            order: s.order ? Object.assign({}, s.order, { status: "Pago / Em produção na Dimona" }) : s.order,
+          }));
+        }
+      } catch (err) {}
+    };
+    this.orderTimer = setInterval(check, 3000);
+    setTimeout(check, 1000);
+  };
+
+  checkOrderStatusManual = () => {
+    if (this.state.order) {
+      this.startOrderPolling(this.state.order.num);
+    }
+  };
+
   componentWillUnmount() {
-    if (this.orderTimer) clearTimeout(this.orderTimer);
+    if (this.orderTimer) clearInterval(this.orderTimer);
     window.removeEventListener("resize", this.onResize);
   }
 
@@ -2362,7 +2402,8 @@ class Component extends DCLogic {
         { label: s.order.shipName, value: s.order.eta, note: s.order.city },
         { label: "Endereço", value: s.order.city, note: s.order.address },
       ] : [],
-      orderIsPix: !!s.order && s.order.pay === "pix",
+      orderIsPaid: !!s.orderPaid || (s.order && s.order.status && s.order.status.toLowerCase().includes("pago")),
+      orderIsPix: !s.orderPaid && !!s.order && s.order.pay === "pix" && !(s.order.status && s.order.status.toLowerCase().includes("pago")),
       orderPixCode: s.order ? s.order.pixCode : "",
       orderPixQrUrl: s.order ? s.order.pixQrUrl : "",
       copyLabel: s.copied ? "Código copiado" : "Copiar código",
@@ -2370,6 +2411,7 @@ class Component extends DCLogic {
         if (s.order && navigator.clipboard) navigator.clipboard.writeText(s.order.pixCode).catch(() => {});
         this.setState({ copied: true });
       },
+      checkStatusManual: this.checkOrderStatusManual,
 
       infoTitle: s.infoTitle,
     };
