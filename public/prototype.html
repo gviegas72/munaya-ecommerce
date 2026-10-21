@@ -1313,6 +1313,20 @@ class Component extends DCLogic {
     window.addEventListener("resize", this.onResize);
     this.onResize();
     try {
+      const draftRaw = window.localStorage.getItem("munaya.draft.checkout");
+      if (draftRaw) {
+        const draft = JSON.parse(draftRaw);
+        if (draft.ckForm) {
+          this.setState((s) => ({
+            ckForm: Object.assign({}, s.ckForm, draft.ckForm),
+            ckCep: draft.ckCep || s.ckCep,
+            ckCity: draft.ckCity || s.ckCity,
+          }));
+        }
+      }
+    } catch (err) {}
+
+    try {
       const raw = window.localStorage.getItem(STORE);
       if (raw) {
         const data = JSON.parse(raw);
@@ -1441,7 +1455,15 @@ class Component extends DCLogic {
     this.setState((s) => {
       const errors = Object.assign({}, s.ckErrors);
       delete errors[k];
-      return { ckForm: Object.assign({}, s.ckForm, { [k]: val }), ckErrors: errors };
+      const nextForm = Object.assign({}, s.ckForm, { [k]: val });
+      try {
+        window.localStorage.setItem("munaya.draft.checkout", JSON.stringify({
+          ckForm: nextForm,
+          ckCep: s.ckCep,
+          ckCity: s.ckCity,
+        }));
+      } catch (err) {}
+      return { ckForm: nextForm, ckErrors: errors };
     });
   };
 
@@ -1568,7 +1590,17 @@ class Component extends DCLogic {
             days: o.days,
           })),
           ckFreteChoice: data.options[0]?.id || null,
-        }));
+        }), () => {
+          try {
+            const draft = JSON.parse(window.localStorage.getItem("munaya.draft.checkout") || "{}");
+            draft.ckForm = this.state.ckForm;
+            draft.ckCep = this.state.ckCep;
+            draft.ckCity = this.state.ckCity;
+            draft.ckFrete = this.state.ckFrete;
+            draft.ckFreteChoice = this.state.ckFreteChoice;
+            window.localStorage.setItem("munaya.draft.checkout", JSON.stringify(draft));
+          } catch (e) {}
+        });
         return;
       }
     } catch (e) {}
@@ -1718,6 +1750,9 @@ class Component extends DCLogic {
       : (wants ? Object.assign({}, profile, { senha: f.senha }) : null);
     const orders = account ? [order].concat(this.state.orders) : this.state.orders;
     if (account) this.persist(account, orders);
+    try {
+      window.localStorage.removeItem("munaya.draft.checkout");
+    } catch (e) {}
 
     this.setState({
       ckProcessing: false,
@@ -2148,7 +2183,11 @@ class Component extends DCLogic {
       toggleCart: () => this.setState((st) => ({ cartOpen: !st.cartOpen, checkedOut: false })),
       checkout: () => {
         if (!s.cart.length) return;
-        const acc = s.account || (s.acctForm && s.acctForm.nome ? s.acctForm : null);
+        let draft = {};
+        try {
+          draft = JSON.parse(window.localStorage.getItem("munaya.draft.checkout") || "{}");
+        } catch(e) {}
+        const acc = s.account || (s.acctForm && s.acctForm.nome ? s.acctForm : null) || draft.ckForm;
         this.setState((st) => {
           const baseForm = acc ? Object.assign({}, st.ckForm, acc) : st.ckForm;
           return {
@@ -2196,7 +2235,15 @@ class Component extends DCLogic {
       ckCardFields: this.fieldList(CK_CARD),
 
       ckCep: s.ckCep,
-      ckOnCep: (e) => this.setState({ ckCep: maskCep(e.target.value), ckCepErr: "" }),
+      ckOnCep: (e) => {
+        const masked = maskCep(e.target.value);
+        this.setState({ ckCep: masked, ckCepErr: "" });
+        try {
+          const draft = JSON.parse(window.localStorage.getItem("munaya.draft.checkout") || "{}");
+          draft.ckCep = masked;
+          window.localStorage.setItem("munaya.draft.checkout", JSON.stringify(draft));
+        } catch (err) {}
+      },
       ckCepKey: (e) => { if (e.key === "Enter") this.ckCalcFrete(); },
       ckCalcFrete: this.ckCalcFrete,
       ckCepErr: s.ckCepErr,
