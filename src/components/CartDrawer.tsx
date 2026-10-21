@@ -186,9 +186,16 @@ export function CartDrawer() {
                   <h3 className="font-oswald text-2xl font-bold uppercase tracking-tight leading-tight truncate">
                     {item.name}
                   </h3>
-                  <p className="mt-1 font-sans text-xs font-bold uppercase tracking-widest text-[#ff66c4]">
-                    Tamanho: {item.size}
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <span className="font-sans text-xs font-bold uppercase tracking-widest text-[#ff66c4]">
+                      {item.size} • {item.color || "Preta"}
+                    </span>
+                    {item.sku && (
+                      <span className="font-mono text-[10px] text-foreground/50 border border-foreground/20 px-1.5 py-0.5 rounded">
+                        {item.sku}
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-1 font-oswald text-xl font-bold">
                     {item.formattedPrice}
                   </p>

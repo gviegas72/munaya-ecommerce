@@ -369,13 +369,16 @@
               <span>{{ backLabel }}</span>
             </div>
             <h1 style="font-family: Oswald, sans-serif; font-size: clamp(34px, 4.4vw, 88px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.04em; line-height: .9; margin: 0; overflow-wrap: normal; hyphens: none;">{{ productName }}</h1>
-            <p style="margin: 16px 0 0 0; font-family: Oswald, sans-serif; font-size: 36px; font-weight: 700; opacity: .8;">{{ productPrice }}</p>
+            <div style="margin-top: 10px; display: inline-flex; align-items: center; gap: 8px;">
+              <span style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 700; color: {{ accent }}; letter-spacing: .06em; background: rgba(255,102,196,0.1); border: 1px solid rgba(255,102,196,0.3); padding: 3px 8px;">REF: {{ activeSku }}</span>
+            </div>
+            <p style="margin: 14px 0 0 0; font-family: Oswald, sans-serif; font-size: 36px; font-weight: 700; opacity: .8;">{{ productPrice }}</p>
 
             <sc-if value="{{ hasColors }}" hint-placeholder-val="{{ false }}">
-              <div style="margin-top: 40px;">
+              <div style="margin-top: 36px;">
                 <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 14px; margin: 0 0 16px 0;">{{ colorLabel }}</p>
                 <div style="display: flex; flex-wrap: wrap; gap: 14px;">
-                  <sc-for list="{{ productColors }}" as="c" hint-placeholder-count="2">
+                  <sc-for list="{{ productColors }}" as="c" hint-placeholder-count="3">
                     <button type="button" onClick="{{ c.pick }}" aria-pressed="{{ c.pressed }}" aria-label="{{ c.name }}" title="{{ c.name }}" style="width: 48px; height: 48px; padding: 4px; border: 2px solid {{ c.ring }}; background: transparent; cursor: pointer; box-sizing: border-box;">
                       <span style="display: block; width: 100%; height: 100%; background: {{ c.hex }}; outline: 1px solid rgba(255,255,255,.75); outline-offset: -1px;"></span>
                     </button>
@@ -384,20 +387,23 @@
               </div>
             </sc-if>
 
-            <div style="margin-top: 40px;">
-              <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 14px; margin: 0 0 16px 0;">Escolha o tamanho</p>
-              <div style="display: flex; gap: 16px;">
-                <sc-for list="{{ sizes }}" as="s" hint-placeholder-count="4">
-                  <button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.pressed }}" style="width: 64px; height: 64px; border: 2px solid var(--fg); background: {{ s.bg }}; color: {{ s.fg }}; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700; cursor: pointer; transition: background-color .15s, color .15s;">{{ s.label }}</button>
+            <div style="margin-top: 36px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px;">
+                <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 13px; margin: 0;">Escolha o tamanho</p>
+                <div role="button" tabindex="0" onClick="{{ openGuide }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--fg); padding-bottom: 2px; opacity: .75; transition: opacity .15s;" style-hover="opacity: 1;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><path d="M2 9h20v6H2zM6 9v3M10 9v6M14 9v3M18 9v6"></path></svg>
+                  <span>Guia de tamanhos</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <sc-for list="{{ sizes }}" as="s" hint-placeholder-count="6">
+                  <button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.pressed }}" style="min-width: 52px; height: 52px; padding: 0 12px; border: 2px solid var(--fg); background: {{ s.bg }}; color: {{ s.fg }}; font-family: Oswald, sans-serif; font-size: 22px; font-weight: 700; cursor: pointer; transition: background-color .15s, color .15s;">{{ s.label }}</button>
                 </sc-for>
               </div>
               <sc-if value="{{ warn }}" hint-placeholder-val="{{ false }}">
-                <p style="margin: 16px 0 0 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">{{ warnText }}</p>
+                <p style="margin: 14px 0 0 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">{{ warnText }}</p>
               </sc-if>
-              <div role="button" tabindex="0" onClick="{{ openGuide }}" style="cursor: pointer; margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid var(--fg); padding-bottom: 2px; opacity: .75; transition: opacity .15s;" style-hover="opacity: 1;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><path d="M2 9h20v6H2zM6 9v3M10 9v6M14 9v3M18 9v6"></path></svg>
-                <span>Guia de tamanhos</span>
-              </div>
+            </div>
 
               <div style="margin-top: 32px;">
                 <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 14px; margin: 0 0 16px 0;">Quantidade</p>
@@ -1281,9 +1287,27 @@ const asset = (p) => {
 const stock = (u) => (window.__resources ? "" : u);
 
 const DEFAULT_COLORS = [
-  { name: "Preto", hex: "#111111" },
-  { name: "Branco", hex: "#ffffff" },
+  { name: "Preta", hex: "#111111", skuCode: "PRETA" },
+  { name: "Branca", hex: "#ffffff", skuCode: "BRANCA" },
+  { name: "Cinza", hex: "#777777", skuCode: "CINZA" },
 ];
+const DEFAULT_SIZES = ["PP", "P", "M", "G", "GG", "XGG"];
+
+function getVariantSku(prod, colorName, sizeName) {
+  let base = (prod.sku || ("MUNAYA-" + (prod.name || "ROCK"))).toUpperCase();
+  base = base.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/^CAMISETA\s+|^MUNAYA\s+/i, "");
+  if (!base.startsWith("MUNAYA-")) base = "MUNAYA-" + base;
+  base = base.replace(/[^A-Z0-9-]+/g, "-").replace(/-+/g, "-");
+
+  let c = String(colorName || "PRETA").toUpperCase();
+  if (c.includes("PRET") || c === "#111111") c = "PRETA";
+  else if (c.includes("BRANC") || c === "#FFFFFF") c = "BRANCA";
+  else if (c.includes("CINZ") || c === "#777777") c = "CINZA";
+  else c = "PRETA";
+
+  const s = String(sizeName || "M").toUpperCase().trim();
+  return base + "-" + c + "-" + s;
+}
 
 const COLLECTIONS = [
   { id: "bonzo", name: "Bonzo Series", products: [1, 5, 99] },
@@ -1402,13 +1426,15 @@ class Component extends DCLogic {
             if (!PRODUCTS[p.id]) PRODUCTS[p.id] = { id: p.id };
             PRODUCTS[p.id].id = p.id;
             PRODUCTS[p.id].slug = p.slug;
+            PRODUCTS[p.id].sku = p.sku;
             PRODUCTS[p.id].name = p.name;
             PRODUCTS[p.id].price = Number(p.price);
             PRODUCTS[p.id].badge = p.badge;
             PRODUCTS[p.id].tag = p.badge;
             PRODUCTS[p.id].subtitle = p.subtitle || "100% Algodão Premium Silk Screen";
             PRODUCTS[p.id].description = p.description || "";
-            if (!PRODUCTS[p.id].colors) PRODUCTS[p.id].colors = [{ name: "Preto", hex: "#111111" }];
+            PRODUCTS[p.id].colors = (p.colors && p.colors.length) ? p.colors : DEFAULT_COLORS;
+            PRODUCTS[p.id].sizes = (p.sizes && p.sizes.length) ? p.sizes : DEFAULT_SIZES;
             if (p.image_url) {
               PRODUCTS[p.id].image = p.image_url;
               if (!PRODUCTS[p.id].photos || !PRODUCTS[p.id].photos.length) {
@@ -1731,8 +1757,8 @@ class Component extends DCLogic {
     const num = "MNY-" + String(Math.floor(Math.random() * 9000) + 1000);
     const pay = this.state.ckPay;
     const items = Object.values(this.state.cart.reduce((acc, i) => {
-      const key = (i.id || i.name) + "|" + i.size;
-      if (!acc[key]) acc[key] = { id: i.id, name: i.name, size: i.size, qty: 0, price: i.price, unit: i.price, sku: i.sku };
+      const key = (i.productId || i.id || i.name) + "|" + i.size;
+      if (!acc[key]) acc[key] = { id: i.productId || i.id, name: i.name, size: i.size, color: i.color, qty: 0, price: i.price, unit: i.price, sku: i.sku };
       acc[key].qty += 1;
       return acc;
     }, {}));
@@ -1980,12 +2006,21 @@ class Component extends DCLogic {
 
   addToCart = () => {
     const p = PRODUCTS[this.state.productId] || PRODUCTS[1] || {};
-    const needColor = !!(p.colors && p.colors.length);
-    if (!this.state.size || (needColor && !this.state.color)) { this.setState({ warn: true }); return; }
+    const chosenColor = this.state.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta");
+    if (!this.state.size) { this.setState({ warn: true }); return; }
     const entries = [];
-    const size = needColor ? this.state.size + " · " + this.state.color : this.state.size;
+    const size = this.state.size + " · " + chosenColor;
+    const variantSku = getVariantSku(p, chosenColor, this.state.size);
     for (let i = 0; i < this.state.qty; i++) {
-      entries.push({ id: Date.now() + i, name: p.name, price: p.price, size: size });
+      entries.push({
+        id: Date.now() + i,
+        productId: p.id,
+        name: p.name,
+        price: p.price,
+        size: size,
+        color: chosenColor,
+        sku: variantSku,
+      });
     }
     this.setState((s) => ({ cart: s.cart.concat(entries), warn: false, added: true, checkedOut: false }));
   };
@@ -2259,23 +2294,28 @@ class Component extends DCLogic {
       },
       productName: p.name || "",
       productPrice: brl(Number(p.price) || 89.9),
-      hasColors: !!(p.colors && p.colors.length),
-      colorLabel: s.color ? "Cor: " + s.color : "Escolha a cor",
-      productColors: (p.colors || []).map((c) => ({
-        name: c.name,
-        hex: c.hex,
-        pressed: s.color === c.name,
-        ring: s.color === c.name ? "var(--fg)" : "transparent",
-        pick: () => this.setState({ color: c.name, warn: false }),
-      })),
-      warnText: p.colors && p.colors.length ? "Escolha cor e tamanho antes de adicionar." : "Escolha um tamanho antes de adicionar.",
+      activeSku: getVariantSku(p, s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta"), s.size || "M"),
+      hasColors: true,
+      colorLabel: "Cor: " + (s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta")),
+      productColors: (p.colors || DEFAULT_COLORS).map((c) => {
+        const curColor = s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta");
+        const isSel = curColor === c.name;
+        return {
+          name: c.name,
+          hex: c.hex,
+          pressed: isSel,
+          ring: isSel ? accent : "transparent",
+          pick: () => this.setState({ color: c.name, warn: false }),
+        };
+      }),
+      warnText: "Escolha um tamanho antes de adicionar.",
       productImages: [p.img, p.img + 10, p.img + 20].map((n, i) => ({
         url: p.photos ? asset(p.photos[i] || "") : stock("https://picsum.photos/900/1200?random=" + n),
         slotId: "pt-p" + s.productId + "-" + (i + 1),
         alt: p.name + " — foto " + (i + 1),
       })),
 
-      sizes: ["P", "M", "G", "GG"].map((label) => ({
+      sizes: (p.sizes || DEFAULT_SIZES).map((label) => ({
         label: label,
         pressed: s.size === label,
         bg: s.size === label ? "var(--fg)" : "transparent",
@@ -2286,10 +2326,12 @@ class Component extends DCLogic {
       openGuide: () => this.setState({ guideOpen: true }),
       closeGuide: () => this.setState({ guideOpen: false }),
       guideRows: [
-        { size: "P", chest: "50 cm", length: "70 cm", sleeve: "20 cm" },
-        { size: "M", chest: "53 cm", length: "72 cm", sleeve: "21 cm" },
-        { size: "G", chest: "56 cm", length: "74 cm", sleeve: "22 cm" },
-        { size: "GG", chest: "59 cm", length: "76 cm", sleeve: "23 cm" },
+        { size: "PP", chest: "47 cm", length: "68 cm", sleeve: "20 cm" },
+        { size: "P", chest: "50 cm", length: "70 cm", sleeve: "21 cm" },
+        { size: "M", chest: "53 cm", length: "72 cm", sleeve: "22 cm" },
+        { size: "G", chest: "56 cm", length: "74 cm", sleeve: "23 cm" },
+        { size: "GG", chest: "59 cm", length: "76 cm", sleeve: "24 cm" },
+        { size: "XGG", chest: "62 cm", length: "78 cm", sleeve: "25 cm" },
       ],
 
       cep: s.cep,
@@ -2317,6 +2359,7 @@ class Component extends DCLogic {
       cart: s.cart.map((i) => ({
         name: i.name,
         size: i.size,
+        sku: i.sku,
         price: brl(i.price),
         remove: () => this.setState((st) => ({ cart: st.cart.filter((x) => x.id !== i.id), checkedOut: false })),
       })),

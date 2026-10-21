@@ -3,6 +3,8 @@
  * Documentação da API: https://tiendanube.github.io/api-documentation/intro
  */
 
+import { ProductColor } from "./variants";
+
 export interface NuvemshopVariant {
   id: number;
   product_id: number;
@@ -61,6 +63,9 @@ export interface StoreProduct {
     price: string;
   }>;
   checkoutUrl: string;
+  sku?: string;
+  colors?: ProductColor[];
+  sizes?: string[];
 }
 
 const STORE_URL =

@@ -3,6 +3,14 @@
 import { useState } from "react";
 import { StoreProduct } from "@/lib/nuvemshop";
 import { useCart } from "@/context/CartContext";
+import {
+  OFFICIAL_COLORS,
+  OFFICIAL_SIZES,
+  SIZE_MEASUREMENTS_TABLE,
+  generateVariantSku,
+  ProductColor,
+} from "@/lib/variants";
+import { Ruler, Check, X } from "lucide-react";
 
 interface ProductActionSectionProps {
   product: StoreProduct;
@@ -22,7 +30,25 @@ interface ShippingResult {
 }
 
 export function ProductActionSection({ product }: ProductActionSectionProps) {
+  // Cores ativas (se produto tiver cores customizadas no banco ou as 3 oficiais)
+  const availableColors: ProductColor[] =
+    product.colors && product.colors.length > 0
+      ? product.colors
+      : OFFICIAL_COLORS;
+
+  // Tamanhos ativos
+  const availableSizes: string[] =
+    product.sizes && product.sizes.length > 0
+      ? product.sizes
+      : product.variants?.length > 0
+      ? product.variants.map((v) => v.size)
+      : Array.from(OFFICIAL_SIZES);
+
+  const [selectedColor, setSelectedColor] = useState<ProductColor>(
+    availableColors[0] || OFFICIAL_COLORS[0]
+  );
   const [selectedSize, setSelectedSize] = useState<string>("M");
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState<boolean>(false);
   const [addedFeedback, setAddedFeedback] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { addItem } = useCart();
@@ -33,10 +59,12 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
   const [shippingResult, setShippingResult] = useState<ShippingResult | null>(null);
   const [shippingError, setShippingError] = useState<string | null>(null);
 
-  const availableSizes =
-    product.variants?.length > 0
-      ? product.variants.map((v) => v.size)
-      : ["P", "M", "G", "GG"];
+  // SKU Oficial da Variante: [MUNAYA]-[NOME]-[COR]-[TAM]
+  const currentSku = generateVariantSku(
+    product.sku || product.name,
+    selectedColor.name,
+    selectedSize
+  );
 
   const handleAddToPit = () => {
     if (!selectedSize) {
@@ -48,18 +76,20 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
 
     const matchedVariant = product.variants?.find((v) => v.size === selectedSize);
 
-    // Adiciona o produto na sacola headless e abre a gaveta lateral
+    // Adiciona o produto na sacola headless com SKU, Cor e Tamanho
     addItem({
       productId: product.id,
       nuvemshopId: String(product.nuvemshopId || product.id || "375454425"),
       name: product.name,
       price: product.rawPrice || 119,
       size: selectedSize,
+      color: selectedColor.name,
+      sku: currentSku,
       image: product.image,
       checkoutUrl: product.checkoutUrl,
       quantity: 1,
-      variantId: matchedVariant ? String(matchedVariant.id) : undefined,
-    } as any);
+      variantId: matchedVariant ? Number(matchedVariant.id) : undefined,
+    });
 
     setAddedFeedback(true);
     setTimeout(() => {
@@ -115,18 +145,78 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
   return (
     <div className="flex flex-col justify-between h-full">
       <div className="flex flex-col">
-        <h1 className="font-oswald text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none mt-8 md:mt-0">
+        {/* SKU Oficial & Disponibilidade */}
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <span className="font-mono text-[11px] font-bold tracking-wider uppercase text-foreground/60 border border-foreground/20 px-2 py-0.5 rounded bg-black/40">
+            REF: <span className="text-[#ff66c4] font-black">{currentSku}</span>
+          </span>
+          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 border border-emerald-500/20 px-2 py-0.5 rounded bg-emerald-500/10">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Em Estoque
+          </span>
+        </div>
+
+        <h1 className="font-oswald text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none mt-2">
           {product.name}
         </h1>
-        <p className="mt-4 font-oswald text-4xl font-bold opacity-80">
+        <p className="mt-3 font-oswald text-3xl md:text-4xl font-bold opacity-90">
           {product.price}
         </p>
 
-        <div className="mt-8">
-          <p className="font-sans font-bold uppercase tracking-widest text-xs md:text-sm mb-4">
-            Escolha o tamanho
-          </p>
-          <div className="flex flex-wrap gap-3">
+        {/* Seleção de Cores Oficiais */}
+        <div className="mt-6">
+          <div className="flex justify-between items-center mb-2.5">
+            <p className="font-sans font-bold uppercase tracking-widest text-xs md:text-sm">
+              Cor: <span className="text-[#ff66c4] font-black">{selectedColor.name}</span>
+            </p>
+            <span className="text-[11px] text-foreground/50 uppercase font-mono">
+              Padrão: Preta
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2.5">
+            {availableColors.map((col) => {
+              const isSelected = selectedColor.name === col.name;
+              return (
+                <button
+                  key={col.name}
+                  type="button"
+                  onClick={() => setSelectedColor(col)}
+                  className={`flex items-center gap-2 px-3 py-2 border-2 transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-[#ff66c4] bg-[#ff66c4]/15 shadow-[0_0_12px_rgba(255,102,196,0.3)] text-white"
+                      : "border-foreground/30 hover:border-foreground/80 bg-black/40 text-foreground/80 hover:text-white"
+                  }`}
+                >
+                  <span
+                    className="w-4 h-4 rounded-full border border-white/40 inline-block shrink-0 shadow-inner"
+                    style={{ backgroundColor: col.hex }}
+                  />
+                  <span className="font-oswald uppercase text-xs md:text-sm tracking-wider font-bold">
+                    {col.name}
+                  </span>
+                  {isSelected && <Check className="w-3.5 h-3.5 text-[#ff66c4]" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Seleção de Tamanho & Guia de Medidas */}
+        <div className="mt-6">
+          <div className="flex justify-between items-center mb-2.5">
+            <p className="font-sans font-bold uppercase tracking-widest text-xs md:text-sm">
+              Tamanho: <span className="text-[#ff66c4] font-black">{selectedSize}</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsSizeGuideOpen(true)}
+              className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-foreground/70 hover:text-[#ff66c4] transition-colors underline underline-offset-4 cursor-pointer"
+            >
+              <Ruler className="w-3.5 h-3.5" />
+              Guia de Medidas
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2.5">
             {availableSizes.map((size) => {
               const isSelected = selectedSize === size;
               return (
@@ -137,10 +227,10 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
                     setSelectedSize(size);
                     setErrorMsg(null);
                   }}
-                  className={`w-16 h-16 border-2 font-oswald text-2xl font-black flex items-center justify-center transition-all ${
+                  className={`w-13 h-13 md:w-14 md:h-14 border-2 font-oswald text-lg md:text-xl font-black flex items-center justify-center transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-foreground text-background border-foreground scale-105"
-                      : "border-foreground hover:bg-foreground/20 text-foreground"
+                      ? "bg-[#ff66c4] text-black border-[#ff66c4] scale-105 shadow-[0_0_12px_rgba(255,102,196,0.4)]"
+                      : "border-foreground/40 hover:border-foreground text-foreground hover:bg-foreground/10"
                   }`}
                 >
                   {size}
@@ -156,12 +246,13 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
           )}
         </div>
 
-        <p className="mt-8 text-base md:text-lg opacity-70 leading-relaxed">
+        {/* Descrição do Produto */}
+        <p className="mt-6 text-sm md:text-base opacity-75 leading-relaxed">
           {product.description}
         </p>
 
         {/* Simulador de Frete Real Dimona */}
-        <div className="mt-8 border-t border-foreground/20 pt-6">
+        <div className="mt-6 border-t border-foreground/20 pt-5">
           <p className="font-sans font-bold uppercase tracking-widest text-xs mb-3 text-foreground/80">
             Calcular Frete e Prazo de Entrega
           </p>
@@ -173,13 +264,13 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
               value={cep}
               onChange={handleCepChange}
               onKeyDown={(e) => e.key === "Enter" && handleCalculateShipping()}
-              className="bg-black/60 border border-foreground/60 px-4 py-3 font-mono text-sm uppercase tracking-wider focus:outline-none focus:border-[#ff66c4] w-36 text-foreground"
+              className="bg-black/60 border border-foreground/60 px-4 py-2.5 font-mono text-sm uppercase tracking-wider focus:outline-none focus:border-[#ff66c4] w-36 text-foreground"
             />
             <button
               type="button"
               onClick={handleCalculateShipping}
               disabled={isCalculating}
-              className="bg-foreground text-background font-oswald font-black uppercase text-sm tracking-wider px-5 py-3 hover:bg-[#ff66c4] hover:text-black transition-colors disabled:opacity-50"
+              className="bg-foreground text-background font-oswald font-black uppercase text-sm tracking-wider px-5 py-2.5 hover:bg-[#ff66c4] hover:text-black transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isCalculating ? "Calculando..." : "Calcular"}
             </button>
@@ -220,15 +311,100 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
         <button
           type="button"
           onClick={handleAddToPit}
-          className={`w-full font-oswald text-3xl md:text-4xl uppercase font-black py-6 md:py-8 transition-all ${
+          className={`w-full font-oswald text-2xl md:text-4xl uppercase font-black py-5 md:py-6 transition-all cursor-pointer ${
             addedFeedback
               ? "bg-[#ff66c4] text-black scale-[1.02]"
-              : "bg-foreground text-background hover:scale-[1.02] active:scale-95"
+              : "bg-foreground text-background hover:scale-[1.02] active:scale-95 hover:bg-[#ff66c4] hover:text-black"
           }`}
         >
           {addedFeedback ? "No Pit! 🤘" : "Add to Pit"}
         </button>
       </div>
+
+      {/* Modal Guia de Medidas */}
+      {isSizeGuideOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setIsSizeGuideOpen(false)}
+        >
+          <div
+            className="bg-[#0e0e0e] border-2 border-foreground/30 max-w-lg w-full p-6 relative shadow-[0_0_30px_rgba(0,0,0,0.9)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start mb-4 border-b border-foreground/20 pb-3">
+              <div>
+                <h3 className="font-oswald text-2xl md:text-3xl font-black uppercase tracking-tight text-white">
+                  Tabela de Medidas (cm)
+                </h3>
+                <p className="text-xs text-foreground/60 uppercase font-mono mt-0.5">
+                  Camisetas Munaya Rocks • Algodão Penteado 30.1
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSizeGuideOpen(false)}
+                className="w-8 h-8 flex items-center justify-center border border-foreground/30 hover:border-[#ff66c4] hover:text-[#ff66c4] text-foreground transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left font-mono text-xs border border-foreground/20">
+                <thead className="bg-foreground/10 text-foreground uppercase">
+                  <tr>
+                    <th className="p-2.5 border-b border-r border-foreground/20 font-bold">Tam</th>
+                    <th className="p-2.5 border-b border-r border-foreground/20 font-bold">Tórax (Largura)</th>
+                    <th className="p-2.5 border-b border-r border-foreground/20 font-bold">Altura (Comp.)</th>
+                    <th className="p-2.5 border-b border-foreground/20 font-bold">Manga</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SIZE_MEASUREMENTS_TABLE.map((row) => {
+                    const isCurrent = row.size === selectedSize;
+                    return (
+                      <tr
+                        key={row.size}
+                        className={`border-b border-foreground/10 transition-colors ${
+                          isCurrent
+                            ? "bg-[#ff66c4]/15 font-bold text-[#ff66c4]"
+                            : "hover:bg-foreground/5 text-foreground/80"
+                        }`}
+                      >
+                        <td className="p-2.5 border-r border-foreground/20 font-oswald text-base font-bold">
+                          {row.size} {isCurrent && "★"}
+                        </td>
+                        <td className="p-2.5 border-r border-foreground/20">{row.torax} cm</td>
+                        <td className="p-2.5 border-r border-foreground/20">{row.altura} cm</td>
+                        <td className="p-2.5">{row.manga} cm</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 p-3 bg-foreground/5 border border-foreground/15 text-[11px] text-foreground/70 leading-relaxed">
+              <p className="font-bold uppercase text-white mb-1">Como medir:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                <li><span className="font-semibold text-white">Tórax:</span> Medir de uma axila à outra em uma camiseta aberta.</li>
+                <li><span className="font-semibold text-white">Altura:</span> Do ponto mais alto da gola até a barra inferior.</li>
+                <li><span className="font-semibold text-white">Variação:</span> Pode haver variação de até 2 cm devido à estonagem artesanal.</li>
+              </ul>
+            </div>
+
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsSizeGuideOpen(false)}
+                className="bg-foreground text-background font-oswald font-black uppercase text-sm tracking-wider px-6 py-2.5 hover:bg-[#ff66c4] hover:text-black transition-colors cursor-pointer"
+              >
+                Entendi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

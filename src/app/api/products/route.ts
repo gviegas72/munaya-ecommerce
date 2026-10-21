@@ -7,6 +7,7 @@ import {
   deleteProductAdmin,
 } from "@/lib/supabase";
 import { verifyAdminAuth } from "@/lib/admin-auth";
+import { generateBaseSku } from "@/lib/variants";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,9 @@ export async function POST(req: NextRequest) {
     const newProdPayload = {
       name,
       slug,
+      sku: body.sku ? String(body.sku).trim().toUpperCase() : generateBaseSku(name),
+      colors: Array.isArray(body.colors) && body.colors.length > 0 ? body.colors : undefined,
+      sizes: Array.isArray(body.sizes) && body.sizes.length > 0 ? body.sizes : undefined,
       subtitle: body.subtitle ? String(body.subtitle).trim() : "100% Algodão Premium Silk Screen",
       description: body.description ? String(body.description).trim() : "",
       price: cleanPrice,
@@ -230,6 +234,10 @@ export async function PATCH(req: NextRequest) {
         updates.compare_at_price =
           isNaN(cleanCompare) || cleanCompare <= 0 ? null : cleanCompare;
       }
+    }
+
+    if (updates.sku !== undefined) {
+      updates.sku = String(updates.sku).trim().toUpperCase();
     }
 
     if (updates.slug !== undefined) {

@@ -21,6 +21,13 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
   },
 });
 
+import {
+  generateBaseSku,
+  OFFICIAL_COLORS,
+  OFFICIAL_SIZES,
+  ProductColor,
+} from "./variants";
+
 export interface DatabaseProduct {
   id: number;
   slug: string;
@@ -35,6 +42,40 @@ export interface DatabaseProduct {
   is_featured: boolean;
   display_order: number;
   badge?: string;
+  sku?: string;
+  colors?: ProductColor[];
+  sizes?: string[];
+  images?: any;
+}
+
+export function hydrateProductVariants(p: any): DatabaseProduct {
+  if (!p) return p;
+  const meta =
+    p.images && typeof p.images === "object" && !Array.isArray(p.images)
+      ? p.images
+      : {};
+
+  const baseSku =
+    p.sku || meta.sku || generateBaseSku(p.name || p.slug || "");
+  const colors =
+    Array.isArray(p.colors) && p.colors.length > 0
+      ? p.colors
+      : Array.isArray(meta.colors) && meta.colors.length > 0
+      ? meta.colors
+      : OFFICIAL_COLORS;
+  const sizes =
+    Array.isArray(p.sizes) && p.sizes.length > 0
+      ? p.sizes
+      : Array.isArray(meta.sizes) && meta.sizes.length > 0
+      ? meta.sizes
+      : Array.from(OFFICIAL_SIZES);
+
+  return {
+    ...p,
+    sku: baseSku,
+    colors,
+    sizes,
+  };
 }
 
 /**
@@ -52,7 +93,7 @@ export async function getCatalogProducts(): Promise<DatabaseProduct[]> {
       return [];
     }
 
-    return data as DatabaseProduct[];
+    return (data as any[]).map(hydrateProductVariants);
   } catch (err) {
     console.error("Erro ao buscar produtos no Supabase:", err);
     return [];
@@ -70,7 +111,7 @@ export async function getAllProductsAdmin(): Promise<DatabaseProduct[]> {
       .order("display_order", { ascending: true });
 
     if (error || !data) return [];
-    return data as DatabaseProduct[];
+    return (data as any[]).map(hydrateProductVariants);
   } catch (err) {
     console.error("Erro ao buscar produtos admin no Supabase:", err);
     return [];
@@ -95,14 +136,40 @@ export async function createProductAdmin(
       nextId = maxRow && maxRow.id ? maxRow.id + 1 : 1;
     }
 
+    const currentMeta =
+      productData.images &&
+      typeof productData.images === "object" &&
+      !Array.isArray(productData.images)
+        ? productData.images
+        : {};
+
+    const metaPayload = {
+      ...currentMeta,
+      sku:
+        productData.sku ||
+        currentMeta.sku ||
+        generateBaseSku(productData.name || productData.slug || ""),
+      colors: productData.colors || currentMeta.colors || OFFICIAL_COLORS,
+      sizes:
+        productData.sizes ||
+        currentMeta.sizes ||
+        Array.from(OFFICIAL_SIZES),
+    };
+
+    const insertPayload: any = {
+      ...productData,
+      id: nextId,
+      images: metaPayload,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    delete insertPayload.sku;
+    delete insertPayload.colors;
+    delete insertPayload.sizes;
+
     const { data, error } = await supabaseAdmin
       .from("products")
-      .insert({
-        ...productData,
-        id: nextId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
@@ -110,7 +177,7 @@ export async function createProductAdmin(
       const errMsg = error.message || error.details || JSON.stringify(error);
       throw new Error(errMsg);
     }
-    return { success: true, data };
+    return { success: true, data: hydrateProductVariants(data) };
   } catch (err: unknown) {
     const msg =
       err instanceof Error
@@ -160,12 +227,42 @@ export async function updateProductAdmin(
   updates: Partial<DatabaseProduct>
 ) {
   try {
+    // Busca dados atuais para preservar ou mesclar imagens/metadata
+    let currentMeta: any = {};
+    if (updates.sku || updates.colors || updates.sizes) {
+      const { data: currentProd } = await supabaseAdmin
+        .from("products")
+        .select("images")
+        .eq("id", id)
+        .maybeSingle();
+      if (
+        currentProd?.images &&
+        typeof currentProd.images === "object" &&
+        !Array.isArray(currentProd.images)
+      ) {
+        currentMeta = currentProd.images;
+      }
+    }
+
+    const metaPayload = {
+      ...currentMeta,
+      ...(updates.sku ? { sku: updates.sku } : {}),
+      ...(updates.colors ? { colors: updates.colors } : {}),
+      ...(updates.sizes ? { sizes: updates.sizes } : {}),
+    };
+
+    const updatePayload: any = {
+      ...updates,
+      images: metaPayload,
+      updated_at: new Date().toISOString(),
+    };
+    delete updatePayload.sku;
+    delete updatePayload.colors;
+    delete updatePayload.sizes;
+
     const { data, error } = await supabaseAdmin
       .from("products")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq("id", id)
       .select()
       .single();
@@ -174,7 +271,7 @@ export async function updateProductAdmin(
       const errMsg = error.message || error.details || JSON.stringify(error);
       throw new Error(errMsg);
     }
-    return { success: true, data };
+    return { success: true, data: hydrateProductVariants(data) };
   } catch (err: unknown) {
     const msg =
       err instanceof Error

@@ -30,10 +30,20 @@ import {
   Pencil,
 } from "lucide-react";
 import { CANONICAL_COUPONS } from "@/lib/coupons";
+import {
+  OFFICIAL_COLORS,
+  OFFICIAL_SIZES,
+  generateBaseSku,
+  generateVariantSku,
+  ProductColor,
+} from "@/lib/variants";
 
 interface NewProductForm {
   name: string;
   slug: string;
+  sku: string;
+  colors: ProductColor[];
+  sizes: string[];
   subtitle: string;
   description: string;
   price: string;
@@ -49,6 +59,9 @@ interface NewProductForm {
 const INITIAL_NEW_PRODUCT: NewProductForm = {
   name: "",
   slug: "",
+  sku: "MUNAYA-NOVA",
+  colors: OFFICIAL_COLORS, // Preta, Branca e Cinza
+  sizes: Array.from(OFFICIAL_SIZES), // PP, P, M, G, GG, XGG
   subtitle: "100% Algodão Premium Silk Screen",
   description: "",
   price: "89.90",
@@ -102,6 +115,9 @@ interface Product {
   id: number;
   slug: string;
   name: string;
+  sku?: string;
+  colors?: ProductColor[];
+  sizes?: string[];
   subtitle?: string;
   description?: string;
   price: number;
@@ -459,6 +475,15 @@ export default function AdminPage() {
       id: prod.id,
       name: prod.name || "",
       slug: prod.slug || "",
+      sku: prod.sku || generateBaseSku(prod.name || prod.slug || ""),
+      colors:
+        prod.colors && prod.colors.length > 0
+          ? prod.colors
+          : OFFICIAL_COLORS,
+      sizes:
+        prod.sizes && prod.sizes.length > 0
+          ? prod.sizes
+          : Array.from(OFFICIAL_SIZES),
       subtitle: prod.subtitle || "100% Algodão Premium Silk Screen",
       description: prod.description || "",
       price: String(prod.price || "89.90"),
@@ -537,6 +562,9 @@ export default function AdminPage() {
         id: editingProduct.id,
         name: editingProduct.name.trim(),
         slug: editingProduct.slug.trim(),
+        sku: editingProduct.sku.trim().toUpperCase(),
+        colors: editingProduct.colors,
+        sizes: editingProduct.sizes,
         subtitle: editingProduct.subtitle.trim(),
         description: editingProduct.description.trim(),
         price: cleanPrice,
@@ -572,6 +600,9 @@ export default function AdminPage() {
                   ...p,
                   name: editingProduct.name.trim(),
                   slug: editingProduct.slug.trim(),
+                  sku: editingProduct.sku.trim().toUpperCase(),
+                  colors: editingProduct.colors,
+                  sizes: editingProduct.sizes,
                   subtitle: editingProduct.subtitle.trim(),
                   description: editingProduct.description.trim(),
                   price: cleanPrice,
@@ -1355,9 +1386,50 @@ export default function AdminPage() {
                             <h3 className="font-oswald text-xl font-bold uppercase truncate mt-1">
                               {prod.name}
                             </h3>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] text-[#ff66c4] font-mono font-bold tracking-wider">
+                                {prod.sku || generateBaseSku(prod.name)}
+                              </span>
+                            </div>
                             <p className="text-xs text-neutral-400 truncate font-mono">
                               slug: {prod.slug}
                             </p>
+                          </div>
+                        </div>
+
+                        {/* Cores e Tamanhos da Grade */}
+                        <div className="pt-2 border-t border-neutral-900 flex items-center justify-between text-[11px]">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-neutral-500 font-bold uppercase text-[10px]">
+                              Cores:
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {(prod.colors && prod.colors.length > 0
+                                ? prod.colors
+                                : OFFICIAL_COLORS
+                              ).map((c) => (
+                                <span
+                                  key={c.name}
+                                  title={c.name}
+                                  className="w-3 h-3 rounded-full border border-neutral-700"
+                                  style={{ backgroundColor: c.hex }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 font-mono text-[10px] text-neutral-400">
+                            {(prod.sizes && prod.sizes.length > 0
+                              ? prod.sizes
+                              : OFFICIAL_SIZES
+                            ).map((s) => (
+                              <span
+                                key={s}
+                                className="px-1 bg-neutral-900 border border-neutral-800"
+                              >
+                                {s}
+                              </span>
+                            ))}
                           </div>
                         </div>
 
@@ -1736,6 +1808,134 @@ export default function AdminPage() {
                           }
                           className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm font-mono text-neutral-400 focus:border-[#ff66c4] focus:outline-none"
                         />
+                      </div>
+                    </div>
+
+                    {/* Grade Nuvemshop: SKU, Cores e Tamanhos */}
+                    <div className="border border-neutral-800 bg-neutral-900/60 p-3 space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs uppercase font-bold text-neutral-200">
+                            SKU Base *
+                          </label>
+                          <span className="text-[10px] text-neutral-400 font-mono">
+                            Fórmula: MUNAYA-[NOME]-[COR]-[TAM]
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          value={newProduct.sku}
+                          onChange={(e) =>
+                            setNewProduct((prev) => ({
+                              ...prev,
+                              sku: e.target.value.toUpperCase(),
+                            }))
+                          }
+                          className="w-full bg-neutral-950 border border-neutral-700 px-3 py-1.5 text-xs font-mono font-bold text-[#ff66c4] focus:outline-none focus:border-[#ff66c4] uppercase"
+                        />
+                        <p className="text-[10px] text-neutral-400 mt-1 font-mono">
+                          Exemplo de SKU:{" "}
+                          <span className="text-white font-bold">
+                            {generateVariantSku(
+                              newProduct.sku || newProduct.name,
+                              newProduct.colors[0]?.name || "Preta",
+                              newProduct.sizes[0] || "M"
+                            )}
+                          </span>
+                        </p>
+                      </div>
+
+                      {/* Cores */}
+                      <div>
+                        <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1.5">
+                          Cores Disponíveis (Preto é padrão)
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {OFFICIAL_COLORS.map((col) => {
+                            const isChecked = newProduct.colors.some(
+                              (c) => c.name === col.name
+                            );
+                            return (
+                              <button
+                                type="button"
+                                key={col.name}
+                                onClick={() => {
+                                  setNewProduct((prev) => {
+                                    const exists = prev.colors.some(
+                                      (c) => c.name === col.name
+                                    );
+                                    if (exists && prev.colors.length === 1) {
+                                      alert(
+                                        "A estampa deve ter pelo menos uma cor ativa!"
+                                      );
+                                      return prev;
+                                    }
+                                    const next = exists
+                                      ? prev.colors.filter(
+                                          (c) => c.name !== col.name
+                                        )
+                                      : [...prev.colors, col];
+                                    return { ...prev, colors: next };
+                                  });
+                                }}
+                                className={`flex items-center gap-2 p-2 border text-xs font-bold uppercase transition-all ${
+                                  isChecked
+                                    ? "border-[#ff66c4] bg-neutral-950 text-white"
+                                    : "border-neutral-800 bg-neutral-900 text-neutral-500 hover:border-neutral-700"
+                                }`}
+                              >
+                                <span
+                                  className="w-3.5 h-3.5 rounded-full border border-neutral-600 flex-shrink-0"
+                                  style={{ backgroundColor: col.hex }}
+                                />
+                                <span className="text-[11px] truncate">
+                                  {col.name}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Tamanhos */}
+                      <div>
+                        <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1.5">
+                          Tamanhos Disponíveis
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {OFFICIAL_SIZES.map((sz) => {
+                            const isChecked = newProduct.sizes.includes(sz);
+                            return (
+                              <button
+                                type="button"
+                                key={sz}
+                                onClick={() => {
+                                  setNewProduct((prev) => {
+                                    const exists = prev.sizes.includes(sz);
+                                    if (exists && prev.sizes.length === 1) {
+                                      alert(
+                                        "A estampa deve ter pelo menos um tamanho ativo!"
+                                      );
+                                      return prev;
+                                    }
+                                    const next = exists
+                                      ? prev.sizes.filter((s) => s !== sz)
+                                      : [...prev.sizes, sz];
+                                    return { ...prev, sizes: next };
+                                  });
+                                }}
+                                className={`px-2.5 py-1 text-xs font-bold uppercase border transition-all ${
+                                  isChecked
+                                    ? "bg-white text-black border-white"
+                                    : "bg-neutral-950 text-neutral-500 border-neutral-800 hover:text-white"
+                                }`}
+                              >
+                                {sz}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
 
@@ -2145,6 +2345,140 @@ export default function AdminPage() {
                           }
                           className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm font-mono text-neutral-400 focus:border-[#ff66c4] focus:outline-none"
                         />
+                      </div>
+                    </div>
+
+                    {/* Grade Nuvemshop: SKU, Cores e Tamanhos */}
+                    <div className="border border-neutral-800 bg-neutral-900/60 p-3 space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs uppercase font-bold text-neutral-200">
+                            SKU Base *
+                          </label>
+                          <span className="text-[10px] text-neutral-400 font-mono">
+                            Fórmula: MUNAYA-[NOME]-[COR]-[TAM]
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          value={editingProduct.sku}
+                          onChange={(e) =>
+                            setEditingProduct((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    sku: e.target.value.toUpperCase(),
+                                  }
+                                : null
+                            )
+                          }
+                          className="w-full bg-neutral-950 border border-neutral-700 px-3 py-1.5 text-xs font-mono font-bold text-[#ff66c4] focus:outline-none focus:border-[#ff66c4] uppercase"
+                        />
+                        <p className="text-[10px] text-neutral-400 mt-1 font-mono">
+                          Exemplo de SKU:{" "}
+                          <span className="text-white font-bold">
+                            {generateVariantSku(
+                              editingProduct.sku || editingProduct.name,
+                              editingProduct.colors[0]?.name || "Preta",
+                              editingProduct.sizes[0] || "M"
+                            )}
+                          </span>
+                        </p>
+                      </div>
+
+                      {/* Cores */}
+                      <div>
+                        <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1.5">
+                          Cores Disponíveis (Preto é padrão)
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {OFFICIAL_COLORS.map((col) => {
+                            const isChecked = editingProduct.colors.some(
+                              (c) => c.name === col.name
+                            );
+                            return (
+                              <button
+                                type="button"
+                                key={col.name}
+                                onClick={() => {
+                                  setEditingProduct((prev) => {
+                                    if (!prev) return null;
+                                    const exists = prev.colors.some(
+                                      (c) => c.name === col.name
+                                    );
+                                    if (exists && prev.colors.length === 1) {
+                                      alert(
+                                        "A estampa deve ter pelo menos uma cor ativa!"
+                                      );
+                                      return prev;
+                                    }
+                                    const next = exists
+                                      ? prev.colors.filter(
+                                          (c) => c.name !== col.name
+                                        )
+                                      : [...prev.colors, col];
+                                    return { ...prev, colors: next };
+                                  });
+                                }}
+                                className={`flex items-center gap-2 p-2 border text-xs font-bold uppercase transition-all ${
+                                  isChecked
+                                    ? "border-[#ff66c4] bg-neutral-950 text-white"
+                                    : "border-neutral-800 bg-neutral-900 text-neutral-500 hover:border-neutral-700"
+                                }`}
+                              >
+                                <span
+                                  className="w-3.5 h-3.5 rounded-full border border-neutral-600 flex-shrink-0"
+                                  style={{ backgroundColor: col.hex }}
+                                />
+                                <span className="text-[11px] truncate">
+                                  {col.name}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Tamanhos */}
+                      <div>
+                        <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1.5">
+                          Tamanhos Disponíveis
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {OFFICIAL_SIZES.map((sz) => {
+                            const isChecked = editingProduct.sizes.includes(sz);
+                            return (
+                              <button
+                                type="button"
+                                key={sz}
+                                onClick={() => {
+                                  setEditingProduct((prev) => {
+                                    if (!prev) return null;
+                                    const exists = prev.sizes.includes(sz);
+                                    if (exists && prev.sizes.length === 1) {
+                                      alert(
+                                        "A estampa deve ter pelo menos um tamanho ativo!"
+                                      );
+                                      return prev;
+                                    }
+                                    const next = exists
+                                      ? prev.sizes.filter((s) => s !== sz)
+                                      : [...prev.sizes, sz];
+                                    return { ...prev, sizes: next };
+                                  });
+                                }}
+                                className={`px-2.5 py-1 text-xs font-bold uppercase border transition-all ${
+                                  isChecked
+                                    ? "bg-white text-black border-white"
+                                    : "bg-neutral-950 text-neutral-500 border-neutral-800 hover:text-white"
+                                }`}
+                              >
+                                {sz}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
 

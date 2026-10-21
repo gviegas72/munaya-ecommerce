@@ -10,13 +10,15 @@ import React, {
 } from "react";
 
 export interface CartItem {
-  id: string; // ex: "375454425-M"
+  id: string; // ex: "375454425-M" ou SKU
   productId: string | number;
   nuvemshopId: string;
   name: string;
   price: number;
   formattedPrice: string;
   size: string;
+  color?: string;
+  sku?: string;
   variantId?: number;
   image: string;
   quantity: number;
@@ -29,6 +31,8 @@ export interface CartItemInput {
   name: string;
   price: number | string;
   size: string;
+  color?: string;
+  sku?: string;
   variantId?: number;
   image: string;
   quantity?: number;
@@ -102,7 +106,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         : `R$ ${rawPrice.toFixed(0)}`;
 
     const nuvemshopId = String(input.nuvemshopId || input.productId || "");
-    const id = `${input.productId}-${input.size}`;
+    const id =
+      input.sku ||
+      `${input.productId}-${input.color || "Preta"}-${input.size}`;
     const qty = input.quantity && input.quantity > 0 ? input.quantity : 1;
 
     setItems((prevItems) => {
@@ -124,6 +130,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         price: rawPrice,
         formattedPrice,
         size: input.size,
+        color: input.color || "Preta",
+        sku: input.sku,
         variantId: input.variantId,
         image: input.image,
         quantity: qty,

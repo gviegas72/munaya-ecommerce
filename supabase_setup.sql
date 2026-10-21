@@ -115,3 +115,12 @@ ON CONFLICT (id) DO UPDATE SET
     is_featured = EXCLUDED.is_featured,
     display_order = EXCLUDED.display_order,
     badge = EXCLUDED.badge;
+
+-- ==============================================================================
+-- 🎸 MIGRAÇÃO: ADIÇÃO DE SKU, CORES E TAMANHOS (PADRÃO NUVEMSHOP)
+-- ==============================================================================
+ALTER TABLE public.products 
+ADD COLUMN IF NOT EXISTS sku TEXT,
+ADD COLUMN IF NOT EXISTS colors JSONB DEFAULT '[{"name": "Preta", "hex": "#111111", "skuCode": "PRETA"}]'::jsonb,
+ADD COLUMN IF NOT EXISTS sizes JSONB DEFAULT '["PP", "P", "M", "G", "GG", "XGG"]'::jsonb;
+
