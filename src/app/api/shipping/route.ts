@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateDimonaShipping } from "@/lib/dimona";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 /**
  * Endpoint de Cotação de Frete Real da Dimona (Print-on-Demand)
  * Rota: POST /api/shipping e GET /api/shipping?cep=20520050
  */
 export async function POST(req: NextRequest) {
+  // Limita a 40 consultas de frete por minuto por IP para proteger a cota da API Dimona
+  const rateLimit = checkRateLimit(req, "shipping", { limit: 40, windowSec: 60 });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Limite de cotações atingido. Tente novamente em alguns segundos." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const cleanZip = String(body.zipcode || body.cep || "").replace(/\D/g, "");

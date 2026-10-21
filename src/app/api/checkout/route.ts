@@ -2,26 +2,57 @@ import { NextRequest, NextResponse } from "next/server";
 import { createMercadoPagoPixOrder } from "@/lib/mercadopago";
 import { saveDatabaseOrder, supabaseAdmin, DatabaseProduct } from "@/lib/supabase";
 import { calculateDimonaShipping } from "@/lib/dimona";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { sanitizeString, sanitizeDigits } from "@/lib/sanitize";
 
 /**
  * Endpoint de Processamento de Pagamento no Checkout Headless Munaya
  * Rota: POST /api/checkout
  * 
- * MEDIDAS DE SEGURANÇA (AppSec Fase 0):
- * 1. O valor total do pedido NUNCA é confiado ao cliente.
- * 2. Cada item é validado e tem seu preço oficial consultado na tabela 'products' do Supabase.
- * 3. O frete é verificado pelo CEP e quantidade via API da Dimona.
- * 4. O desconto Pix (5%) é calculado estritamente no backend.
+ * MEDIDAS DE SEGURANÇA (AppSec Fase 0, 1 e 2):
+ * 1. Rate limiting defensivo por IP (máximo 15 checkouts por minuto por IP).
+ * 2. Sanitização anti-XSS / anti-injeção nos dados do pagador e endereço.
+ * 3. O valor total do pedido NUNCA é confiado ao cliente.
+ * 4. Cada item é validado e tem seu preço oficial consultado na tabela 'products' do Supabase.
+ * 5. O frete é verificado pelo CEP e quantidade via API da Dimona.
+ * 6. O desconto Pix (5%) é calculado estritamente no backend.
  */
 export async function POST(req: NextRequest) {
+  // Rate limiting por IP: máximo 15 tentativas por minuto
+  const rateLimit = checkRateLimit(req, "checkout", { limit: 15, windowSec: 60 });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: `Muitas requisições. Tente novamente em ${rateLimit.resetIn} segundos.` },
+      { status: 429, headers: { "Retry-After": String(rateLimit.resetIn) } }
+    );
+  }
+
   try {
     const body = await req.json();
 
-    const orderId = body.id || `MNY-${Math.floor(Math.random() * 9000) + 1000}`;
-    const paymentMethod = body.payment_method || body.pay || "pix";
-    const customer = body.customer || {};
-    const address = body.address || {};
+    const orderId = sanitizeString(body.id || `MNY-${Math.floor(Math.random() * 9000) + 1000}`, 30);
+    const paymentMethod = sanitizeString(body.payment_method || body.pay || "pix", 20);
+    const rawCustomer = body.customer || {};
+    const rawAddress = body.address || {};
     const rawItems = Array.isArray(body.items) ? body.items : [];
+
+    // Sanitização segura dos dados do cliente (LGPD & Anti-XSS)
+    const customer = {
+      name: sanitizeString(rawCustomer.name, 100) || "Cliente Munaya",
+      email: sanitizeString(rawCustomer.email, 120) || "contato@munayarocks.com.br",
+      cpf: sanitizeDigits(rawCustomer.cpf, 14),
+      phone: sanitizeDigits(rawCustomer.phone, 16),
+    };
+
+    const address = {
+      street: sanitizeString(rawAddress.street || rawAddress.rua, 150) || "Rua",
+      number: sanitizeString(rawAddress.number || rawAddress.num, 20) || "S/N",
+      complement: sanitizeString(rawAddress.complement || rawAddress.compl, 60),
+      neighborhood: sanitizeString(rawAddress.neighborhood || rawAddress.bairro, 80) || "Bairro",
+      city: sanitizeString(rawAddress.city || rawAddress.cidade, 80) || "Porto Alegre",
+      state: sanitizeString(rawAddress.state || rawAddress.uf, 10) || "RS",
+      zipcode: sanitizeDigits(rawAddress.zipcode || rawAddress.cep, 9),
+    };
 
     if (rawItems.length === 0) {
       return NextResponse.json(
@@ -64,7 +95,7 @@ export async function POST(req: NextRequest) {
     });
 
     // 2. Validação segura do valor do frete
-    const cleanZip = String(address.zipcode || address.cep || "").replace(/\D/g, "");
+    const cleanZip = String(address.zipcode || "").replace(/\D/g, "");
     let officialShipping = 0;
 
     if (cleanZip.length === 8) {
@@ -111,12 +142,12 @@ export async function POST(req: NextRequest) {
           cpf: customer.cpf || "00000000000",
           phone: customer.phone || "",
           address: {
-            street: address.street || address.rua || "Rua",
-            number: String(address.number || address.num || "S/N"),
-            complement: address.complement || address.compl || "",
-            neighborhood: address.neighborhood || address.bairro || "Bairro",
-            city: address.city || address.cidade || "Porto Alegre",
-            state: address.state || address.uf || "RS",
+            street: address.street,
+            number: address.number,
+            complement: address.complement,
+            neighborhood: address.neighborhood,
+            city: address.city,
+            state: address.state,
             zipcode: cleanZip || "00000000",
           },
         },

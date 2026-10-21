@@ -1,4 +1,5 @@
 import { createHmac } from "crypto";
+import { safeCompare } from "@/lib/sanitize";
 
 /**
  * Validação da assinatura criptográfica oficial do Webhook do Mercado Pago (HMAC SHA-256)
@@ -45,7 +46,7 @@ export function verifyMercadoPagoWebhookSignature(
     const manifest = `id:${dataId};request-id:${xRequestId || ""};ts:${ts};`;
     const computed = createHmac("sha256", secret).update(manifest).digest("hex");
 
-    return computed === hash;
+    return safeCompare(computed, hash);
   } catch (err) {
     console.error("❌ [WEBHOOK] Erro ao validar assinatura HMAC:", err);
     return false;
