@@ -1486,44 +1486,85 @@ class Component extends DCLogic {
     this.placeOrder();
   };
 
-  placeOrder = () => {
+  placeOrder = async () => {
     this.setState({ ckProcessing: true });
-    this.orderTimer = setTimeout(() => {
-      const t = this.totals();
-      const f = this.state.ckForm;
-      const ship = (this.state.ckFrete || []).find((x) => x.id === this.state.ckFreteChoice);
-      const num = "MNY-" + String(Math.floor(Math.random() * 9000) + 1000);
-      const pay = this.state.ckPay;
-      const items = Object.values(this.state.cart.reduce((acc, i) => {
-        const key = i.name + "|" + i.size;
-        if (!acc[key]) acc[key] = { name: i.name, size: i.size, qty: 0, unit: i.price };
-        acc[key].qty += 1;
-        return acc;
-      }, {}));
-      const pixCode = "00020126580014BR.GOV.BCB.PIX0136munaya-" + num.toLowerCase() + "-2027520400005303986540" + t.total.toFixed(2) + "5802BR5906MUNAYA6009SAO PAULO62070503***6304A1B2";
-      const pixQrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=" + encodeURIComponent(pixCode);
+    const t = this.totals();
+    const f = this.state.ckForm;
+    const ship = (this.state.ckFrete || []).find((x) => x.id === this.state.ckFreteChoice);
+    const num = "MNY-" + String(Math.floor(Math.random() * 9000) + 1000);
+    const pay = this.state.ckPay;
+    const items = Object.values(this.state.cart.reduce((acc, i) => {
+      const key = i.name + "|" + i.size;
+      if (!acc[key]) acc[key] = { name: i.name, size: i.size, qty: 0, unit: i.price, sku: i.sku };
+      acc[key].qty += 1;
+      return acc;
+    }, {}));
 
-      const order = {
-        num: num,
-        email: f.email,
-        date: new Date().toISOString(),
-        status: pay === "cartao" ? "Em produção na Dimona" : pay === "pix" ? "Aguardando PIX" : "Aguardando boleto",
-        items: items,
-        total: t.total,
-        pay: pay,
-        inst: this.state.ckInst,
-        cardLast: pay === "cartao" ? dg(f.cnum).slice(-4) : "",
-        shipName: ship ? ship.name : "J&T Express",
-        eta: ship ? ship.days : "14 dias úteis",
-        city: this.state.ckCity,
-        cep: this.state.ckCep,
-        address: f.rua + ", " + f.num + (f.compl ? " — " + f.compl : "") + " · " + f.bairro,
-        tracking: "BR" + dg(num) + String(Math.floor(Math.random() * 900) + 100) + "MY",
-        pixCode: pixCode,
-        pixQrUrl: pixQrUrl,
-      };
+    let pixCode = "";
+    let pixQrUrl = "";
+    let mpOrderId = null;
 
-      // Despacha pedido diretamente para a API da Camisa Dimona
+    try {
+      const chkRes = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: num,
+          payment_method: pay,
+          total: t.total,
+          customer: { name: f.nome, email: f.email, cpf: f.cpf, phone: f.fone },
+          address: {
+            street: f.rua,
+            number: f.num,
+            complement: f.compl || "",
+            neighborhood: f.bairro,
+            city: (this.state.ckCity || "Porto Alegre, RS").split(",")[0]?.trim(),
+            state: (this.state.ckCity || "Porto Alegre, RS").split(",")[1]?.trim() || "RS",
+            zipcode: this.state.ckCep,
+          },
+          items: items,
+        }),
+      });
+      const chkData = await chkRes.json();
+      if (chkData.success && chkData.pix_code) {
+        pixCode = chkData.pix_code;
+        pixQrUrl = chkData.pix_qr_base64
+          ? ("data:image/png;base64," + chkData.pix_qr_base64)
+          : ("https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=" + encodeURIComponent(pixCode));
+        mpOrderId = chkData.mp_order_id;
+      }
+    } catch (e) {
+      console.warn("Checkout payment API error:", e);
+    }
+
+    if (!pixCode) {
+      pixCode = "00020126580014BR.GOV.BCB.PIX0136munaya-" + num.toLowerCase() + "-2027520400005303986540" + t.total.toFixed(2) + "5802BR5906MUNAYA6009SAO PAULO62070503***6304A1B2";
+      pixQrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=" + encodeURIComponent(pixCode);
+    }
+
+    const order = {
+      num: num,
+      email: f.email,
+      date: new Date().toISOString(),
+      status: pay === "cartao" ? "Em produção na Dimona" : "Aguardando PIX",
+      items: items,
+      total: t.total,
+      pay: pay,
+      inst: this.state.ckInst,
+      cardLast: pay === "cartao" ? dg(f.cnum).slice(-4) : "",
+      shipName: ship ? ship.name : "Stone Entregas Standard",
+      eta: ship ? ship.days : "12 dias úteis",
+      city: this.state.ckCity,
+      cep: this.state.ckCep,
+      address: f.rua + ", " + f.num + (f.compl ? " — " + f.compl : "") + " · " + f.bairro,
+      tracking: "BR" + dg(num) + String(Math.floor(Math.random() * 900) + 100) + "MY",
+      pixCode: pixCode,
+      pixQrUrl: pixQrUrl,
+      mpOrderId: mpOrderId,
+    };
+
+    // Se o pagamento for no cartão (aprovado na hora), já envia direto à Dimona
+    if (pay === "cartao") {
       fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1550,33 +1591,34 @@ class Component extends DCLogic {
       }).then(r => r.json()).then(res => {
         console.log("✅ Pedido enviado à Dimona:", res);
       }).catch(e => console.warn("Dimona dispatch:", e));
+    }
 
-      const wants = this.state.ckWantAccount && !this.state.authed;
-      const profile = { nome: f.nome, email: f.email, cpf: f.cpf, fone: f.fone, cep: this.state.ckCep, rua: f.rua, num: f.num, compl: f.compl, bairro: f.bairro, cidade: f.cidade, uf: f.uf };
-      const account = this.state.account
-        ? Object.assign({}, this.state.account, profile)
-        : (wants ? Object.assign({}, profile, { senha: f.senha }) : null);
-      const orders = account ? [order].concat(this.state.orders) : this.state.orders;
-      if (account) this.persist(account, orders);
+    const wants = this.state.ckWantAccount && !this.state.authed;
+    const profile = { nome: f.nome, email: f.email, cpf: f.cpf, fone: f.fone, cep: this.state.ckCep, rua: f.rua, num: f.num, compl: f.compl, bairro: f.bairro, cidade: f.cidade, uf: f.uf };
+    const account = this.state.account
+      ? Object.assign({}, this.state.account, profile)
+      : (wants ? Object.assign({}, profile, { senha: f.senha }) : null);
+    const orders = account ? [order].concat(this.state.orders) : this.state.orders;
+    if (account) this.persist(account, orders);
 
-      this.setState({
-        ckProcessing: false,
-        screen: "pedido",
-        cart: [],
-        copied: false,
-        ckStep: 1,
-        ckPay: "pix",
-        ckInst: 1,
-        ckErrors: {},
-        account: account,
-        orders: orders,
-        authed: this.state.authed || wants,
-        acctForm: account ? Object.assign({}, EMPTY_ACCT, account, { senha: undefined }) : this.state.acctForm,
-        ckForm: Object.assign({}, f, { cnum: "", cname: "", cexp: "", ccvv: "", senha: "", senha2: "" }),
-        justSignedUp: wants,
-        order: order,
-      });
-    }, 900);
+    this.setState({
+      ckProcessing: false,
+      screen: "pedido",
+      cart: [],
+      copied: false,
+      ckStep: 1,
+      ckPay: "pix",
+      ckInst: 1,
+      ckErrors: {},
+      account: account,
+      orders: orders,
+      authed: this.state.authed || wants,
+      acctForm: account ? Object.assign({}, EMPTY_ACCT, account, { senha: undefined }) : this.state.acctForm,
+      ckForm: Object.assign({}, f, { cnum: "", cname: "", cexp: "", ccvv: "", senha: "", senha2: "" }),
+      justSignedUp: wants,
+      order: order,
+      pixApprovedNote: "",
+    });
   };
 
   componentWillUnmount() {
@@ -1984,6 +2026,35 @@ class Component extends DCLogic {
       pixApprovedNote: s.pixApprovedNote || "",
       simulatePixApproved: () => {
         if (s.order) {
+          const f = s.ckForm;
+          const ship = (s.ckFrete || []).find((x) => x.id === s.ckFreteChoice);
+          fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: s.order.num,
+              customer: { name: f.nome, email: f.email, cpf: f.cpf, phone: f.fone },
+              address: {
+                street: f.rua,
+                number: f.num,
+                complement: f.compl || "",
+                neighborhood: f.bairro,
+                city: (s.ckCity || "Porto Alegre, RS").split(",")[0]?.trim(),
+                state: (s.ckCity || "Porto Alegre, RS").split(",")[1]?.trim() || "RS",
+                zipcode: s.ckCep,
+              },
+              shipping_speed: (ship?.id || "pac").toLowerCase(),
+              items: s.order.items.map(it => ({
+                name: it.name,
+                quantity: it.qty,
+                size: it.size,
+                price: it.unit,
+              })),
+            })
+          }).then(r => r.json()).then(res => {
+            console.log("✅ Pedido enviado à Dimona após aprovação do Pix:", res);
+          });
+
           const updatedOrder = Object.assign({}, s.order, { status: "Em produção na Dimona" });
           this.setState({
             order: updatedOrder,
