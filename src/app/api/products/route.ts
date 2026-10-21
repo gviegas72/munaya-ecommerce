@@ -39,6 +39,24 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
+    if (updates.price !== undefined) {
+      const cleanPrice = Number(String(updates.price).replace(",", "."));
+      if (isNaN(cleanPrice) || cleanPrice < 0) {
+        return NextResponse.json(
+          { success: false, error: "Preço numérico inválido." },
+          { status: 400 }
+        );
+      }
+      updates.price = cleanPrice;
+    }
+
+    if (updates.display_order !== undefined) {
+      const cleanOrder = parseInt(String(updates.display_order), 10);
+      if (!isNaN(cleanOrder)) {
+        updates.display_order = cleanOrder;
+      }
+    }
+
     const res = await updateProductAdmin(Number(id), updates);
     if (!res.success) {
       return NextResponse.json(

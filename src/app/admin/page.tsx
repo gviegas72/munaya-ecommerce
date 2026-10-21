@@ -151,14 +151,22 @@ export default function AdminPage() {
 
   const handleUpdateProduct = async (prod: Product) => {
     setSavingProductId(prod.id);
+    const cleanPrice = Number(String(prod.price).replace(",", "."));
+    if (isNaN(cleanPrice) || cleanPrice <= 0) {
+      alert("Por favor, digite um preço válido (ex: 99.90 ou 99,90).");
+      setSavingProductId(null);
+      return;
+    }
+    const cleanOrder = parseInt(String(prod.display_order), 10) || 1;
+
     try {
       const res = await fetch("/api/products", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: prod.id,
-          price: Number(prod.price),
-          display_order: Number(prod.display_order),
+          price: cleanPrice,
+          display_order: cleanOrder,
           is_active: Boolean(prod.is_active),
           is_featured: Boolean(prod.is_featured),
         }),
@@ -168,10 +176,15 @@ export default function AdminPage() {
         setActionMsg(`Produto #${prod.id} (${prod.name}) atualizado!`);
         setTimeout(() => setActionMsg(""), 3000);
       } else {
-        alert("Erro ao salvar: " + data.error);
+        const errText =
+          typeof data.error === "object"
+            ? JSON.stringify(data.error)
+            : String(data.error || "Erro desconhecido");
+        alert("Erro ao salvar: " + errText);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Erro:", e);
+      alert("Erro ao salvar: " + (e?.message || String(e)));
     } finally {
       setSavingProductId(null);
     }
@@ -680,14 +693,14 @@ export default function AdminPage() {
                           Preço (R$)
                         </label>
                         <input
-                          type="number"
-                          step="0.10"
+                          type="text"
+                          inputMode="decimal"
                           value={prod.price}
                           onChange={(e) => {
-                            const val = Number(e.target.value);
+                            const val = e.target.value;
                             setProducts((prev) =>
                               prev.map((p) =>
-                                p.id === prod.id ? { ...p, price: val } : p
+                                p.id === prod.id ? { ...p, price: val as any } : p
                               )
                             );
                           }}

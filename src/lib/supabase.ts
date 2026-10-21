@@ -96,10 +96,18 @@ export async function updateProductAdmin(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      const errMsg = error.message || error.details || JSON.stringify(error);
+      throw new Error(errMsg);
+    }
     return { success: true, data };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object" && err !== null && "message" in err
+        ? String((err as any).message)
+        : JSON.stringify(err);
     console.error("Erro ao atualizar produto no Supabase:", msg);
     return { success: false, error: msg };
   }
