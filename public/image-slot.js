@@ -290,14 +290,15 @@
     // look comes from opacity on those parts, not from a baked-in alpha.
     ':host{display:block;position:relative;' +
     '  font:13px/1.3 system-ui,-apple-system,sans-serif;' +
-    '  width:100%;height:100%;aspect-ratio:3/2}' +
+    '  width:100%;height:100%;aspect-ratio:3/2;touch-action:pan-y}' +
     '.empty .cap,.empty .sub{opacity:.75}' +
-    '.frame{position:absolute;inset:0;overflow:hidden;background:rgba(127,127,127,.08)}' +
+    '.frame{position:absolute;inset:0;overflow:hidden;background:rgba(127,127,127,.08);touch-action:pan-y}' +
     // .frame img (clipped) and .spill (unclipped ghost + handles) share the
     // same left/top/width/height in frame-%, computed by _applyView(), so the
     // inside-mask crop and the outside-mask spill stay pixel-aligned.
     '.frame img{position:absolute;max-width:none;transform:translate(-50%,-50%);' +
-    '  -webkit-user-drag:none;user-select:none;touch-action:none}' +
+    '  -webkit-user-drag:none;-webkit-touch-callout:none;user-select:none;touch-action:pan-y;pointer-events:none}' +
+    ':host([data-reframe]) .frame img{pointer-events:auto;touch-action:none}' +
     // Reframe mode (double-click): the full image spills past the mask. The
     // spill layer is sized to the IMAGE bounds so its corners are where the
     // resize handles belong. The ghost <img> inside is translucent; the real
