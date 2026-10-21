@@ -1768,7 +1768,7 @@ class Component extends DCLogic {
   };
 
   foot = (id, key) => {
-    const p = PRODUCTS[id];
+    const p = PRODUCTS[id] || {};
     const s = this.state;
     const colors = p.colors || DEFAULT_COLORS;
     return {
@@ -1818,7 +1818,7 @@ class Component extends DCLogic {
   };
 
   addToCart = () => {
-    const p = PRODUCTS[this.state.productId];
+    const p = PRODUCTS[this.state.productId] || PRODUCTS[1] || {};
     const needColor = !!(p.colors && p.colors.length);
     if (!this.state.size || (needColor && !this.state.color)) { this.setState({ warn: true }); return; }
     const entries = [];
@@ -1901,7 +1901,7 @@ class Component extends DCLogic {
       })),
       colecaoName: (COLLECTIONS.find((c) => c.id === s.collectionId) || COLLECTIONS[0]).name,
       colecaoItems: (COLLECTIONS.find((c) => c.id === s.collectionId) || COLLECTIONS[0]).products.map((id, idx) => {
-        const pr = PRODUCTS[id];
+        const pr = PRODUCTS[id] || {};
         const footer = s.collectionId === "inverno-26";
         const BOZO = [
           { name: "Camiseta Bozo", colors: [
@@ -2065,13 +2065,13 @@ class Component extends DCLogic {
       stockLimited: stock("https://picsum.photos/1000/1000?random=34"),
       assetDetalhe: asset("uploads/01_BONZO_detalhe_01.jpg"),
       assetCamiseta: asset("public/distortion-bonzo.png"),
-      gL: this.foot(16, "gL"),
-      openLimited: this.open(16),
+      gL: this.foot(p1Id, "gL"),
+      openLimited: this.open(p1Id),
       
-      priceP1: brl(PRODUCTS[1].price),
-      priceP3: brl(PRODUCTS[3].price),
-      priceP4: brl(PRODUCTS[4].price),
-      priceP5: brl(PRODUCTS[5].price),
+      priceP1: brl(Number((PRODUCTS[p1Id] || {}).price) || 89.9),
+      priceP3: brl(Number((PRODUCTS[p3Id] || {}).price) || 89.9),
+      priceP4: brl(Number((PRODUCTS[p4Id] || {}).price) || 89.9),
+      priceP5: brl(Number((PRODUCTS[p5Id] || {}).price) || 89.9),
 
       railBest: this.rail("railBest"),
       railLimited: this.rail("railLimited", ["01 / 50", "01 / 30"]),
@@ -2096,8 +2096,8 @@ class Component extends DCLogic {
         if (col && (cur || s.productId === 15)) this.go("colecao", { collectionId: col.id });
         else this.go("categoria");
       },
-      productName: p.name,
-      productPrice: brl(p.price),
+      productName: p.name || "",
+      productPrice: brl(Number(p.price) || 89.9),
       hasColors: !!(p.colors && p.colors.length),
       colorLabel: s.color ? "Cor: " + s.color : "Escolha a cor",
       productColors: (p.colors || []).map((c) => ({
