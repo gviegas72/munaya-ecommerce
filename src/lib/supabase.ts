@@ -5,7 +5,8 @@ const supabaseUrl =
   "https://jaxxkyvsgasgaccbejln.supabase.co";
 
 const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "sb_publishable_-DOPw3mHijTge4WhQu4Kfw_0n7VSrNJ";
 
 const supabaseServiceRoleKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey;
