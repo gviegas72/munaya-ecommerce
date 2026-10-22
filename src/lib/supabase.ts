@@ -5,7 +5,8 @@ const supabaseUrl =
   "https://jaxxkyvsgasgaccbejln.supabase.co";
 
 const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "sb_publishable_-DOPw3mHijTge4WhQu4Kfw_0n7VSrNJ";
 
 const supabaseServiceRoleKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -134,10 +135,22 @@ export async function getCatalogProducts(): Promise<DatabaseProduct[]> {
  */
 export async function getAllProductsAdmin(): Promise<DatabaseProduct[]> {
   try {
-    const { data, error } = await supabaseAdmin
+    const client = supabaseServiceRoleKey ? supabaseAdmin : supabase;
+    let { data, error } = await client
       .from("products")
       .select("*")
       .order("display_order", { ascending: true });
+
+    if (error || !data || data.length === 0) {
+      const fallback = await supabase
+        .from("products")
+        .select("*")
+        .order("display_order", { ascending: true });
+      if (fallback.data && fallback.data.length > 0) {
+        data = fallback.data;
+        error = null;
+      }
+    }
 
     if (error || !data) return [];
     return (data as any[]).map(hydrateProductVariants);
