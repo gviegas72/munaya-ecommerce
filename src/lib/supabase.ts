@@ -49,6 +49,7 @@ export interface DatabaseProduct {
   sku?: string;
   colors?: ProductColor[];
   sizes?: string[];
+  gallery?: string[];
   images?: any;
 }
 
@@ -74,8 +75,31 @@ export function hydrateProductVariants(p: any): DatabaseProduct {
       ? meta.sizes
       : Array.from(OFFICIAL_SIZES);
 
+  const rawGallery: string[] = Array.isArray(p.gallery) && p.gallery.length > 0
+    ? p.gallery
+    : Array.isArray(meta.gallery) && meta.gallery.length > 0
+    ? meta.gallery
+    : Array.isArray(p.images) && p.images.length > 0
+    ? p.images
+    : [];
+
+  const cleanGallery = rawGallery
+    .map((u) => String(u || "").trim())
+    .filter(Boolean)
+    .slice(0, 6);
+
+  const coverUrl = String(p.image_url || cleanGallery[0] || "").trim();
+  const gallery =
+    cleanGallery.length > 0
+      ? cleanGallery
+      : coverUrl
+      ? [coverUrl]
+      : [];
+
   return {
     ...p,
+    image_url: coverUrl || gallery[0] || "",
+    gallery,
     is_custom_price: p.is_custom_price !== undefined ? Boolean(p.is_custom_price) : Boolean(meta.is_custom_price || false),
     dimona_product_id: p.dimona_product_id !== undefined ? String(p.dimona_product_id || "") : String(meta.dimona_product_id || ""),
     blank_type: p.blank_type || meta.blank_type || "classic",
@@ -204,6 +228,15 @@ export async function createProductAdmin(
         ? productData.images
         : {};
 
+    const cleanGallery = Array.isArray(productData.gallery)
+      ? productData.gallery
+          .map((u) => String(u || "").trim())
+          .filter(Boolean)
+          .slice(0, 6)
+      : productData.image_url
+      ? [String(productData.image_url).trim()]
+      : [];
+
     const metaPayload = {
       ...currentMeta,
       sku:
@@ -215,6 +248,7 @@ export async function createProductAdmin(
         productData.sizes ||
         currentMeta.sizes ||
         Array.from(OFFICIAL_SIZES),
+      gallery: cleanGallery,
       ...(productData.is_custom_price !== undefined ? { is_custom_price: productData.is_custom_price } : {}),
       ...(productData.dimona_product_id !== undefined ? { dimona_product_id: productData.dimona_product_id } : {}),
       ...(productData.blank_type !== undefined ? { blank_type: productData.blank_type } : {}),
@@ -223,6 +257,7 @@ export async function createProductAdmin(
     const insertPayload: any = {
       ...productData,
       id: nextId,
+      image_url: cleanGallery[0] || productData.image_url || "",
       images: metaPayload,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -230,6 +265,7 @@ export async function createProductAdmin(
     delete insertPayload.sku;
     delete insertPayload.colors;
     delete insertPayload.sizes;
+    delete insertPayload.gallery;
     delete insertPayload.is_custom_price;
     delete insertPayload.dimona_product_id;
     delete insertPayload.blank_type;
@@ -296,19 +332,31 @@ export async function updateProductAdmin(
   try {
     // Busca dados atuais para preservar ou mesclar imagens/metadata
     let currentMeta: any = {};
-    if (updates.sku || updates.colors || updates.sizes) {
-      const { data: currentProd } = await supabaseAdmin
-        .from("products")
-        .select("images")
-        .eq("id", id)
-        .maybeSingle();
-      if (
-        currentProd?.images &&
-        typeof currentProd.images === "object" &&
-        !Array.isArray(currentProd.images)
-      ) {
-        currentMeta = currentProd.images;
-      }
+    const { data: currentProd } = await supabaseAdmin
+      .from("products")
+      .select("images, image_url")
+      .eq("id", id)
+      .maybeSingle();
+    if (
+      currentProd?.images &&
+      typeof currentProd.images === "object" &&
+      !Array.isArray(currentProd.images)
+    ) {
+      currentMeta = currentProd.images;
+    }
+
+    let nextGallery: string[] | undefined = undefined;
+    if (Array.isArray(updates.gallery)) {
+      nextGallery = updates.gallery
+        .map((u) => String(u || "").trim())
+        .filter(Boolean)
+        .slice(0, 6);
+    } else if (updates.image_url) {
+      const existingGallery: string[] = Array.isArray(currentMeta.gallery)
+        ? currentMeta.gallery.map((u: any) => String(u || "").trim()).filter(Boolean)
+        : [];
+      const newCover = String(updates.image_url).trim();
+      nextGallery = [newCover, ...existingGallery.filter((u) => u !== newCover)].slice(0, 6);
     }
 
     const metaPayload = {
@@ -316,6 +364,7 @@ export async function updateProductAdmin(
       ...(updates.sku ? { sku: updates.sku } : {}),
       ...(updates.colors ? { colors: updates.colors } : {}),
       ...(updates.sizes ? { sizes: updates.sizes } : {}),
+      ...(nextGallery !== undefined ? { gallery: nextGallery } : {}),
       ...(updates.is_custom_price !== undefined ? { is_custom_price: updates.is_custom_price } : {}),
       ...(updates.dimona_product_id !== undefined ? { dimona_product_id: updates.dimona_product_id } : {}),
       ...(updates.blank_type !== undefined ? { blank_type: updates.blank_type } : {}),
@@ -323,12 +372,14 @@ export async function updateProductAdmin(
 
     const updatePayload: any = {
       ...updates,
+      ...(nextGallery && nextGallery.length > 0 ? { image_url: nextGallery[0] } : {}),
       images: metaPayload,
       updated_at: new Date().toISOString(),
     };
     delete updatePayload.sku;
     delete updatePayload.colors;
     delete updatePayload.sizes;
+    delete updatePayload.gallery;
     // Removemos do payload raiz para não quebrar tabelas do Supabase que ainda não rodaram a migration SQL
     delete updatePayload.is_custom_price;
     delete updatePayload.dimona_product_id;

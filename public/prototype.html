@@ -368,11 +368,34 @@
     <sc-if value="{{ showProduto }}" hint-placeholder-val="{{ false }}">
       <div style="display: flex; flex-direction: {{ prodDir }}; align-items: stretch; width: 100%; min-height: 100vh;">
         <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; border-right: {{ prodBorderR }}; box-sizing: border-box; background: #000;">
-          <sc-for list="{{ productImages }}" as="im" hint-placeholder-count="3">
-            <div style="width: 100%; height: {{ prodImgH }}; border-bottom: 1px solid var(--fg); box-sizing: border-box; position: relative; touch-action: pan-y;">
-              <image-slot id="{{ im.slotId }}" shape="rect" src="{{ im.url }}" placeholder="{{ im.alt }}" style="width: 100%; height: 100%; touch-action: pan-y;"></image-slot>
+          <div onTouchStart="{{ onGalleryTouchStart }}" onTouchEnd="{{ onGalleryTouchEnd }}" style="width: 100%; height: {{ prodImgH }}; border-bottom: 1px solid var(--fg); box-sizing: border-box; position: relative; touch-action: pan-y; overflow: hidden;">
+            <image-slot id="{{ activeProductImgSlotId }}" shape="rect" src="{{ activeProductImgUrl }}" placeholder="{{ activeProductImgAlt }}" style="width: 100%; height: 100%; touch-action: pan-y;"></image-slot>
+
+            <sc-if value="{{ hasMultipleImages }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; top: 16px; left: 16px; z-index: 10; background: rgba(0,0,0,0.82); border: 1px solid var(--fg); padding: 4px 12px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--fg);">
+                {{ galleryCounter }}
+              </div>
+
+              <button type="button" onClick="{{ prevProductImg }}" aria-label="Foto anterior" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); z-index: 10; width: 44px; height: 44px; background: rgba(0,0,0,0.78); border: 2px solid var(--fg); color: var(--fg); display: flex; align-items: center; justify-content: center; cursor: pointer;" style-hover="background: {{ accent }}; color: #000; border-color: {{ accent }};">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square"><path d="m15 18-6-6 6-6"></path></svg>
+              </button>
+
+              <button type="button" onClick="{{ nextProductImg }}" aria-label="Próxima foto" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); z-index: 10; width: 44px; height: 44px; background: rgba(0,0,0,0.78); border: 2px solid var(--fg); color: var(--fg); display: flex; align-items: center; justify-content: center; cursor: pointer;" style-hover="background: {{ accent }}; color: #000; border-color: {{ accent }};">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square"><path d="m9 18 6-6-6-6"></path></svg>
+              </button>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ hasMultipleImages }}" hint-placeholder-val="{{ false }}">
+            <div style="width: 100%; background: #0a0a0a; border-bottom: 1px solid var(--fg); padding: 14px 16px; box-sizing: border-box; display: flex; align-items: center; gap: 12px; overflow-x: auto;">
+              <sc-for list="{{ productImages }}" as="im" hint-placeholder-count="3">
+                <button type="button" onClick="{{ im.pick }}" aria-label="{{ im.alt }}" style="position: relative; width: 76px; height: 96px; padding: 0; flex-shrink: 0; border: 2px solid {{ im.border }}; opacity: {{ im.opacity }}; background: #000; cursor: pointer; overflow: hidden; box-sizing: border-box;">
+                  <img src="{{ im.url }}" alt="{{ im.alt }}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                  <span style="position: absolute; bottom: 0; right: 0; background: {{ im.badgeBg }}; color: {{ im.badgeFg }}; font-family: ui-monospace, Menlo, monospace; font-size: 10px; font-weight: 700; padding: 1px 5px;">{{ im.num }}</span>
+                </button>
+              </sc-for>
             </div>
-          </sc-for>
+          </sc-if>
         </div>
 
         <div style="width: {{ prodPanelW }}; min-width: {{ prodPanelMin }}; max-width: {{ prodPanelMax }}; flex: none; display: flex; flex-direction: column; gap: 32px; background: var(--bg); padding: clamp(16px, 4vw, 32px); box-sizing: border-box;">
@@ -1589,7 +1612,10 @@ class Component extends DCLogic {
             PRODUCTS[p.id].description = p.description || "";
             PRODUCTS[p.id].colors = (p.colors && p.colors.length) ? p.colors : DEFAULT_COLORS;
             PRODUCTS[p.id].sizes = (p.sizes && p.sizes.length) ? p.sizes : DEFAULT_SIZES;
-            if (p.image_url) {
+            if (p.gallery && Array.isArray(p.gallery) && p.gallery.length) {
+              PRODUCTS[p.id].photos = p.gallery;
+              PRODUCTS[p.id].image = p.gallery[0] || p.image_url;
+            } else if (p.image_url) {
               PRODUCTS[p.id].image = p.image_url;
               if (!PRODUCTS[p.id].photos || !PRODUCTS[p.id].photos.length) {
                 PRODUCTS[p.id].photos = [p.image_url];
@@ -2221,7 +2247,7 @@ class Component extends DCLogic {
     const ne = e && (e.nativeEvent || e);
     const path = ne && ne.composedPath ? ne.composedPath() : [];
     if (path.some((n) => n && n.getAttribute && n.getAttribute("data-act"))) return;
-    this.go("produto", { productId: id, size: null, color: null, qty: 1 });
+    this.go("produto", { productId: id, photoIdx: 0, size: null, color: null, qty: 1 });
   };
 
   addToCart = () => {
@@ -2533,11 +2559,47 @@ class Component extends DCLogic {
         };
       }),
       warnText: "Escolha um tamanho antes de adicionar.",
-      productImages: ((p.photos && p.photos.length) ? p.photos : (p.image ? [p.image] : ["/uploads/modelo_bonzo_01.jpg"])).filter(Boolean).map((photoUrl, i) => ({
-        url: asset(photoUrl),
-        slotId: "pt-p" + s.productId + "-" + (i + 1),
-        alt: p.name + " — foto " + (i + 1),
-      })),
+      ...(() => {
+        const rawPhotos = ((p.photos && p.photos.length) ? p.photos : (p.image ? [p.image] : ["/uploads/modelo_bonzo_01.jpg"])).filter(Boolean).slice(0, 6);
+        const curIdx = (typeof s.photoIdx === "number" && s.photoIdx >= 0 && s.photoIdx < rawPhotos.length) ? s.photoIdx : 0;
+        const mappedPhotos = rawPhotos.map((photoUrl, i) => ({
+          url: asset(photoUrl),
+          slotId: "pt-p" + s.productId + "-" + (i + 1),
+          alt: p.name + " — foto " + (i + 1),
+          num: i + 1,
+          border: i === curIdx ? accent : "rgba(255,255,255,0.3)",
+          opacity: i === curIdx ? 1 : 0.6,
+          badgeBg: i === curIdx ? accent : "rgba(0,0,0,0.8)",
+          badgeFg: i === curIdx ? "#000" : "#fff",
+          pick: () => this.setState({ photoIdx: i }),
+        }));
+        const activePhoto = mappedPhotos[curIdx] || mappedPhotos[0] || { url: asset("/uploads/modelo_bonzo_01.jpg"), slotId: "pt-p1-1", alt: p.name };
+        return {
+          productImages: mappedPhotos,
+          hasMultipleImages: mappedPhotos.length > 1,
+          activeProductImgUrl: activePhoto.url,
+          activeProductImgSlotId: activePhoto.slotId,
+          activeProductImgAlt: activePhoto.alt,
+          galleryCounter: String(curIdx + 1).padStart(2, "0") + " / " + String(mappedPhotos.length).padStart(2, "0"),
+          prevProductImg: () => this.setState({ photoIdx: (curIdx - 1 + mappedPhotos.length) % mappedPhotos.length }),
+          nextProductImg: () => this.setState({ photoIdx: (curIdx + 1) % mappedPhotos.length }),
+          onGalleryTouchStart: (ev) => {
+            const t = ev && ev.touches && ev.touches[0];
+            if (t) this._touchStartX = t.clientX;
+          },
+          onGalleryTouchEnd: (ev) => {
+            if (mappedPhotos.length <= 1 || typeof this._touchStartX !== "number") return;
+            const t = ev && ev.changedTouches && ev.changedTouches[0];
+            if (!t) return;
+            const diff = this._touchStartX - t.clientX;
+            this._touchStartX = null;
+            if (Math.abs(diff) >= 40) {
+              if (diff > 0) this.setState({ photoIdx: (curIdx + 1) % mappedPhotos.length });
+              else this.setState({ photoIdx: (curIdx - 1 + mappedPhotos.length) % mappedPhotos.length });
+            }
+          },
+        };
+      })(),
 
       sizes: (p.sizes || DEFAULT_SIZES).map((label) => ({
         label: label,

@@ -99,10 +99,19 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const rawGallery: string[] = Array.isArray(body.gallery)
+      ? body.gallery
+          .map((u: any) => String(u || "").trim())
+          .filter(Boolean)
+          .slice(0, 6)
+      : [];
+
     const imageUrl =
+      rawGallery[0] ||
       String(body.image_url || "").trim() ||
       "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80";
     const artworkUrl = String(body.artwork_url || "").trim() || imageUrl;
+    const gallery = rawGallery.length > 0 ? rawGallery : [imageUrl];
 
     const newProdPayload = {
       name,
@@ -116,6 +125,7 @@ export async function POST(req: NextRequest) {
       compare_at_price: compareAtPrice || (cleanPrice > 89 ? cleanPrice + 30 : 119.0),
       image_url: imageUrl,
       artwork_url: artworkUrl,
+      gallery,
       badge: body.badge ? String(body.badge).trim() : undefined,
       is_custom_price: body.is_custom_price !== undefined ? Boolean(body.is_custom_price) : false,
       dimona_product_id: body.dimona_product_id ? String(body.dimona_product_id).trim().toUpperCase() : undefined,
@@ -268,6 +278,16 @@ export async function PATCH(req: NextRequest) {
 
     if (updates.blank_type !== undefined) {
       updates.blank_type = updates.blank_type ? String(updates.blank_type).trim().toLowerCase() : "classic";
+    }
+
+    if (Array.isArray(updates.gallery)) {
+      updates.gallery = updates.gallery
+        .map((u: any) => String(u || "").trim())
+        .filter(Boolean)
+        .slice(0, 6);
+      if (updates.gallery.length > 0) {
+        updates.image_url = updates.gallery[0];
+      }
     }
 
     const res = await updateProductAdmin(Number(id), updates);

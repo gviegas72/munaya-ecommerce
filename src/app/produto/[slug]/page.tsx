@@ -1,5 +1,6 @@
 import { getProductByIdOrSlug } from "@/lib/supabase";
 import { ProductActionSection } from "@/components/ProductActionSection";
+import { ProductGalleryCarousel } from "@/components/ProductGalleryCarousel";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -60,9 +61,11 @@ export default async function ProductDetail({ params }: ProductPageProps) {
     notFound();
   }
 
-  // Lista de imagens com suporte a fotos adicionais ou fallback da foto principal
+  // Lista de imagens com suporte a galeria de até 6 fotos ou fallback da foto principal
   const productImages =
-    product.images && Array.isArray(product.images) && product.images.length > 0
+    product.gallery && Array.isArray(product.gallery) && product.gallery.length > 0
+      ? product.gallery
+      : product.images && Array.isArray(product.images) && product.images.length > 0
       ? product.images
       : [product.image_url];
 
@@ -88,20 +91,12 @@ export default async function ProductDetail({ params }: ProductPageProps) {
 
       {/* Grid Principal da PDP */}
       <div className="flex flex-col md:flex-row w-full flex-1">
-        {/* Left Column - Scrolling Images */}
-        <div className="w-full md:w-[65%] flex flex-col border-b md:border-b-0 md:border-r border-foreground">
-          {productImages.map((src, idx) => (
-            <div
-              key={idx}
-              className="relative w-full h-[55vh] md:h-[100vh] border-b border-foreground bg-black/40 overflow-hidden"
-            >
-              <img
-                src={src}
-                alt={`${product.name} - Detalhe ${idx + 1}`}
-                className="w-full h-full object-cover object-center transition-all duration-700 hover:scale-105"
-              />
-            </div>
-          ))}
+        {/* Left Column - Interactive Carousel & Thumbnails */}
+        <div className="w-full md:w-[65%] flex flex-col border-b md:border-b-0 md:border-r border-foreground bg-black">
+          <ProductGalleryCarousel
+            images={productImages}
+            productName={product.name}
+          />
         </div>
 
         {/* Right Column - Product details & action */}

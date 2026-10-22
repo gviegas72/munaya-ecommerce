@@ -90,6 +90,7 @@ interface NewProductForm {
   compare_at_price: string;
   image_url: string;
   artwork_url: string;
+  gallery: string[];
   badge: string;
   is_active: boolean;
   is_featured: boolean;
@@ -111,6 +112,7 @@ const INITIAL_NEW_PRODUCT: NewProductForm = {
   compare_at_price: "119.00",
   image_url: "",
   artwork_url: "",
+  gallery: [],
   badge: "Bonzo Series",
   is_active: true,
   is_featured: false,
@@ -170,6 +172,7 @@ interface Product {
   compare_at_price?: number;
   image_url: string;
   artwork_url?: string;
+  gallery?: string[];
   is_active: boolean;
   is_featured: boolean;
   is_custom_price?: boolean;
@@ -351,6 +354,8 @@ export default function AdminPage() {
   const [editSuccess, setEditSuccess] = useState("");
   const [uploadingEditImage, setUploadingEditImage] = useState(false);
   const [uploadingEditArtwork, setUploadingEditArtwork] = useState(false);
+  const [newGalleryUrlInput, setNewGalleryUrlInput] = useState("");
+  const [editGalleryUrlInput, setEditGalleryUrlInput] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -860,7 +865,20 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (data.success && data.url) {
-        setNewProduct((prev) => ({ ...prev, [field]: data.url }));
+        if (field === "image_url") {
+          setNewProduct((prev) => {
+            const nextGallery = [...(prev.gallery || []), data.url]
+              .filter(Boolean)
+              .slice(0, 6);
+            return {
+              ...prev,
+              image_url: nextGallery[0] || data.url,
+              gallery: nextGallery,
+            };
+          });
+        } else {
+          setNewProduct((prev) => ({ ...prev, [field]: data.url }));
+        }
         setActionMsg(`Upload concluído com sucesso!`);
         setTimeout(() => setActionMsg(""), 3000);
       } else {
@@ -949,6 +967,12 @@ export default function AdminPage() {
   };
 
   const handleOpenEdit = (prod: Product) => {
+    const initialGallery =
+      prod.gallery && Array.isArray(prod.gallery) && prod.gallery.length > 0
+        ? prod.gallery.slice(0, 6)
+        : prod.image_url
+        ? [prod.image_url]
+        : [];
     setEditingProduct({
       id: prod.id,
       name: prod.name || "",
@@ -968,8 +992,9 @@ export default function AdminPage() {
       compare_at_price: prod.compare_at_price
         ? String(prod.compare_at_price)
         : "",
-      image_url: prod.image_url || "",
+      image_url: initialGallery[0] || prod.image_url || "",
       artwork_url: prod.artwork_url || prod.image_url || "",
+      gallery: initialGallery,
       badge: prod.badge || "",
       is_active: prod.is_active !== undefined ? prod.is_active : true,
       is_featured: prod.is_featured !== undefined ? prod.is_featured : false,
@@ -978,6 +1003,7 @@ export default function AdminPage() {
       blank_type: prod.blank_type || "classic",
       display_order: prod.display_order || 10,
     });
+    setEditGalleryUrlInput("");
     setEditError("");
     setEditSuccess("");
   };
@@ -1002,9 +1028,23 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (data.success && data.url) {
-        setEditingProduct((prev) =>
-          prev ? { ...prev, [field]: data.url } : null
-        );
+        if (field === "image_url") {
+          setEditingProduct((prev) => {
+            if (!prev) return null;
+            const nextGallery = [...(prev.gallery || []), data.url]
+              .filter(Boolean)
+              .slice(0, 6);
+            return {
+              ...prev,
+              image_url: nextGallery[0] || data.url,
+              gallery: nextGallery,
+            };
+          });
+        } else {
+          setEditingProduct((prev) =>
+            prev ? { ...prev, [field]: data.url } : null
+          );
+        }
         setActionMsg(`Upload de nova imagem concluído!`);
         setTimeout(() => setActionMsg(""), 3000);
       } else {
@@ -1039,6 +1079,18 @@ export default function AdminPage() {
       const savedPin =
         localStorage.getItem("munaya_admin_token") || "munaya2026";
 
+      const cleanGallery = (editingProduct.gallery || [])
+        .map((u) => String(u || "").trim())
+        .filter(Boolean)
+        .slice(0, 6);
+      const coverUrl = cleanGallery[0] || editingProduct.image_url || "";
+      const finalGallery =
+        cleanGallery.length > 0
+          ? cleanGallery
+          : coverUrl
+          ? [coverUrl]
+          : [];
+
       const updatesPayload: any = {
         id: editingProduct.id,
         name: editingProduct.name.trim(),
@@ -1052,8 +1104,9 @@ export default function AdminPage() {
         compare_at_price: editingProduct.compare_at_price
           ? Number(String(editingProduct.compare_at_price).replace(",", "."))
           : null,
-        image_url: editingProduct.image_url,
+        image_url: coverUrl,
         artwork_url: editingProduct.artwork_url,
+        gallery: finalGallery,
         badge: editingProduct.badge || null,
         is_active: editingProduct.is_active,
         is_featured: editingProduct.is_featured,
@@ -1098,8 +1151,9 @@ export default function AdminPage() {
                         )
                       )
                     : undefined,
-                  image_url: editingProduct.image_url,
+                  image_url: coverUrl,
                   artwork_url: editingProduct.artwork_url,
+                  gallery: finalGallery,
                   badge: editingProduct.badge || undefined,
                   is_active: editingProduct.is_active,
                   is_featured: editingProduct.is_featured,
@@ -2049,6 +2103,10 @@ export default function AdminPage() {
 
                               <span className="text-[10px] uppercase font-bold bg-neutral-900 border border-neutral-700 text-neutral-300 px-1.5 py-0.5 font-mono">
                                 🏭 {prod.blank_type ? prod.blank_type.toUpperCase() : "CLASSIC"}
+                              </span>
+
+                              <span className="text-[10px] uppercase font-bold bg-neutral-900 border border-neutral-700 text-neutral-300 px-1.5 py-0.5 font-mono">
+                                📷 {prod.gallery && prod.gallery.length > 0 ? prod.gallery.length : 1} {(prod.gallery && prod.gallery.length > 1) ? "fotos" : "foto"}
                               </span>
 
                               {prod.dimona_product_id && (
@@ -3132,77 +3190,186 @@ export default function AdminPage() {
 
                   {/* Coluna 2: Uploads de Imagens & Arte */}
                   <div className="space-y-4">
-                    {/* Mockup da Camiseta */}
-                    <div className="border border-neutral-800 p-3 bg-neutral-900/60 space-y-2">
-                      <label className="block text-xs uppercase font-bold text-neutral-200">
-                        1. Mockup da Camiseta (Foto da Vitrine) *
-                      </label>
+                    {/* Galeria de Fotos do Produto (Até 6 imagens) */}
+                    <div className="border border-neutral-800 p-3 bg-neutral-900/60 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs uppercase font-bold text-neutral-200">
+                          1. Galeria de Fotos do Produto (Até 6 fotos) *
+                        </label>
+                        <span className="text-[10px] font-mono text-[#ff66c4] font-bold">
+                          {(newProduct.gallery || []).length} / 6 fotos
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-neutral-400">
+                        A 1ª foto (marcada como <strong>★ CAPA</strong>) é exibida na vitrine da Home. As demais aparecem no carrossel da página do produto.
+                      </p>
 
-                      <div className="flex gap-3 items-center">
-                        {newProduct.image_url ? (
-                          <div className="w-20 h-24 bg-neutral-950 border border-neutral-700 flex-shrink-0 relative overflow-hidden group">
-                            <img
-                              src={newProduct.image_url}
-                              alt="Mockup Preview"
-                              className="w-full h-full object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setNewProduct((prev) => ({
-                                  ...prev,
-                                  image_url: "",
-                                }))
-                              }
-                              className="absolute top-1 right-1 bg-black/80 text-white p-1 hover:text-red-400"
-                              title="Remover imagem"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="w-20 h-24 bg-neutral-950 border border-dashed border-neutral-700 flex flex-col items-center justify-center flex-shrink-0 text-neutral-600">
-                            <ImageIcon className="w-6 h-6 mb-1" />
-                            <span className="text-[9px] uppercase font-bold">
-                              Sem Foto
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="flex-1 space-y-2">
+                      {/* Controles de Upload e Adição por URL */}
+                      {(newProduct.gallery || []).length < 6 && (
+                        <div className="space-y-2">
                           <label className="flex items-center justify-center gap-2 border border-neutral-600 bg-neutral-800 hover:bg-neutral-700 text-white px-3 py-2 text-xs font-bold uppercase cursor-pointer transition-colors">
                             <Upload className="w-4 h-4 text-[#ff66c4]" />
                             <span>
                               {uploadingImage
-                                ? "Enviando arquivo..."
-                                : "Escolher do Computador"}
+                                ? "Enviando foto(s)..."
+                                : "+ Enviar Foto(s) do Computador"}
                             </span>
                             <input
                               type="file"
                               accept="image/*"
+                              multiple
                               disabled={uploadingImage}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleFileUpload(file, "image_url");
+                              onChange={async (e) => {
+                                const files = Array.from(e.target.files || []);
+                                for (const f of files) {
+                                  await handleFileUpload(f, "image_url");
+                                }
+                                e.target.value = "";
                               }}
                               className="hidden"
                             />
                           </label>
 
-                          <input
-                            type="text"
-                            placeholder="Ou cole a URL da foto (https://...)"
-                            value={newProduct.image_url}
-                            onChange={(e) =>
-                              setNewProduct((prev) => ({
-                                ...prev,
-                                image_url: e.target.value,
-                              }))
-                            }
-                            className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1.5 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
-                          />
+                          <div className="flex gap-1.5">
+                            <input
+                              type="text"
+                              placeholder="Cole uma URL de foto (https://...)"
+                              value={newGalleryUrlInput}
+                              onChange={(e) => setNewGalleryUrlInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  const clean = newGalleryUrlInput.trim();
+                                  if (!clean) return;
+                                  setNewProduct((prev) => {
+                                    const next = [...(prev.gallery || []), clean].slice(0, 6);
+                                    return { ...prev, gallery: next, image_url: next[0] || "" };
+                                  });
+                                  setNewGalleryUrlInput("");
+                                }
+                              }}
+                              className="flex-1 bg-neutral-950 border border-neutral-700 px-2.5 py-1.5 text-xs text-neutral-200 focus:border-[#ff66c4] focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const clean = newGalleryUrlInput.trim();
+                                if (!clean) return;
+                                setNewProduct((prev) => {
+                                  const next = [...(prev.gallery || []), clean].slice(0, 6);
+                                  return { ...prev, gallery: next, image_url: next[0] || "" };
+                                });
+                                setNewGalleryUrlInput("");
+                              }}
+                              className="px-3 py-1.5 bg-[#ff66c4] text-black font-oswald text-xs font-black uppercase tracking-wider hover:bg-white transition-colors"
+                            >
+                              + URL
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      )}
+
+                      {/* Grid de Miniaturas da Galeria */}
+                      {(newProduct.gallery || []).length === 0 ? (
+                        <div className="border border-dashed border-neutral-700 bg-neutral-950 p-4 text-center text-neutral-500 text-xs uppercase font-bold">
+                          Nenhuma foto adicionada. Envie do computador ou cole uma URL acima.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2.5 pt-1">
+                          {(newProduct.gallery || []).map((imgUrl, idx) => (
+                            <div
+                              key={`${imgUrl}-${idx}`}
+                              className={`relative border-2 bg-neutral-950 overflow-hidden group ${
+                                idx === 0 ? "border-[#ff66c4]" : "border-neutral-700"
+                              }`}
+                            >
+                              <div className="w-full h-24 relative">
+                                <img
+                                  src={imgUrl}
+                                  alt={`Foto ${idx + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                                {idx === 0 ? (
+                                  <span className="absolute top-1 left-1 bg-[#ff66c4] text-black text-[9px] font-black uppercase px-1.5 py-0.5">
+                                    ★ CAPA
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setNewProduct((prev) => {
+                                        const list = [...(prev.gallery || [])];
+                                        const [chosen] = list.splice(idx, 1);
+                                        const next = [chosen, ...list];
+                                        return { ...prev, gallery: next, image_url: next[0] || "" };
+                                      })
+                                    }
+                                    className="absolute top-1 left-1 bg-black/85 hover:bg-[#ff66c4] text-white hover:text-black text-[9px] font-bold uppercase px-1.5 py-0.5 border border-neutral-600 transition-colors"
+                                    title="Definir como foto principal de capa"
+                                  >
+                                    Definir Capa
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setNewProduct((prev) => {
+                                      const next = (prev.gallery || []).filter((_, i) => i !== idx);
+                                      return { ...prev, gallery: next, image_url: next[0] || "" };
+                                    })
+                                  }
+                                  className="absolute top-1 right-1 bg-black/85 text-white hover:text-red-400 p-1"
+                                  title="Remover foto"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+
+                              {/* Reordenação ← / → */}
+                              <div className="flex items-center justify-between bg-black/90 border-t border-neutral-800 px-1.5 py-1 text-[10px] font-mono text-neutral-400">
+                                <span>#{idx + 1}</span>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    disabled={idx === 0}
+                                    onClick={() =>
+                                      setNewProduct((prev) => {
+                                        const list = [...(prev.gallery || [])];
+                                        const tmp = list[idx - 1];
+                                        list[idx - 1] = list[idx];
+                                        list[idx] = tmp;
+                                        return { ...prev, gallery: list, image_url: list[0] || "" };
+                                      })
+                                    }
+                                    className="px-1 hover:text-white disabled:opacity-30"
+                                    title="Mover para esquerda"
+                                  >
+                                    ←
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={idx === (newProduct.gallery || []).length - 1}
+                                    onClick={() =>
+                                      setNewProduct((prev) => {
+                                        const list = [...(prev.gallery || [])];
+                                        const tmp = list[idx + 1];
+                                        list[idx + 1] = list[idx];
+                                        list[idx] = tmp;
+                                        return { ...prev, gallery: list, image_url: list[0] || "" };
+                                      })
+                                    }
+                                    className="px-1 hover:text-white disabled:opacity-30"
+                                    title="Mover para direita"
+                                  >
+                                    →
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Arte de Impressão Dimona */}
@@ -3780,76 +3947,192 @@ export default function AdminPage() {
 
                   {/* Coluna 2: Uploads & Mídia */}
                   <div className="space-y-4">
-                    {/* Mockup da Camiseta */}
-                    <div className="border border-neutral-800 p-3 bg-neutral-900/60 space-y-2">
-                      <label className="block text-xs uppercase font-bold text-neutral-200">
-                        1. Mockup da Camiseta (Foto da Vitrine)
-                      </label>
+                    {/* Galeria de Fotos do Produto (Até 6 imagens) */}
+                    <div className="border border-neutral-800 p-3 bg-neutral-900/60 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs uppercase font-bold text-neutral-200">
+                          1. Galeria de Fotos do Produto (Até 6 fotos)
+                        </label>
+                        <span className="text-[10px] font-mono text-[#ff66c4] font-bold">
+                          {(editingProduct.gallery || []).length} / 6 fotos
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-neutral-400">
+                        A 1ª foto (marcada como <strong>★ CAPA</strong>) é exibida na vitrine da Home. As demais aparecem no carrossel da página do produto.
+                      </p>
 
-                      <div className="flex gap-3 items-center">
-                        {editingProduct.image_url ? (
-                          <div className="w-20 h-24 bg-neutral-950 border border-neutral-700 flex-shrink-0 relative overflow-hidden group">
-                            <img
-                              src={editingProduct.image_url}
-                              alt="Mockup Preview"
-                              className="w-full h-full object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setEditingProduct((prev) =>
-                                  prev ? { ...prev, image_url: "" } : null
-                                )
-                              }
-                              className="absolute top-1 right-1 bg-black/80 text-white p-1 hover:text-red-400"
-                              title="Remover foto"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="w-20 h-24 bg-neutral-950 border border-dashed border-neutral-700 flex flex-col items-center justify-center flex-shrink-0 text-neutral-600">
-                            <ImageIcon className="w-6 h-6 mb-1" />
-                            <span className="text-[9px] uppercase font-bold">
-                              Sem Foto
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="flex-1 space-y-2">
+                      {/* Controles de Upload e Adição por URL */}
+                      {(editingProduct.gallery || []).length < 6 && (
+                        <div className="space-y-2">
                           <label className="flex items-center justify-center gap-2 border border-neutral-600 bg-neutral-800 hover:bg-neutral-700 text-white px-3 py-2 text-xs font-bold uppercase cursor-pointer transition-colors">
                             <Upload className="w-4 h-4 text-[#ff66c4]" />
                             <span>
                               {uploadingEditImage
-                                ? "Enviando arquivo..."
-                                : "Substituir Foto do Computador"}
+                                ? "Enviando foto(s)..."
+                                : "+ Adicionar Foto(s) do Computador"}
                             </span>
                             <input
                               type="file"
                               accept="image/*"
+                              multiple
                               disabled={uploadingEditImage}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file)
-                                  handleEditFileUpload(file, "image_url");
+                              onChange={async (e) => {
+                                const files = Array.from(e.target.files || []);
+                                for (const f of files) {
+                                  await handleEditFileUpload(f, "image_url");
+                                }
+                                e.target.value = "";
                               }}
                               className="hidden"
                             />
                           </label>
 
-                          <input
-                            type="text"
-                            placeholder="Ou cole a URL da foto (https://...)"
-                            value={editingProduct.image_url}
-                            onChange={(e) =>
-                              setEditingProduct((prev) =>
-                                prev ? { ...prev, image_url: e.target.value } : null
-                              )
-                            }
-                            className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1.5 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
-                          />
+                          <div className="flex gap-1.5">
+                            <input
+                              type="text"
+                              placeholder="Cole uma URL de foto (https://...)"
+                              value={editGalleryUrlInput}
+                              onChange={(e) => setEditGalleryUrlInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  const clean = editGalleryUrlInput.trim();
+                                  if (!clean) return;
+                                  setEditingProduct((prev) => {
+                                    if (!prev) return null;
+                                    const next = [...(prev.gallery || []), clean].slice(0, 6);
+                                    return { ...prev, gallery: next, image_url: next[0] || "" };
+                                  });
+                                  setEditGalleryUrlInput("");
+                                }
+                              }}
+                              className="flex-1 bg-neutral-950 border border-neutral-700 px-2.5 py-1.5 text-xs text-neutral-200 focus:border-[#ff66c4] focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const clean = editGalleryUrlInput.trim();
+                                if (!clean) return;
+                                setEditingProduct((prev) => {
+                                  if (!prev) return null;
+                                  const next = [...(prev.gallery || []), clean].slice(0, 6);
+                                  return { ...prev, gallery: next, image_url: next[0] || "" };
+                                });
+                                setEditGalleryUrlInput("");
+                              }}
+                              className="px-3 py-1.5 bg-[#ff66c4] text-black font-oswald text-xs font-black uppercase tracking-wider hover:bg-white transition-colors"
+                            >
+                              + URL
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      )}
+
+                      {/* Grid de Miniaturas da Galeria */}
+                      {(editingProduct.gallery || []).length === 0 ? (
+                        <div className="border border-dashed border-neutral-700 bg-neutral-950 p-4 text-center text-neutral-500 text-xs uppercase font-bold">
+                          Nenhuma foto na galeria. Adicione acima.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2.5 pt-1">
+                          {(editingProduct.gallery || []).map((imgUrl, idx) => (
+                            <div
+                              key={`${imgUrl}-${idx}`}
+                              className={`relative border-2 bg-neutral-950 overflow-hidden group ${
+                                idx === 0 ? "border-[#ff66c4]" : "border-neutral-700"
+                              }`}
+                            >
+                              <div className="w-full h-24 relative">
+                                <img
+                                  src={imgUrl}
+                                  alt={`Foto ${idx + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                                {idx === 0 ? (
+                                  <span className="absolute top-1 left-1 bg-[#ff66c4] text-black text-[9px] font-black uppercase px-1.5 py-0.5">
+                                    ★ CAPA
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setEditingProduct((prev) => {
+                                        if (!prev) return null;
+                                        const list = [...(prev.gallery || [])];
+                                        const [chosen] = list.splice(idx, 1);
+                                        const next = [chosen, ...list];
+                                        return { ...prev, gallery: next, image_url: next[0] || "" };
+                                      })
+                                    }
+                                    className="absolute top-1 left-1 bg-black/85 hover:bg-[#ff66c4] text-white hover:text-black text-[9px] font-bold uppercase px-1.5 py-0.5 border border-neutral-600 transition-colors"
+                                    title="Definir como foto principal de capa"
+                                  >
+                                    Definir Capa
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setEditingProduct((prev) => {
+                                      if (!prev) return null;
+                                      const next = (prev.gallery || []).filter((_, i) => i !== idx);
+                                      return { ...prev, gallery: next, image_url: next[0] || "" };
+                                    })
+                                  }
+                                  className="absolute top-1 right-1 bg-black/85 text-white hover:text-red-400 p-1"
+                                  title="Remover foto"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+
+                              {/* Reordenação ← / → */}
+                              <div className="flex items-center justify-between bg-black/90 border-t border-neutral-800 px-1.5 py-1 text-[10px] font-mono text-neutral-400">
+                                <span>#{idx + 1}</span>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    disabled={idx === 0}
+                                    onClick={() =>
+                                      setEditingProduct((prev) => {
+                                        if (!prev) return null;
+                                        const list = [...(prev.gallery || [])];
+                                        const tmp = list[idx - 1];
+                                        list[idx - 1] = list[idx];
+                                        list[idx] = tmp;
+                                        return { ...prev, gallery: list, image_url: list[0] || "" };
+                                      })
+                                    }
+                                    className="px-1 hover:text-white disabled:opacity-30"
+                                    title="Mover para esquerda"
+                                  >
+                                    ←
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={idx === (editingProduct.gallery || []).length - 1}
+                                    onClick={() =>
+                                      setEditingProduct((prev) => {
+                                        if (!prev) return null;
+                                        const list = [...(prev.gallery || [])];
+                                        const tmp = list[idx + 1];
+                                        list[idx + 1] = list[idx];
+                                        list[idx] = tmp;
+                                        return { ...prev, gallery: list, image_url: list[0] || "" };
+                                      })
+                                    }
+                                    className="px-1 hover:text-white disabled:opacity-30"
+                                    title="Mover para direita"
+                                  >
+                                    →
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Arte de Impressão Dimona */}

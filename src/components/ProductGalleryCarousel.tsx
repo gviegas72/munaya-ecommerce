@@ -1,0 +1,157 @@
+"use client";
+
+import React, { useState, useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+interface ProductGalleryCarouselProps {
+  images: string[];
+  productName: string;
+}
+
+export function ProductGalleryCarousel({
+  images,
+  productName,
+}: ProductGalleryCarouselProps) {
+  const validImages = (images || []).map((u) => String(u || "").trim()).filter(Boolean);
+  const gallery =
+    validImages.length > 0
+      ? validImages.slice(0, 6)
+      : ["/uploads/modelo_bonzo_01.jpg"];
+
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  const hasMultiple = gallery.length > 1;
+  const safeIndex = activeIndex < gallery.length ? activeIndex : 0;
+  const activeSrc = gallery[safeIndex];
+
+  const handlePrev = () => {
+    if (!hasMultiple) return;
+    setActiveIndex((prev) => (prev - 1 + gallery.length) % gallery.length);
+  };
+
+  const handleNext = () => {
+    if (!hasMultiple) return;
+    setActiveIndex((prev) => (prev + 1) % gallery.length);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0]?.clientX ?? null;
+    touchEndX.current = null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0]?.clientX ?? null;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diff = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 40;
+    if (Math.abs(diff) >= minSwipeDistance) {
+      if (diff > 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
+  return (
+    <div className="w-full flex flex-col bg-black select-none">
+      {/* Imagem Principal em Destaque com Suporte a Touch Swipe */}
+      <div
+        className="relative w-full h-[58vh] md:h-[84vh] bg-black overflow-hidden border-b border-foreground group"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <img
+          key={activeSrc}
+          src={activeSrc}
+          alt={`${productName} — Foto ${safeIndex + 1} de ${gallery.length}`}
+          className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+        />
+
+        {/* Contador e Setas de Navegação (apenas quando houver > 1 foto) */}
+        {hasMultiple && (
+          <>
+            <div className="absolute top-4 left-4 z-10 bg-black/80 border border-foreground/50 px-3 py-1 font-mono text-xs font-bold uppercase tracking-widest text-foreground">
+              {String(safeIndex + 1).padStart(2, "0")} /{" "}
+              {String(gallery.length).padStart(2, "0")}
+            </div>
+
+            <button
+              type="button"
+              onClick={handlePrev}
+              aria-label="Foto anterior"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-black/75 border-2 border-foreground text-foreground flex items-center justify-center hover:bg-[#ff66c4] hover:text-black hover:border-[#ff66c4] transition-colors cursor-pointer"
+            >
+              <ChevronLeft className="w-6 h-6" strokeWidth={2.5} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNext}
+              aria-label="Próxima foto"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-black/75 border-2 border-foreground text-foreground flex items-center justify-center hover:bg-[#ff66c4] hover:text-black hover:border-[#ff66c4] transition-colors cursor-pointer"
+            >
+              <ChevronRight className="w-6 h-6" strokeWidth={2.5} />
+            </button>
+
+            {/* Indicador Mobile de Swipe */}
+            <div className="md:hidden absolute bottom-3 inset-x-0 flex justify-center pointer-events-none">
+              <span className="bg-black/75 border border-foreground/30 px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-foreground/80">
+                ← Deslize para ver mais fotos →
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Faixa de Miniaturas Clicáveis (Oculta automaticamente se houver apenas 1 foto) */}
+      {hasMultiple && (
+        <div className="w-full bg-neutral-950 border-b border-foreground p-3 md:p-4">
+          <div className="flex items-center gap-3 overflow-x-auto pb-1">
+            {gallery.map((imgUrl, idx) => {
+              const isSelected = idx === safeIndex;
+              return (
+                <button
+                  key={`${imgUrl}-${idx}`}
+                  type="button"
+                  onClick={() => setActiveIndex(idx)}
+                  aria-label={`Ver foto ${idx + 1}`}
+                  aria-pressed={isSelected}
+                  className={`relative w-18 h-22 md:w-22 md:h-28 flex-shrink-0 overflow-hidden border-2 transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-[#ff66c4] ring-2 ring-[#ff66c4]/40 scale-[1.03] opacity-100"
+                      : "border-foreground/30 opacity-60 hover:opacity-100 hover:border-foreground"
+                  }`}
+                >
+                  <img
+                    src={imgUrl}
+                    alt={`${productName} — Miniatura ${idx + 1}`}
+                    loading="lazy"
+                    className="w-full h-full object-cover object-center"
+                  />
+                  <span
+                    className={`absolute bottom-0 right-0 px-1.5 py-0.5 font-mono text-[10px] font-bold ${
+                      isSelected
+                        ? "bg-[#ff66c4] text-black"
+                        : "bg-black/80 text-white"
+                    }`}
+                  >
+                    {idx + 1}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
