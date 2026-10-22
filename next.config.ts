@@ -47,12 +47,7 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return {
-      beforeFiles: [
-        {
-          source: "/",
-          destination: "/prototype.html",
-        },
-      ],
+      beforeFiles: [],
       afterFiles: [],
       fallback: [],
     };
