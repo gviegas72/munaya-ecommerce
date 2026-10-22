@@ -261,7 +261,28 @@ export default function AdminPage() {
   const [pin, setPin] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [activeTab, setActiveTab] = useState<"orders" | "catalog" | "coupons" | "pricing" | "dimona">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "catalog" | "coupons" | "pricing" | "dimona" | "whatsapp">("orders");
+
+  // Estados da Evolution API (WhatsApp Transacional)
+  const [evoSettings, setEvoSettings] = useState({
+    baseUrl: "",
+    instanceName: "munaya",
+    apiKey: "",
+    enabled: true,
+  });
+  const [evoStatus, setEvoStatus] = useState<{
+    configured: boolean;
+    state: string;
+    qrcodeBase64?: string | null;
+    pairingCode?: string | null;
+    error?: string;
+  }>({ configured: false, state: "unconfigured" });
+  const [loadingEvo, setLoadingEvo] = useState(false);
+  const [savingEvo, setSavingEvo] = useState(false);
+  const [testingEvo, setTestingEvo] = useState(false);
+  const [evoTestPhone, setEvoTestPhone] = useState("");
+  const [evoFeedback, setEvoFeedback] = useState("");
+  const [evoError, setEvoError] = useState("");
 
   // Estados de Pedidos
   const [orders, setOrders] = useState<Order[]>([]);
@@ -349,8 +370,144 @@ export default function AdminPage() {
       loadProducts();
       loadCoupons();
       loadPricing();
+      loadEvolutionConfig();
     }
   }, [isAuthed]);
+
+  const loadEvolutionConfig = async () => {
+    setLoadingEvo(true);
+    try {
+      const savedPin =
+        typeof window !== "undefined"
+          ? localStorage.getItem("munaya_admin_token") || "munaya2026"
+          : "munaya2026";
+      const res = await fetch("/api/whatsapp/config", {
+        headers: { "x-admin-pin": savedPin },
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.settings) {
+          setEvoSettings({
+            baseUrl: data.settings.baseUrl || "",
+            instanceName: data.settings.instanceName || "munaya",
+            apiKey: data.settings.apiKey || "",
+            enabled:
+              data.settings.enabled !== undefined
+                ? Boolean(data.settings.enabled)
+                : true,
+          });
+        }
+        if (data.status) {
+          setEvoStatus(data.status);
+        }
+      }
+    } catch (e) {
+      console.error("Erro ao carregar config Evolution API:", e);
+    } finally {
+      setLoadingEvo(false);
+    }
+  };
+
+  const handleSaveEvolutionConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingEvo(true);
+    setEvoFeedback("");
+    setEvoError("");
+    try {
+      const savedPin =
+        localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/whatsapp/config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify(evoSettings),
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.status) setEvoStatus(data.status);
+        setEvoFeedback(
+          data.status?.state === "open"
+            ? "✅ Credenciais salvas! Instância conectada (OPEN) e pronta para disparos automáticos."
+            : "✅ Credenciais salvas no Supabase! Verifique o status da instância abaixo."
+        );
+      } else {
+        setEvoError(data.error || "Erro ao salvar credenciais.");
+      }
+    } catch (err: any) {
+      setEvoError("Falha de conexão ao salvar credenciais.");
+    } finally {
+      setSavingEvo(false);
+    }
+  };
+
+  const handleFetchEvolutionQr = async () => {
+    setLoadingEvo(true);
+    setEvoError("");
+    try {
+      const savedPin =
+        localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/whatsapp/config", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify({ action: "qrcode" }),
+      });
+      const data = await res.json();
+      if (data.success && data.status) {
+        setEvoStatus(data.status);
+      } else {
+        setEvoError(data.error || "Não foi possível obter o QR Code.");
+      }
+    } catch {
+      setEvoError("Erro ao consultar QR Code na Evolution API.");
+    } finally {
+      setLoadingEvo(false);
+    }
+  };
+
+  const handleSendTestEvolution = async () => {
+    if (!evoTestPhone.trim()) {
+      setEvoError("Informe um número com DDD para enviar o teste (ex: 51999999999).");
+      return;
+    }
+    setTestingEvo(true);
+    setEvoFeedback("");
+    setEvoError("");
+    try {
+      const savedPin =
+        localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/whatsapp/config", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify({
+          action: "test",
+          phone: evoTestPhone,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEvoFeedback(
+          `🚀 Mensagem de teste disparada via Evolution API para +${data.result?.phone}! Confira no seu WhatsApp.`
+        );
+      } else {
+        setEvoError(
+          data.error ||
+            "A instância ainda não está conectada ou as credenciais estão incorretas."
+        );
+      }
+    } catch {
+      setEvoError("Erro ao disparar mensagem de teste.");
+    } finally {
+      setTestingEvo(false);
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1351,6 +1508,21 @@ export default function AdminPage() {
           >
             <Layers className="w-5 h-5" />
             <span>Esteira Dimona (De/Para)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("whatsapp")}
+            className={`flex items-center gap-2 px-6 py-3 font-oswald text-xl uppercase font-black tracking-tight transition-all ${
+              activeTab === "whatsapp"
+                ? "bg-emerald-500 text-black"
+                : "text-emerald-400 hover:text-white"
+            }`}
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span>Evolution API (WhatsApp)</span>
+            {evoStatus.state === "open" && (
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black inline-block" />
+            )}
           </button>
         </div>
 
@@ -4565,6 +4737,237 @@ export default function AdminPage() {
             </div>
           );
         })()}
+
+        {/* TAB 6: EVOLUTION API / WHATSAPP TRANSACIONAL */}
+        {activeTab === "whatsapp" && (
+          <div className="space-y-6">
+            {/* Header Evolution API */}
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-neutral-950 p-6 border-2 border-emerald-600/60">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold">
+                    Mensageria Transacional Automatizada
+                  </span>
+                  {evoStatus.state === "open" ? (
+                    <span className="bg-emerald-500 text-black text-[10px] font-black uppercase px-2 py-0.5 tracking-wider">
+                      ● CHIP CONECTADO (OPEN)
+                    </span>
+                  ) : evoStatus.configured ? (
+                    <span className="bg-amber-500 text-black text-[10px] font-black uppercase px-2 py-0.5 tracking-wider">
+                      ● STATUS: {String(evoStatus.state).toUpperCase()}
+                    </span>
+                  ) : (
+                    <span className="bg-neutral-800 text-neutral-300 text-[10px] font-bold uppercase px-2 py-0.5 tracking-wider">
+                      AGUARDANDO CREDENCIAIS
+                    </span>
+                  )}
+                </div>
+                <h2 className="font-oswald text-3xl font-black uppercase tracking-tight text-white">
+                  Conexão Evolution API (WhatsApp)
+                </h2>
+                <p className="text-xs text-neutral-400 max-w-2xl">
+                  Conecte sua instância da Evolution API (v1 ou v2) para que a loja dispare sozinha, em segundo plano, o código <strong>Pix Copia-e-Cola</strong> no checkout, a confirmação de <strong>Pagamento Aprovado</strong> e o <strong>Código de Rastreamento</strong> da Dimona.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={loadEvolutionConfig}
+                disabled={loadingEvo}
+                className="flex items-center gap-2 border border-white px-4 py-2.5 text-xs uppercase font-bold hover:bg-white hover:text-black transition-colors"
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingEvo ? "animate-spin" : ""}`} />
+                <span>Verificar Status</span>
+              </button>
+            </div>
+
+            {evoFeedback && (
+              <div className="border-2 border-emerald-500 bg-emerald-950/60 text-emerald-200 p-4 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <span>{evoFeedback}</span>
+              </div>
+            )}
+
+            {evoError && (
+              <div className="border-2 border-red-500 bg-red-950/60 text-red-200 p-4 text-xs font-bold uppercase tracking-wider">
+                ⚠️ {evoError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Coluna Esquerda: Formulário de Credenciais Evolution API */}
+              <form
+                onSubmit={handleSaveEvolutionConfig}
+                className="lg:col-span-7 border-2 border-neutral-800 bg-neutral-950 p-6 space-y-5"
+              >
+                <h3 className="font-oswald text-xl font-bold uppercase tracking-tight border-b border-neutral-800 pb-3">
+                  1. Credenciais da Sua Instância Evolution API
+                </h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs uppercase font-bold text-neutral-300 mb-1.5 tracking-wider">
+                      URL do Servidor Evolution API *
+                    </label>
+                    <input
+                      type="url"
+                      required
+                      value={evoSettings.baseUrl}
+                      onChange={(e) =>
+                        setEvoSettings((prev) => ({ ...prev, baseUrl: e.target.value }))
+                      }
+                      placeholder="https://evolution.seudominio.com.br"
+                      className="w-full bg-black border border-neutral-700 px-3.5 py-2.5 text-sm text-white font-mono focus:border-emerald-400 focus:outline-none"
+                    />
+                    <span className="text-[11px] text-neutral-500 block mt-1">
+                      URL base do seu servidor Evolution (sem barra no final).
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs uppercase font-bold text-neutral-300 mb-1.5 tracking-wider">
+                        Nome da Instância *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={evoSettings.instanceName}
+                        onChange={(e) =>
+                          setEvoSettings((prev) => ({
+                            ...prev,
+                            instanceName: e.target.value,
+                          }))
+                        }
+                        placeholder="munaya"
+                        className="w-full bg-black border border-neutral-700 px-3.5 py-2.5 text-sm text-white font-mono focus:border-emerald-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs uppercase font-bold text-neutral-300 mb-1.5 tracking-wider">
+                        API Key (Global ou da Instância) *
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        value={evoSettings.apiKey}
+                        onChange={(e) =>
+                          setEvoSettings((prev) => ({ ...prev, apiKey: e.target.value }))
+                        }
+                        placeholder="••••••••••••••••••••"
+                        className="w-full bg-black border border-neutral-700 px-3.5 py-2.5 text-sm text-white font-mono focus:border-emerald-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <label className="flex items-center gap-3 pt-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={evoSettings.enabled}
+                      onChange={(e) =>
+                        setEvoSettings((prev) => ({ ...prev, enabled: e.target.checked }))
+                      }
+                      className="w-4 h-4 accent-emerald-500"
+                    />
+                    <span className="text-xs uppercase font-bold text-neutral-200 tracking-wider">
+                      Ativar disparos automáticos em segundo plano (Checkout Pix, Pagamento e Rastreio)
+                    </span>
+                  </label>
+                </div>
+
+                <div className="pt-3 border-t border-neutral-800 flex flex-wrap items-center gap-3">
+                  <button
+                    type="submit"
+                    disabled={savingEvo}
+                    className="bg-emerald-500 text-black px-6 py-3 font-oswald text-base font-black uppercase tracking-wider hover:bg-white transition-colors disabled:opacity-50"
+                  >
+                    {savingEvo ? "Salvando e Testando..." : "Salvar Credenciais no Supabase"}
+                  </button>
+
+                  {evoStatus.configured && evoStatus.state !== "open" && (
+                    <button
+                      type="button"
+                      onClick={handleFetchEvolutionQr}
+                      disabled={loadingEvo}
+                      className="border border-emerald-500 text-emerald-400 px-4 py-3 font-oswald text-sm font-bold uppercase tracking-wider hover:bg-emerald-500 hover:text-black transition-colors"
+                    >
+                      Gerar QR Code do Chip
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              {/* Coluna Direita: Teste de Disparo & Pareamento QR Code */}
+              <div className="lg:col-span-5 space-y-6">
+                {/* Bloco de Disparo de Teste */}
+                <div className="border-2 border-neutral-800 bg-neutral-950 p-6 space-y-4">
+                  <h3 className="font-oswald text-xl font-bold uppercase tracking-tight border-b border-neutral-800 pb-3">
+                    2. Testar Disparo Real no Celular
+                  </h3>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Após salvar as credenciais da sua Evolution API ao lado, digite seu número de WhatsApp com DDD para receber uma mensagem real disparada pela sua instância:
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={evoTestPhone}
+                      onChange={(e) => setEvoTestPhone(e.target.value)}
+                      placeholder="(51) 99999-9999"
+                      className="flex-1 bg-black border border-neutral-700 px-3.5 py-2.5 text-sm text-white font-mono focus:border-emerald-400 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      disabled={testingEvo}
+                      onClick={handleSendTestEvolution}
+                      className="bg-white text-black px-5 py-2.5 font-oswald text-sm font-black uppercase tracking-wider hover:bg-emerald-400 transition-colors disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {testingEvo ? "Enviando..." : "Enviar Teste"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bloco de QR Code (se gerado) */}
+                {evoStatus.qrcodeBase64 && evoStatus.state !== "open" && (
+                  <div className="border-2 border-emerald-500 bg-neutral-950 p-6 text-center space-y-3">
+                    <span className="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold block">
+                      Escaneie com o WhatsApp da Loja
+                    </span>
+                    <div className="bg-white p-3 inline-block mx-auto">
+                      <img
+                        src={evoStatus.qrcodeBase64}
+                        alt="QR Code Evolution API"
+                        className="w-52 h-52 object-contain"
+                      />
+                    </div>
+                    <p className="text-xs text-neutral-400">
+                      Abra o WhatsApp no celular → Aparelhos Conectados → Conectar um Aparelho e aponte para o QR Code acima.
+                    </p>
+                  </div>
+                )}
+
+                {/* Resumo dos 3 Gatilhos Automáticos */}
+                <div className="border border-neutral-800 bg-neutral-950 p-5 space-y-2.5 text-xs text-neutral-400">
+                  <span className="text-white font-bold uppercase tracking-wider block">
+                    Gatilhos Automáticos Ativos na Esteira:
+                  </span>
+                  <div>
+                    <strong className="text-emerald-400">1. Checkout Pix (/api/checkout):</strong>{" "}
+                    Envia saudação + itens + código Pix Copia-e-Cola assim que o pedido é gerado.
+                  </div>
+                  <div>
+                    <strong className="text-emerald-400">2. Pagamento Aprovado (/api/webhooks/mercadopago):</strong>{" "}
+                    Avisa que o Pix/Cartão foi aprovado e a camiseta entrou em produção na fábrica.
+                  </div>
+                  <div>
+                    <strong className="text-emerald-400">3. Despacho Dimona (/api/webhooks/dimona):</strong>{" "}
+                    Envia o código de rastreamento e link direto assim que a encomenda é postada.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* MODAL DE RESULTADO DA SIMULAÇÃO DIMONA */}
         {dimonaSimulationResult && (
