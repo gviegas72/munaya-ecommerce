@@ -368,8 +368,13 @@
     <sc-if value="{{ showProduto }}" hint-placeholder-val="{{ false }}">
       <div style="display: flex; flex-direction: {{ prodDir }}; align-items: stretch; width: 100%; min-height: 100vh;">
         <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; border-right: {{ prodBorderR }}; box-sizing: border-box; background: #000;">
-          <div onTouchStart="{{ onGalleryTouchStart }}" onTouchEnd="{{ onGalleryTouchEnd }}" style="width: 100%; height: {{ prodImgH }}; border-bottom: 1px solid var(--fg); box-sizing: border-box; position: relative; touch-action: pan-y; overflow: hidden;">
-            <image-slot id="{{ activeProductImgSlotId }}" shape="rect" src="{{ activeProductImgUrl }}" placeholder="{{ activeProductImgAlt }}" style="width: 100%; height: 100%; touch-action: pan-y;"></image-slot>
+          <div onTouchStart="{{ onGalleryTouchStart }}" onTouchEnd="{{ onGalleryTouchEnd }}" style="width: 100%; height: {{ prodImgH }}; border-bottom: 1px solid var(--fg); box-sizing: border-box; position: relative; touch-action: pan-y; overflow: hidden; background: #000;">
+            <img src="{{ activeProductImgUrl }}" alt="{{ activeProductImgAlt }}" style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; touch-action: pan-y; transition: transform .3s ease;" />
+
+            <div style="position: absolute; top: 16px; right: 16px; z-index: 10; background: rgba(0,0,0,0.85); border: 1px solid var(--fg); padding: 5px 12px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--fg); display: flex; align-items: center; gap: 8px;">
+              <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.7); background: {{ activeColorHex }};"></span>
+              <span>COR: <strong style="color: {{ accent }};">{{ activeColorName }}</strong></span>
+            </div>
 
             <sc-if value="{{ hasMultipleImages }}" hint-placeholder-val="{{ false }}">
               <div style="position: absolute; top: 16px; left: 16px; z-index: 10; background: rgba(0,0,0,0.82); border: 1px solid var(--fg); padding: 4px 12px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--fg);">
@@ -413,10 +418,11 @@
             <sc-if value="{{ hasColors }}" hint-placeholder-val="{{ false }}">
               <div style="margin-top: 36px;">
                 <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 14px; margin: 0 0 16px 0;">{{ colorLabel }}</p>
-                <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                   <sc-for list="{{ productColors }}" as="c" hint-placeholder-count="3">
-                    <button type="button" onClick="{{ c.pick }}" aria-pressed="{{ c.pressed }}" aria-label="{{ c.name }}" title="{{ c.name }}" style="width: 48px; height: 48px; padding: 4px; border: 2px solid {{ c.ring }}; background: transparent; cursor: pointer; box-sizing: border-box;">
-                      <span style="display: block; width: 100%; height: 100%; background: {{ c.hex }}; outline: 1px solid rgba(255,255,255,.75); outline-offset: -1px;"></span>
+                    <button type="button" onClick="{{ c.pick }}" aria-pressed="{{ c.pressed }}" aria-label="{{ c.name }}" title="{{ c.name }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border: 2px solid {{ c.ring }}; background: {{ c.bg }}; color: {{ c.fg }}; cursor: pointer; box-sizing: border-box; transition: all .15s;">
+                      <span style="display: block; width: 14px; height: 14px; border-radius: 50%; background: {{ c.hex }}; outline: 1px solid rgba(255,255,255,.75); outline-offset: -1px; flex-shrink: 0;"></span>
+                      <span style="font-family: Oswald, sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;">{{ c.name }}</span>
                     </button>
                   </sc-for>
                 </div>
@@ -1015,11 +1021,14 @@
           <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; flex: 1;">
             <sc-for list="{{ cart }}" as="item" hint-placeholder-count="0">
               <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--fg); padding-bottom: 16px;">
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                  <span style="font-family: Oswald, sans-serif; font-size: 26px; font-weight: 700; text-transform: uppercase; line-height: 1;">{{ item.name }}</span>
-                  <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; opacity: .6;">Tam {{ item.size }}</span>
+                <div style="display: flex; gap: 12px; align-items: center; min-width: 0;">
+                  <img src="{{ item.image }}" alt="{{ item.name }}" style="width: 50px; height: 60px; object-fit: cover; border: 1px solid var(--fg); flex-shrink: 0; background: #000;" />
+                  <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                    <span style="font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700; text-transform: uppercase; line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.name }}</span>
+                    <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: {{ accent }};">{{ item.size }}</span>
+                  </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
                   <span style="font-family: Oswald, sans-serif; font-size: 24px; font-weight: 700;">{{ item.price }}</span>
                   <div role="button" tabindex="0" onClick="{{ item.remove }}" aria-label="Remover" style="cursor: pointer; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .5;" style-hover="opacity: 1; color: {{ accent }};">Tirar</div>
                 </div>
@@ -1328,6 +1337,41 @@ const DEFAULT_COLORS = [
   { name: "Cinza", hex: "#777777", skuCode: "CINZA" },
 ];
 const DEFAULT_SIZES = ["PP", "P", "M", "G", "GG", "XGG"];
+
+function getColorMockupForProduct(prod, colorName) {
+  if (!prod) return "/uploads/modelo_bonzo_01.jpg";
+  const cName = String(colorName || "Preta").trim();
+  const cObj = (prod.colors || DEFAULT_COLORS).find(
+    (c) => c.name.toLowerCase() === cName.toLowerCase()
+  );
+
+  // Se tiver um mockup específico configurado no Admin
+  if (cObj && cObj.mockupUrl && String(cObj.mockupUrl).trim()) {
+    return String(cObj.mockupUrl).trim();
+  }
+
+  let code = "PRETA";
+  const upper = cName.toUpperCase();
+  if (upper.includes("PRET") || upper === "#111111") code = "PRETA";
+  else if (upper.includes("BRANC") || upper === "#FFFFFF") code = "BRANCA";
+  else if (upper.includes("CINZ") || upper.includes("MESCL") || upper === "#777777") code = "CINZA";
+
+  // Se for Preta, usa a foto principal
+  if (code === "PRETA") {
+    return (prod.photos && prod.photos[0]) || prod.image || "/uploads/modelo_bonzo_01.jpg";
+  }
+
+  // Gera mockup dinâmico SVG realista da camiseta na cor com a estampa real do produto
+  const p = new URLSearchParams({
+    color: code,
+    sku: String(prod.sku || prod.slug || prod.name || "MUNAYA"),
+    name: String(prod.name || "Camiseta Munaya"),
+  });
+  if (prod.artwork_url) {
+    p.set("art", prod.artwork_url);
+  }
+  return "/api/mockup?" + p.toString();
+}
 
 function getVariantSku(prod, colorName, sizeName) {
   let base = (prod.sku || ("MUNAYA-" + (prod.name || "ROCK"))).toUpperCase();
@@ -1972,8 +2016,10 @@ class Component extends DCLogic {
     const num = "MNY-" + String(Math.floor(Math.random() * 9000) + 1000);
     const pay = this.state.ckPay;
     const items = Object.values(this.state.cart.reduce((acc, i) => {
-      const key = (i.productId || i.id || i.name) + "|" + i.size;
-      if (!acc[key]) acc[key] = { id: i.productId || i.id, name: i.name, size: i.size, color: i.color, qty: 0, price: i.price, unit: i.price, sku: i.sku };
+      const cleanSize = i.rawSize || String(i.size || "M").split("·")[0].trim();
+      const cleanColor = i.color || (String(i.size || "").split("·")[1] || "Preta").trim();
+      const key = (i.productId || i.id || i.name) + "|" + cleanSize + "|" + cleanColor;
+      if (!acc[key]) acc[key] = { id: i.productId || i.id, name: i.name, size: cleanSize, color: cleanColor, qty: 0, price: i.price, unit: i.price, sku: i.sku };
       acc[key].qty += 1;
       return acc;
     }, {}));
@@ -2257,6 +2303,7 @@ class Component extends DCLogic {
     const entries = [];
     const size = this.state.size + " · " + chosenColor;
     const variantSku = getVariantSku(p, chosenColor, this.state.size);
+    const itemImage = getColorMockupForProduct(p, chosenColor);
     for (let i = 0; i < this.state.qty; i++) {
       entries.push({
         id: Date.now() + i,
@@ -2267,7 +2314,7 @@ class Component extends DCLogic {
         rawSize: this.state.size,
         color: chosenColor,
         sku: variantSku,
-        image: p.image || (p.photos && p.photos[0]) || "",
+        image: itemImage,
       });
     }
     this.setState((s) => {
@@ -2547,6 +2594,8 @@ class Component extends DCLogic {
       activeSku: getVariantSku(p, s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta"), s.size || "M"),
       hasColors: true,
       colorLabel: "Cor: " + (s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta")),
+      activeColorName: s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta"),
+      activeColorHex: ((p.colors || DEFAULT_COLORS).find((c) => c.name === (s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta"))) || { hex: "#111111" }).hex,
       productColors: (p.colors || DEFAULT_COLORS).map((c) => {
         const curColor = s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta");
         const isSel = curColor === c.name;
@@ -2555,17 +2604,27 @@ class Component extends DCLogic {
           hex: c.hex,
           pressed: isSel,
           ring: isSel ? accent : "transparent",
-          pick: () => this.setState({ color: c.name, warn: false }),
+          bg: isSel ? "rgba(255,102,196,0.15)" : "rgba(0,0,0,0.5)",
+          fg: isSel ? "#ffffff" : "var(--fg)",
+          pick: () => this.setState({ color: c.name, photoIdx: 0, warn: false }),
         };
       }),
       warnText: "Escolha um tamanho antes de adicionar.",
       ...(() => {
-        const rawPhotos = ((p.photos && p.photos.length) ? p.photos : (p.image ? [p.image] : ["/uploads/modelo_bonzo_01.jpg"])).filter(Boolean).slice(0, 6);
+        const activeColorChoice = s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta");
+        const colorMockup = getColorMockupForProduct(p, activeColorChoice);
+        const basePhotos = ((p.photos && p.photos.length) ? p.photos : (p.image ? [p.image] : ["/uploads/modelo_bonzo_01.jpg"])).filter(Boolean).slice(0, 6);
+        const rawPhotos = [...basePhotos];
+        if (rawPhotos.length > 0) {
+          rawPhotos[0] = colorMockup;
+        } else {
+          rawPhotos.push(colorMockup);
+        }
         const curIdx = (typeof s.photoIdx === "number" && s.photoIdx >= 0 && s.photoIdx < rawPhotos.length) ? s.photoIdx : 0;
         const mappedPhotos = rawPhotos.map((photoUrl, i) => ({
           url: asset(photoUrl),
           slotId: "pt-p" + s.productId + "-" + (i + 1),
-          alt: p.name + " — foto " + (i + 1),
+          alt: p.name + " (" + activeColorChoice + ") — foto " + (i + 1),
           num: i + 1,
           border: i === curIdx ? accent : "rgba(255,255,255,0.3)",
           opacity: i === curIdx ? 1 : 0.6,

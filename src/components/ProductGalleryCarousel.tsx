@@ -1,26 +1,47 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ProductColor } from "@/lib/variants";
 
 interface ProductGalleryCarouselProps {
   images: string[];
   productName: string;
+  activeColor?: ProductColor;
+  colorMockupUrl?: string;
 }
 
 export function ProductGalleryCarousel({
   images,
   productName,
+  activeColor,
+  colorMockupUrl,
 }: ProductGalleryCarouselProps) {
-  const validImages = (images || []).map((u) => String(u || "").trim()).filter(Boolean);
-  const gallery =
+  const validImages = (images || [])
+    .map((u) => String(u || "").trim())
+    .filter(Boolean);
+
+  const baseGallery =
     validImages.length > 0
       ? validImages.slice(0, 6)
       : ["/uploads/modelo_bonzo_01.jpg"];
 
+  // Substitui a foto principal (índice 0) pelo mockup dinâmico/específico da cor selecionada
+  const gallery = React.useMemo(() => {
+    if (!colorMockupUrl) return baseGallery;
+    const next = [...baseGallery];
+    next[0] = colorMockupUrl;
+    return next;
+  }, [baseGallery, colorMockupUrl]);
+
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+
+  // Ao trocar a cor selecionada, volta imediatamente para a foto #1 (mockup da cor ativa)
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [activeColor?.name, colorMockupUrl]);
 
   const hasMultiple = gallery.length > 1;
   const safeIndex = activeIndex < gallery.length ? activeIndex : 0;
@@ -72,9 +93,22 @@ export function ProductGalleryCarousel({
         <img
           key={activeSrc}
           src={activeSrc}
-          alt={`${productName} — Foto ${safeIndex + 1} de ${gallery.length}`}
-          className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+          alt={`${productName} (${activeColor?.name || "Preta"}) — Foto ${safeIndex + 1} de ${gallery.length}`}
+          className="w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-105"
         />
+
+        {/* Badge da Cor Ativa no canto superior direito */}
+        {activeColor && (
+          <div className="absolute top-4 right-4 z-10 bg-black/85 border border-foreground/50 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground flex items-center gap-2">
+            <span
+              className="w-3 h-3 rounded-full border border-white/60 inline-block shrink-0"
+              style={{ backgroundColor: activeColor.hex }}
+            />
+            <span>
+              Cor: <strong className="text-[#ff66c4]">{activeColor.name}</strong>
+            </span>
+          </div>
+        )}
 
         {/* Contador e Setas de Navegação (apenas quando houver > 1 foto) */}
         {hasMultiple && (

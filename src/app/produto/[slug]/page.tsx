@@ -1,6 +1,5 @@
 import { getProductByIdOrSlug } from "@/lib/supabase";
-import { ProductActionSection } from "@/components/ProductActionSection";
-import { ProductGalleryCarousel } from "@/components/ProductGalleryCarousel";
+import { ProductDetailClient } from "@/components/ProductDetailClient";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -89,23 +88,8 @@ export default async function ProductDetail({ params }: ProductPageProps) {
         </span>
       </nav>
 
-      {/* Grid Principal da PDP */}
-      <div className="flex flex-col md:flex-row w-full flex-1">
-        {/* Left Column - Interactive Carousel & Thumbnails */}
-        <div className="w-full md:w-[65%] flex flex-col border-b md:border-b-0 md:border-r border-foreground bg-black">
-          <ProductGalleryCarousel
-            images={productImages}
-            productName={product.name}
-          />
-        </div>
-
-        {/* Right Column - Product details & action */}
-        <div className="w-full md:w-[35%] relative">
-          <div className="relative md:sticky md:top-0 md:h-[calc(100vh-45px)] flex flex-col justify-between bg-background p-6 md:p-8 md:overflow-y-auto">
-            <ProductActionSection product={product} />
-          </div>
-        </div>
-      </div>
+      {/* Grid Principal da PDP com troca dinâmica de mockups conectada */}
+      <ProductDetailClient product={product} initialImages={productImages} />
     </div>
   );
 }

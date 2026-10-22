@@ -8,12 +8,15 @@ import {
   OFFICIAL_SIZES,
   SIZE_MEASUREMENTS_TABLE,
   generateVariantSku,
+  getColorMockupUrl,
   ProductColor,
 } from "@/lib/variants";
 import { Ruler, Check, X } from "lucide-react";
 
 interface ProductActionSectionProps {
   product: DatabaseProduct;
+  selectedColor?: ProductColor;
+  onColorChange?: (color: ProductColor) => void;
 }
 
 interface ShippingOption {
@@ -29,7 +32,11 @@ interface ShippingResult {
   options: ShippingOption[];
 }
 
-export function ProductActionSection({ product }: ProductActionSectionProps) {
+export function ProductActionSection({
+  product,
+  selectedColor: externalColor,
+  onColorChange,
+}: ProductActionSectionProps) {
   // Cores ativas (se produto tiver cores customizadas no banco ou as 3 oficiais)
   const availableColors: ProductColor[] =
     product.colors && product.colors.length > 0
@@ -42,9 +49,17 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
       ? product.sizes
       : Array.from(OFFICIAL_SIZES);
 
-  const [selectedColor, setSelectedColor] = useState<ProductColor>(
+  const [internalColor, setInternalColor] = useState<ProductColor>(
     availableColors[0] || OFFICIAL_COLORS[0]
   );
+  const selectedColor = externalColor || internalColor;
+
+  const handleSelectColor = (col: ProductColor) => {
+    setInternalColor(col);
+    if (onColorChange) {
+      onColorChange(col);
+    }
+  };
   const [selectedSize, setSelectedSize] = useState<string>("M");
   const [qty, setQty] = useState<number>(1);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState<boolean>(false);
@@ -73,6 +88,8 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
 
     setErrorMsg(null);
 
+    const activeMockupUrl = getColorMockupUrl(product, selectedColor);
+
     // Adiciona o produto na sacola headless com SKU, Cor e Tamanho oficiais e abre a gaveta da sacola imediatamente
     addItem({
       productId: product.id,
@@ -81,7 +98,7 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
       size: selectedSize,
       color: selectedColor.name,
       sku: currentSku,
-      image: product.image_url,
+      image: activeMockupUrl,
       quantity: qty,
     });
     openCart();
@@ -175,7 +192,7 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
                 <button
                   key={col.name}
                   type="button"
-                  onClick={() => setSelectedColor(col)}
+                  onClick={() => handleSelectColor(col)}
                   className={`flex items-center gap-2 px-3 py-2 border-2 transition-all cursor-pointer ${
                     isSelected
                       ? "border-[#ff66c4] bg-[#ff66c4]/15 shadow-[0_0_12px_rgba(255,102,196,0.3)] text-white"

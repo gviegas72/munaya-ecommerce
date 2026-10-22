@@ -848,7 +848,7 @@ export default function AdminPage() {
   const handleFileUpload = async (
     file: File,
     field: "image_url" | "artwork_url"
-  ) => {
+  ): Promise<string | null> => {
     if (field === "image_url") setUploadingImage(true);
     if (field === "artwork_url") setUploadingArtwork(true);
     try {
@@ -881,11 +881,14 @@ export default function AdminPage() {
         }
         setActionMsg(`Upload concluído com sucesso!`);
         setTimeout(() => setActionMsg(""), 3000);
+        return data.url;
       } else {
         alert("Erro no upload da imagem: " + (data.error || "Tente novamente"));
+        return null;
       }
     } catch (e: any) {
       alert("Falha de rede no upload: " + (e?.message || String(e)));
+      return null;
     } finally {
       if (field === "image_url") setUploadingImage(false);
       if (field === "artwork_url") setUploadingArtwork(false);
@@ -1011,7 +1014,7 @@ export default function AdminPage() {
   const handleEditFileUpload = async (
     file: File,
     field: "image_url" | "artwork_url"
-  ) => {
+  ): Promise<string | null> => {
     if (field === "image_url") setUploadingEditImage(true);
     if (field === "artwork_url") setUploadingEditArtwork(true);
     try {
@@ -1047,11 +1050,14 @@ export default function AdminPage() {
         }
         setActionMsg(`Upload de nova imagem concluído!`);
         setTimeout(() => setActionMsg(""), 3000);
+        return data.url;
       } else {
         alert("Erro no upload da imagem: " + (data.error || "Tente novamente"));
+        return null;
       }
     } catch (e: any) {
       alert("Falha de rede no upload: " + (e?.message || String(e)));
+      return null;
     } finally {
       if (field === "image_url") setUploadingEditImage(false);
       if (field === "artwork_url") setUploadingEditArtwork(false);
@@ -3024,9 +3030,14 @@ export default function AdminPage() {
 
                       {/* Cores */}
                       <div>
-                        <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1.5">
-                          Cores Disponíveis (Preto é padrão)
-                        </label>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="block text-[11px] uppercase font-bold text-neutral-300">
+                            Cores Disponíveis (Preto é padrão)
+                          </label>
+                          <span className="text-[10px] text-neutral-400 font-mono">
+                            Mockups dinâmicos automáticos
+                          </span>
+                        </div>
                         <div className="grid grid-cols-3 gap-2">
                           {OFFICIAL_COLORS.map((col) => {
                             const isChecked = newProduct.colors.some(
@@ -3072,6 +3083,70 @@ export default function AdminPage() {
                             );
                           })}
                         </div>
+
+                        {/* Configuração opcional de mockup dedicado por cor ativa */}
+                        {newProduct.colors.length > 0 && (
+                          <div className="mt-3 space-y-2 pt-2 border-t border-neutral-800">
+                            <span className="text-[10px] uppercase font-bold text-neutral-400 block">
+                              Mockup Dedicado por Cor (Opcional — fallback automático para /api/mockup):
+                            </span>
+                            {newProduct.colors.map((c) => (
+                              <div
+                                key={c.name}
+                                className="flex items-center gap-2 bg-neutral-950 p-2 border border-neutral-800 text-xs"
+                              >
+                                <span
+                                  className="w-3 h-3 rounded-full border border-neutral-600 flex-shrink-0"
+                                  style={{ backgroundColor: c.hex }}
+                                />
+                                <span className="font-bold uppercase text-[11px] w-14">
+                                  {c.name}:
+                                </span>
+                                <input
+                                  type="text"
+                                  placeholder={`URL do mockup ${c.name} (https://...)`}
+                                  value={c.mockupUrl || ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setNewProduct((prev) => ({
+                                      ...prev,
+                                      colors: prev.colors.map((colItem) =>
+                                        colItem.name === c.name
+                                          ? { ...colItem, mockupUrl: val }
+                                          : colItem
+                                      ),
+                                    }));
+                                  }}
+                                  className="flex-1 bg-neutral-900 border border-neutral-700 px-2 py-1 text-xs text-neutral-200 focus:outline-none focus:border-[#ff66c4]"
+                                />
+                                <label className="cursor-pointer bg-neutral-800 hover:bg-neutral-700 px-2 py-1 text-[10px] font-bold uppercase border border-neutral-600 transition-colors">
+                                  Upload
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        const url = await handleFileUpload(file, "image_url");
+                                        if (url) {
+                                          setNewProduct((prev) => ({
+                                            ...prev,
+                                            colors: prev.colors.map((colItem) =>
+                                              colItem.name === c.name
+                                                ? { ...colItem, mockupUrl: url }
+                                                : colItem
+                                            ),
+                                          }));
+                                        }
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {/* Tamanhos */}
@@ -3738,9 +3813,14 @@ export default function AdminPage() {
 
                       {/* Cores */}
                       <div>
-                        <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1.5">
-                          Cores Disponíveis (Preto é padrão)
-                        </label>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="block text-[11px] uppercase font-bold text-neutral-300">
+                            Cores Disponíveis (Preto é padrão)
+                          </label>
+                          <span className="text-[10px] text-neutral-400 font-mono">
+                            Mockups dinâmicos automáticos
+                          </span>
+                        </div>
                         <div className="grid grid-cols-3 gap-2">
                           {OFFICIAL_COLORS.map((col) => {
                             const isChecked = editingProduct.colors.some(
@@ -3787,6 +3867,78 @@ export default function AdminPage() {
                             );
                           })}
                         </div>
+
+                        {/* Configuração opcional de mockup dedicado por cor ativa */}
+                        {editingProduct.colors.length > 0 && (
+                          <div className="mt-3 space-y-2 pt-2 border-t border-neutral-800">
+                            <span className="text-[10px] uppercase font-bold text-neutral-400 block">
+                              Mockup Dedicado por Cor (Opcional — fallback automático para /api/mockup):
+                            </span>
+                            {editingProduct.colors.map((c) => (
+                              <div
+                                key={c.name}
+                                className="flex items-center gap-2 bg-neutral-950 p-2 border border-neutral-800 text-xs"
+                              >
+                                <span
+                                  className="w-3 h-3 rounded-full border border-neutral-600 flex-shrink-0"
+                                  style={{ backgroundColor: c.hex }}
+                                />
+                                <span className="font-bold uppercase text-[11px] w-14">
+                                  {c.name}:
+                                </span>
+                                <input
+                                  type="text"
+                                  placeholder={`URL do mockup ${c.name} (https://...)`}
+                                  value={c.mockupUrl || ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setEditingProduct((prev) =>
+                                      prev
+                                        ? {
+                                            ...prev,
+                                            colors: prev.colors.map((colItem) =>
+                                              colItem.name === c.name
+                                                ? { ...colItem, mockupUrl: val }
+                                                : colItem
+                                            ),
+                                          }
+                                        : null
+                                    );
+                                  }}
+                                  className="flex-1 bg-neutral-900 border border-neutral-700 px-2 py-1 text-xs text-neutral-200 focus:outline-none focus:border-[#ff66c4]"
+                                />
+                                <label className="cursor-pointer bg-neutral-800 hover:bg-neutral-700 px-2 py-1 text-[10px] font-bold uppercase border border-neutral-600 transition-colors">
+                                  Upload
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        const url = await handleFileUpload(file, "image_url");
+                                        if (url) {
+                                          setEditingProduct((prev) =>
+                                            prev
+                                              ? {
+                                                  ...prev,
+                                                  colors: prev.colors.map((colItem) =>
+                                                    colItem.name === c.name
+                                                      ? { ...colItem, mockupUrl: url }
+                                                      : colItem
+                                                  ),
+                                                }
+                                              : null
+                                          );
+                                        }
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {/* Tamanhos */}

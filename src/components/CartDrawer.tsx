@@ -135,11 +135,11 @@ export function CartDrawer() {
                     {item.name}
                   </h3>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <span className="font-sans text-xs font-bold uppercase tracking-widest text-[#ff66c4]">
-                      {item.size} • {item.color || "Preta"}
+                    <span className="font-sans text-xs font-black uppercase tracking-widest text-[#ff66c4] bg-[#ff66c4]/10 border border-[#ff66c4]/30 px-2 py-0.5">
+                      {item.color || "Preta"} / {item.size}
                     </span>
                     {item.sku && (
-                      <span className="font-mono text-[10px] text-foreground/50 border border-foreground/20 px-1.5 py-0.5 rounded">
+                      <span className="font-mono text-[10px] text-foreground/70 border border-foreground/20 px-1.5 py-0.5 rounded bg-black/40">
                         {item.sku}
                       </span>
                     )}

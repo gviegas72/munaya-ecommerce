@@ -7,6 +7,7 @@ export interface ProductColor {
   name: string;
   hex: string;
   skuCode: string;
+  mockupUrl?: string;
 }
 
 export const OFFICIAL_COLORS: ProductColor[] = [
@@ -100,3 +101,47 @@ export function generateBaseSku(productNameOrSlug: string, productType: string =
   const namePart = sanitizeSkuName(productNameOrSlug);
   return `MNY-${typePart}-${namePart}`;
 }
+
+/**
+ * Resolve a URL do mockup correspondente à cor selecionada:
+ * 1. Se a cor tiver `mockupUrl` dedicada cadastrada no Admin, retorna ela.
+ * 2. Se for a cor padrão Preta sem override, retorna a foto principal do produto.
+ * 3. Para Branca, Cinza (Mescla) ou demais cores sem foto estática própria,
+ *    gera dinamicamente o mockup da camiseta na cor escolhida com a estampa real do produto (/api/mockup).
+ */
+export function getColorMockupUrl(
+  product: {
+    name?: string;
+    slug?: string;
+    sku?: string;
+    image_url?: string;
+    artwork_url?: string;
+    gallery?: string[];
+  },
+  color: ProductColor
+): string {
+  if (color?.mockupUrl && String(color.mockupUrl).trim()) {
+    return String(color.mockupUrl).trim();
+  }
+
+  const normColor = sanitizeSkuColor(color?.skuCode || color?.name || "PRETA");
+  const defaultCover =
+    (product.gallery && product.gallery.length > 0 && product.gallery[0]) ||
+    product.image_url ||
+    "/uploads/modelo_bonzo_01.jpg";
+
+  if (normColor === "PRETA") {
+    return defaultCover;
+  }
+
+  const params = new URLSearchParams({
+    color: normColor,
+    sku: String(product.sku || product.slug || product.name || "MUNAYA"),
+    name: String(product.name || "Camiseta Munaya Rocks"),
+  });
+  if (product.artwork_url) {
+    params.set("art", String(product.artwork_url));
+  }
+  return `/api/mockup?${params.toString()}`;
+}
+
