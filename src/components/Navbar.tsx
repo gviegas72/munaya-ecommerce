@@ -15,6 +15,7 @@ export function Navbar() {
     { href: "/", label: "Início" },
     { href: "/#colecoes", label: "Estampas" },
     { href: "/#sobre", label: "Sobre" },
+    { href: "/login", label: "Minha Conta" },
     { href: "/admin", label: "Admin" },
   ];
 
@@ -147,6 +148,16 @@ export function Navbar() {
               className="hover:translate-x-2 transition-transform duration-200 opacity-70 hover:opacity-100"
             >
               Sobre
+            </Link>
+            <Link
+              href="/login"
+              className={`hover:translate-x-2 transition-transform duration-200 ${
+                pathname === "/login" || pathname === "/esqueci-senha" || pathname === "/redefinir-senha"
+                  ? "text-[#ff66c4]"
+                  : "opacity-70 hover:opacity-100"
+              }`}
+            >
+              Minha Conta
             </Link>
             <Link
               href="/admin"
