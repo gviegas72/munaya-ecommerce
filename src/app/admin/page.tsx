@@ -268,6 +268,15 @@ export default function AdminPage() {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderSearch, setOrderSearch] = useState("");
   const [actionMsg, setActionMsg] = useState("");
+  const [whatsappPreview, setWhatsappPreview] = useState<{
+    orderId: string;
+    customerName: string;
+    type: "created" | "paid" | "shipped";
+    phone: string;
+    text: string;
+    wa_me_url: string;
+    simulated?: boolean;
+  } | null>(null);
   // Estados de Gestão de Cupons
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loadingCoupons, setLoadingCoupons] = useState(false);
@@ -1004,6 +1013,60 @@ export default function AdminPage() {
     }
   };
 
+  const handleSendWhatsApp = async (
+    order: Order,
+    type: "created" | "paid" | "shipped"
+  ) => {
+    let trackingCode = order.tracking_code;
+    if (type === "shipped" && !trackingCode) {
+      const input = prompt(
+        "Digite o código de rastreamento da transportadora/Correios:",
+        "BR" + order.id.replace(/\D/g, "") + "MY"
+      );
+      if (!input) return;
+      trackingCode = input.trim();
+    }
+
+    setActionMsg(`Gerando notificação WhatsApp (${type}) para #${order.id}...`);
+    try {
+      const savedPin =
+        localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/orders/whatsapp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify({
+          order_id: order.id,
+          type,
+          tracking_code: trackingCode,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.result) {
+        setActionMsg(
+          `📲 Notificação WhatsApp (${type}) processada para +${data.result.phone || order.customer_phone}!`
+        );
+        setTimeout(() => setActionMsg(""), 3500);
+        setWhatsappPreview({
+          orderId: order.id,
+          customerName: order.customer_name,
+          type,
+          phone: data.result.phone,
+          text: data.result.text,
+          wa_me_url: data.result.wa_me_url,
+          simulated: data.result.simulated,
+        });
+        loadOrders();
+      } else {
+        alert("Erro ao processar WhatsApp: " + (data.error || "Falha"));
+      }
+    } catch (e: any) {
+      alert("Erro ao processar WhatsApp: " + (e?.message || String(e)));
+    }
+  };
+
   const handleDispatchDimona = async (order: Order) => {
     if (!confirm(`Deseja despachar o pedido ${order.id} para a fábrica Dimona agora?`)) {
       return;
@@ -1518,6 +1581,24 @@ export default function AdminPage() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            onClick={() => handleSendWhatsApp(order, isPaid ? "paid" : "created")}
+                            title="Disparar / Visualizar notificação WhatsApp (Pix Copia-e-Cola ou Pagamento Confirmado)"
+                            className="inline-flex items-center gap-1.5 border border-emerald-700 bg-emerald-950/50 text-emerald-300 px-3 py-1.5 text-xs uppercase font-bold tracking-wider hover:bg-emerald-500 hover:text-black transition-colors"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            <span>{isPaid ? "WhatsApp Pago" : "WhatsApp Pix"}</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleSendWhatsApp(order, "shipped")}
+                            title="Disparar / Visualizar código de rastreamento via WhatsApp"
+                            className="inline-flex items-center gap-1.5 border border-emerald-800 bg-neutral-900 text-emerald-400 px-3 py-1.5 text-xs uppercase font-bold tracking-wider hover:border-emerald-400 hover:text-white transition-colors"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            <span>WhatsApp Rastreio</span>
+                          </button>
+
                           <button
                             onClick={() => handleSendEmail(order, isPaid ? "paid" : "created")}
                             title="Reenviar e-mail de notificação para o cliente"
@@ -4604,6 +4685,78 @@ export default function AdminPage() {
                 >
                   Fechar Simulação
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL DE NOTIFICAÇÃO & PREVIEW WHATSAPP */}
+        {whatsappPreview && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 overflow-y-auto">
+            <div className="w-full max-w-xl border-2 border-emerald-500 bg-neutral-950 p-6 space-y-5 shadow-[0_0_50px_rgba(16,185,129,0.25)]">
+              <div className="flex items-start justify-between gap-4 border-b border-neutral-800 pb-4">
+                <div>
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-bold">
+                    Esteira de Notificações WhatsApp · Pedido #{whatsappPreview.orderId}
+                  </span>
+                  <h3 className="font-oswald text-2xl font-black uppercase text-white mt-1">
+                    {whatsappPreview.type === "created"
+                      ? "Gatilho 1: Pix Copia e Cola"
+                      : whatsappPreview.type === "paid"
+                      ? "Gatilho 2: Pagamento Confirmado"
+                      : "Gatilho 3: Código de Rastreamento"}
+                  </h3>
+                  <p className="text-xs text-neutral-400 font-mono mt-1">
+                    Destinatário: <strong className="text-white">{whatsappPreview.customerName}</strong> · Telefone Higienizado (DDI 55):{" "}
+                    <strong className="text-emerald-400">+{whatsappPreview.phone || "Não informado"}</strong>
+                  </p>
+                </div>
+                <button
+                  onClick={() => setWhatsappPreview(null)}
+                  className="border border-neutral-700 px-2.5 py-1 text-xs font-bold uppercase text-neutral-400 hover:text-white hover:border-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs uppercase font-bold text-neutral-400 tracking-wider">
+                    Mensagem Formatada Pronta:
+                  </span>
+                  <span className="text-[11px] font-mono px-2 py-0.5 border border-emerald-700 bg-emerald-950/60 text-emerald-300">
+                    {whatsappPreview.simulated
+                      ? "Pronto para Envio 1-Clique / API"
+                      : "Disparado via API WhatsApp"}
+                  </span>
+                </div>
+                <pre className="p-4 bg-black border-2 border-neutral-800 text-xs font-mono text-neutral-200 whitespace-pre-wrap break-all max-h-72 overflow-y-auto leading-relaxed">
+                  {whatsappPreview.text}
+                </pre>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-neutral-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(whatsappPreview.text);
+                    setActionMsg("📋 Mensagem do WhatsApp copiada para a área de transferência!");
+                    setTimeout(() => setActionMsg(""), 3000);
+                  }}
+                  className="px-4 py-2.5 border border-neutral-700 bg-neutral-900 text-white font-oswald text-sm font-bold uppercase tracking-wider hover:border-white transition-colors"
+                >
+                  Copiar Texto
+                </button>
+
+                <a
+                  href={whatsappPreview.wa_me_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-5 py-2.5 bg-emerald-500 text-black font-oswald text-sm font-black uppercase tracking-wider hover:bg-white transition-colors inline-flex items-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Abrir e Enviar no WhatsApp</span>
+                </a>
               </div>
             </div>
           </div>

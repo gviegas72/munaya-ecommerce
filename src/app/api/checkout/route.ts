@@ -5,6 +5,7 @@ import { calculateDimonaShipping } from "@/lib/dimona";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sanitizeString, sanitizeDigits } from "@/lib/sanitize";
 import { sendOrderCreatedEmail } from "@/lib/email";
+import { sendOrderCreatedWhatsApp } from "@/lib/whatsapp";
 import { validateCouponCode, incrementCouponUsage } from "@/lib/coupons";
 
 /**
@@ -243,6 +244,26 @@ export async function POST(req: NextRequest) {
           zipcode: address.zipcode,
           items: validatedItems,
         }).catch((e) => console.warn("⚠️ [EMAIL] Falha ao disparar e-mail de pedido criado:", e));
+      }
+
+      // Dispara notificação transacional via WhatsApp (Resumo + Pix Copia e Cola)
+      if (customer.phone) {
+        sendOrderCreatedWhatsApp({
+          id: orderId,
+          customer_name: customer.name || "Cliente Munaya",
+          customer_phone: customer.phone,
+          total_amount: officialTotal,
+          payment_method: "pix",
+          pix_code: mpResult.pix.qr_code,
+          street: address.street,
+          number: address.number,
+          complement: address.complement,
+          neighborhood: address.neighborhood,
+          city: address.city,
+          state: address.state,
+          zipcode: address.zipcode,
+          items: validatedItems,
+        }).catch((e) => console.warn("⚠️ [WHATSAPP] Falha ao disparar WhatsApp de pedido criado:", e));
       }
 
       return NextResponse.json({

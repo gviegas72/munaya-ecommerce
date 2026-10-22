@@ -909,6 +909,7 @@
             <div style="margin-top: 12px; font-family: ui-monospace, Menlo, monospace; font-size: 14px; line-height: 1.6; word-break: break-all; opacity: .85;">{{ orderPixCode }}</div>
             <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 18px;">
               <div role="button" tabindex="0" onClick="{{ copyPix }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 10px; background: var(--fg); color: var(--bg); font-family: Oswald, sans-serif; font-size: 19px; font-weight: 700; text-transform: uppercase; padding: 12px 20px;">{{ copyLabel }}</div>
+              <div role="button" tabindex="0" onClick="{{ sendPixToWhatsApp }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; border: 2px solid #10b981; background: rgba(16, 185, 129, 0.15); color: #10b981; font-family: Oswald, sans-serif; font-size: 19px; font-weight: 700; text-transform: uppercase; padding: 12px 20px;"><span>📲 Receber PIX no WhatsApp</span></div>
               <div role="button" tabindex="0" onClick="{{ checkStatusManual }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; border: 2px solid var(--fg); background: transparent; color: var(--fg); font-family: Oswald, sans-serif; font-size: 19px; font-weight: 700; text-transform: uppercase; padding: 12px 20px;"><span>🔄 Já fiz o Pix / Verificar</span></div>
             </div>
           </div>
@@ -2576,6 +2577,23 @@ class Component extends DCLogic {
       copyPix: () => {
         if (s.order && navigator.clipboard) navigator.clipboard.writeText(s.order.pixCode).catch(() => {});
         this.setState({ copied: true });
+      },
+      sendPixToWhatsApp: () => {
+        if (!s.order) return;
+        const rawPhone = String(s.ckForm.fone || (s.account && s.account.fone) || "").replace(/\D/g, "").replace(/^0+/, "");
+        const phoneWithDdi = rawPhone.length >= 10 ? (rawPhone.startsWith("55") ? rawPhone : "55" + rawPhone) : "";
+        const msg = [
+          "🤘 *MUNAYA ROCKS — PEDIDO " + s.order.num + "*",
+          "",
+          "💰 *Total:* " + brl(s.order.total),
+          "",
+          "⚡ *PIX COPIA E COLA:*",
+          s.order.pixCode,
+        ].join("\n");
+        const waUrl = phoneWithDdi
+          ? "https://wa.me/" + phoneWithDdi + "?text=" + encodeURIComponent(msg)
+          : "https://wa.me/?text=" + encodeURIComponent(msg);
+        window.open(waUrl, "_blank");
       },
       checkStatusManual: this.checkOrderStatusManual,
 

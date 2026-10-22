@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendOrderShippedEmail } from "@/lib/email";
+import { sendOrderShippedWhatsApp } from "@/lib/whatsapp";
 import { safeCompare } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
@@ -131,6 +132,25 @@ export async function POST(req: NextRequest) {
         state: order.state,
         zipcode: order.zipcode,
       }).catch((e) => console.warn("⚠️ [EMAIL] Falha ao enviar e-mail de rastreio via webhook Dimona:", e));
+    }
+
+    if (isShipped && trackingCode && order.customer_phone) {
+      console.log(`📲 [DIMONA] Disparando WhatsApp de rastreamento para ${order.customer_phone}...`);
+      sendOrderShippedWhatsApp({
+        id: order.id,
+        customer_name: order.customer_name,
+        customer_phone: order.customer_phone,
+        total_amount: order.total_amount,
+        tracking_code: trackingCode,
+        tracking_url: trackingUrl,
+        street: order.street,
+        number: order.number,
+        complement: order.complement,
+        neighborhood: order.neighborhood,
+        city: order.city,
+        state: order.state,
+        zipcode: order.zipcode,
+      }).catch((e) => console.warn("⚠️ [WHATSAPP] Falha ao enviar WhatsApp de rastreio via webhook Dimona:", e));
     }
 
     return NextResponse.json({

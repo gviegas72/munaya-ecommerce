@@ -5,6 +5,7 @@ import { buildDimonaDispatchItem, validateDimonaOrderData } from "@/lib/dimona-m
 import { saveDatabaseOrder, supabaseAdmin, getCatalogProducts } from "@/lib/supabase";
 import { verifyMercadoPagoWebhookSignature } from "@/lib/mp-webhook-auth";
 import { sendPaymentConfirmedEmail } from "@/lib/email";
+import { sendPaymentConfirmedWhatsApp } from "@/lib/whatsapp";
 
 /**
  * Webhook Oficial do Mercado Pago
@@ -148,6 +149,17 @@ export async function POST(req: NextRequest) {
             total_amount: Number(dbOrder?.total_amount || mpOrder.total_amount) || 89.9,
             items: dimonaPayload.items,
           }).catch((e) => console.warn("⚠️ [EMAIL] Falha ao enviar confirmação de pagamento webhook:", e));
+        }
+
+        // Dispara notificação transacional via WhatsApp de pagamento aprovado
+        if (customerPhone) {
+          sendPaymentConfirmedWhatsApp({
+            id: externalId,
+            customer_name: customerName,
+            customer_phone: customerPhone,
+            total_amount: Number(dbOrder?.total_amount || mpOrder.total_amount) || 89.9,
+            items: dimonaPayload.items,
+          }).catch((e) => console.warn("⚠️ [WHATSAPP] Falha ao enviar confirmação de pagamento webhook:", e));
         }
       }
     }
