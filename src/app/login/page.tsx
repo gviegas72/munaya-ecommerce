@@ -94,6 +94,12 @@ export default function LoginPage() {
     setErrorMsg("");
     setRegisterSuccessMsg("");
 
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      setErrorMsg("Informe um e-mail válido.");
+      return;
+    }
+
     if (password.length < 6) {
       setErrorMsg("A senha deve ter no mínimo 6 caracteres.");
       return;
@@ -107,24 +113,30 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password,
+      // 1. Cria a conta no backend com auto-confirmação ativa (sem link quebrado para localhost)
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, password }),
       });
 
-      if (error) {
-        setErrorMsg(error.message || "Erro ao criar conta. Verifique os dados informados.");
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        setErrorMsg(result.error || "Erro ao cadastrar conta.");
+        setLoading(false);
         return;
       }
 
-      if (data?.session?.user) {
-        // Autenticado imediatamente (se auto-confirm estiver habilitado no Supabase)
-        setCurrentUser(data.session.user);
+      // 2. Efetua o login imediatamente na sessão do navegador
+      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: password,
+      });
+
+      if (loginData?.user) {
+        setCurrentUser(loginData.user);
       } else {
-        // Exige confirmação por e-mail
-        setRegisterSuccessMsg(
-          "Conta criada com sucesso! Enviamos um link de confirmação para o seu e-mail. Caso seu projeto não exija confirmação, você já pode entrar."
-        );
+        setRegisterSuccessMsg("Conta criada com sucesso! Faça login abaixo.");
         setAuthMode("login");
       }
     } catch (err: any) {
