@@ -1,4 +1,4 @@
-import { getStoreProductById } from "@/lib/nuvemshop";
+import { getProductByIdOrSlug } from "@/lib/supabase";
 import { ProductActionSection } from "@/components/ProductActionSection";
 import { notFound } from "next/navigation";
 
@@ -8,14 +8,17 @@ interface ProductPageProps {
 
 export default async function ProductDetail({ params }: ProductPageProps) {
   const { id } = await params;
-  const product = await getStoreProductById(id);
+  const product = await getProductByIdOrSlug(id);
 
   if (!product) {
     notFound();
   }
 
+  // Lista de imagens com suporte a fotos adicionais ou fallback da foto principal
   const productImages =
-    product.images?.length > 0 ? product.images : [product.image];
+    product.images && Array.isArray(product.images) && product.images.length > 0
+      ? product.images
+      : [product.image_url];
 
   return (
     <div className="flex flex-col md:flex-row w-full min-h-screen">

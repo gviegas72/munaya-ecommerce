@@ -30,7 +30,7 @@ export interface DimonaDeliveryAddress {
 }
 
 export interface DimonaCreateOrderPayload {
-  external_id: string; // ID do pedido na Nuvemshop
+  external_id: string; // ID do pedido no e-commerce Munaya Rocks
   items: DimonaOrderItem[];
   delivery: DimonaDeliveryAddress;
   notes?: string;

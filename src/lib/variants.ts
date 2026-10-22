@@ -75,25 +75,28 @@ export function sanitizeSkuColor(colorName: string): string {
 
 /**
  * Gera o SKU oficial da variante completa
- * Padrão: MUNAYA-[NOME]-[COR]-[TAM]
- * Exemplo: MUNAYA-DIMEBAG-PRETA-PP
+ * Padrão Enxuto: MNY-[TIPO]-[NOME]-[COR]-[TAM]
+ * Exemplo: MNY-TSH-DIMEBAG-PRETA-PP
  */
 export function generateVariantSku(
   productNameOrSlug: string,
   colorName: string = "Preta",
-  sizeName: string = "M"
+  sizeName: string = "M",
+  productType: string = "TSH"
 ): string {
+  const typePart = String(productType || "TSH").toUpperCase().trim().slice(0, 3);
   const namePart = sanitizeSkuName(productNameOrSlug);
   const colorPart = sanitizeSkuColor(colorName);
   const sizePart = String(sizeName || "M").toUpperCase().trim();
-  return `MUNAYA-${namePart}-${colorPart}-${sizePart}`;
+  return `MNY-${typePart}-${namePart}-${colorPart}-${sizePart}`;
 }
 
 /**
  * Gera o SKU base do produto (sem cor e tamanho)
- * Padrão: MUNAYA-[NOME]
+ * Padrão Enxuto: MNY-[TIPO]-[NOME]
  */
-export function generateBaseSku(productNameOrSlug: string): string {
+export function generateBaseSku(productNameOrSlug: string, productType: string = "TSH"): string {
+  const typePart = String(productType || "TSH").toUpperCase().trim().slice(0, 3);
   const namePart = sanitizeSkuName(productNameOrSlug);
-  return `MUNAYA-${namePart}`;
+  return `MNY-${typePart}-${namePart}`;
 }

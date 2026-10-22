@@ -18,8 +18,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Munaya | A Arte do Caos",
+  title: "Munaya Rocks | A Arte do Caos",
   description: "Munaya reinventa a arte de se vestir com o rock. Irreverente, pesado e focado no lifestyle.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
+  },
 };
 
 export default function RootLayout({

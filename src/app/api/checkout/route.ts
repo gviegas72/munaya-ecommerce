@@ -81,7 +81,9 @@ export async function POST(req: NextRequest) {
     }
 
     let calculatedSubtotal = 0;
-    const validatedItems = rawItems.map((it: any) => {
+    const validatedItems: any[] = [];
+
+    for (const it of rawItems) {
       const pId = it.id || it.productId;
       const cleanName = String(it.name || "").trim().toLowerCase();
       const dbProd =
@@ -89,34 +91,38 @@ export async function POST(req: NextRequest) {
         productMap.get(Number(pId)) ||
         productNameMap.get(cleanName);
       
-      // Preço oficial do banco; se não cadastrado, fallback seguro da camiseta padrão
-      const officialPrice = dbProd ? Number(dbProd.price) : Number(it.price || it.unit || 89.9);
+      // Trava de Segurança Crítica (Ponto 1):
+      // Se o produto não existir no Supabase ou estiver inativo/sem preço, REJEITA a compra.
+      if (!dbProd || dbProd.price === undefined || dbProd.price === null || dbProd.price <= 0) {
+        return NextResponse.json(
+          {
+            error: `O produto "${it.name || "selecionado"}" não está mais disponível no catálogo ou seu preço está em atualização. Por favor, atualize sua sacola.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const officialPrice = Number(dbProd.price);
       const qty = Math.max(1, parseInt(String(it.quantity || it.qty || 1), 10));
       calculatedSubtotal += officialPrice * qty;
 
-      return {
-        id: dbProd ? dbProd.id : pId,
-        name: dbProd ? dbProd.name : it.name || "Camiseta Munaya",
+      validatedItems.push({
+        id: dbProd.id,
+        name: dbProd.name,
         quantity: qty,
         unit_price: officialPrice,
         size: it.size || "M",
+        color: it.color || "Preta",
         sku: it.sku,
-      };
-    });
+      });
+    }
 
     // 2. Validação segura do valor do frete
-    const isTestOrder =
-      calculatedSubtotal <= 1.05 ||
-      validatedItems.some((it: any) => String(it.id) === "99" || String(it.name).toLowerCase().includes("teste"));
-
     const cleanZip = String(address.zipcode || "").replace(/\D/g, "");
     const clientShipping = Number(body.shipping_amount ?? body.frete ?? body.shipValue ?? 0);
     let officialShipping = clientShipping;
 
-    if (isTestOrder) {
-      // Homologação: Produto de R$ 1,00 possui frete cortesia R$ 0,00
-      officialShipping = 0;
-    } else if (cleanZip.length === 8) {
+    if (cleanZip.length === 8) {
       try {
         const totalQty = validatedItems.reduce((acc: number, cur: any) => acc + cur.quantity, 0);
         const quotes = await calculateDimonaShipping(cleanZip, totalQty);
@@ -136,7 +142,7 @@ export async function POST(req: NextRequest) {
     let shippingDiscount = 0;
     let validatedCouponCodeStr = "";
 
-    if (rawCoupon && !isTestOrder) {
+    if (rawCoupon) {
       const couponRes = await validateCouponCode(rawCoupon, calculatedSubtotal, officialShipping);
       if (couponRes.valid) {
         if (couponRes.type === "free_shipping") {
@@ -150,22 +156,13 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Cálculo do valor total oficial (com desconto de cupom e 5% de desconto para PIX)
-    let officialTotal = 0;
-    let pixDiscount = 0;
     const finalShipping = Math.max(0, officialShipping - shippingDiscount);
-
-    if (isTestOrder) {
-      // Valor exato de R$ 1,00 para teste de homologação sem cobrança de frete
-      officialTotal = 1.00;
-      pixDiscount = 0;
-    } else {
-      const baseAfterCoupon = Math.max(0, calculatedSubtotal - couponDiscount);
-      pixDiscount = paymentMethod === "pix" ? baseAfterCoupon * 0.05 : 0;
-      officialTotal = Math.max(
-        0.01,
-        Number((baseAfterCoupon + finalShipping - pixDiscount).toFixed(2))
-      );
-    }
+    const baseAfterCoupon = Math.max(0, calculatedSubtotal - couponDiscount);
+    const pixDiscount = paymentMethod === "pix" ? baseAfterCoupon * 0.05 : 0;
+    const officialTotal = Math.max(
+      0.01,
+      Number((baseAfterCoupon + finalShipping - pixDiscount).toFixed(2))
+    );
 
     console.log("🔒 [CHECKOUT SEGURO VALIDADO]", {
       orderId,

@@ -10,16 +10,14 @@ import React, {
 } from "react";
 
 export interface CartItem {
-  id: string; // ex: "375454425-M" ou SKU
+  id: string; // SKU completo ex: "MNY-TSH-DIMEBAG-PRETA-M"
   productId: string | number;
-  nuvemshopId: string;
   name: string;
   price: number;
   formattedPrice: string;
   size: string;
   color?: string;
   sku?: string;
-  variantId?: number;
   image: string;
   quantity: number;
   checkoutUrl?: string;
@@ -27,13 +25,11 @@ export interface CartItem {
 
 export interface CartItemInput {
   productId: string | number;
-  nuvemshopId?: string;
   name: string;
   price: number | string;
   size: string;
   color?: string;
   sku?: string;
-  variantId?: number;
   image: string;
   quantity?: number;
   checkoutUrl?: string;
@@ -98,14 +94,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const rawPrice =
       typeof input.price === "number"
         ? input.price
-        : parseFloat(String(input.price).replace(/[^0-9.,]/g, "").replace(",", ".")) || 119;
+        : parseFloat(String(input.price).replace(/[^0-9.,]/g, "").replace(",", ".")) || 89.9;
 
     const formattedPrice =
       typeof input.price === "string" && input.price.includes("R$")
         ? input.price
-        : `R$ ${rawPrice.toFixed(0)}`;
+        : `R$ ${rawPrice.toFixed(2).replace(".", ",")}`;
 
-    const nuvemshopId = String(input.nuvemshopId || input.productId || "");
     const id =
       input.sku ||
       `${input.productId}-${input.color || "Preta"}-${input.size}`;
@@ -125,14 +120,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const newItem: CartItem = {
         id,
         productId: input.productId,
-        nuvemshopId,
         name: input.name,
         price: rawPrice,
         formattedPrice,
         size: input.size,
         color: input.color || "Preta",
         sku: input.sku,
-        variantId: input.variantId,
         image: input.image,
         quantity: qty,
         checkoutUrl: input.checkoutUrl,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getMercadoPagoOrder } from "@/lib/mercadopago";
 import { createDimonaOrder } from "@/lib/dimona";
 import { getArtworkUrl } from "@/lib/artworks";
-import { saveDatabaseOrder } from "@/lib/supabase";
+import { saveDatabaseOrder, supabaseAdmin } from "@/lib/supabase";
 import { verifyMercadoPagoWebhookSignature } from "@/lib/mp-webhook-auth";
 import { sendPaymentConfirmedEmail } from "@/lib/email";
 
@@ -58,36 +58,55 @@ export async function POST(req: NextRequest) {
         console.log("💰 [PAGAMENTO APROVADO] Despachando para a Dimona...");
 
         const externalId = mpOrder.external_reference || `MNY-${mpOrder.id}`;
-        const payer = mpOrder.payer || {};
-        const address = payer.address || {};
+        
+        // 1. Busca os dados reais e validados do pedido diretamente do Supabase
+        const { data: dbOrder } = await supabaseAdmin
+          .from("orders")
+          .select("*")
+          .eq("id", externalId)
+          .maybeSingle();
 
-        // Monta o payload de produção para a Dimona
+        const payer = mpOrder.payer || {};
+        const customerName = dbOrder?.customer_name || `${payer.first_name || "Cliente"} ${payer.last_name || ""}`.trim();
+        const customerEmail = dbOrder?.customer_email || payer.email || "contato@munayarocks.com.br";
+        const customerCpf = dbOrder?.customer_cpf || payer.identification?.number || "";
+        const customerPhone = dbOrder?.customer_phone || payer.phone || "";
+
+        // Itens oficiais do pedido cadastrado no Supabase
+        const rawItems = dbOrder?.items && Array.isArray(dbOrder.items) && dbOrder.items.length > 0
+          ? dbOrder.items
+          : (mpOrder.items || []);
+
+        const dimonaItems = rawItems.map((it: any) => {
+          const sku = it.sku || `MNY-TSH-${String(it.name || it.title || "ROCK").toUpperCase().replace(/\s+/g, "-")}-${it.color || "PRETA"}-${it.size || "M"}`;
+          return {
+            sku,
+            name: it.name || it.title || "Camiseta Munaya Rocks",
+            qty: Number(it.quantity || it.qty) || 1,
+            size: it.size || "M",
+            color: it.color || "Preta",
+            unit_price: Number(it.price || it.unit_price) || 89.9,
+            artwork_url: it.artwork_url || getArtworkUrl(sku),
+          };
+        });
+
+        // Monta o payload de produção para a Dimona com o endereço real
         const dimonaPayload = {
           external_id: externalId,
-          items: (mpOrder.items || []).map((it: any) => {
-            const sku = it.sku || `MUNAYA-${String(it.title || "BONZO").toUpperCase().replace(/\s+/g, "-")}-PRETA-M`;
-            return {
-              sku,
-              name: it.title || "Camiseta Munaya Rocks",
-              qty: Number(it.quantity) || 1,
-              size: it.size || "M",
-              unit_price: Number(it.unit_price) || 119,
-              artwork_url: getArtworkUrl(sku),
-            };
-          }),
+          items: dimonaItems,
           delivery: {
-            recipient_name: `${payer.first_name || "Cliente"} ${payer.last_name || "Munaya"}`.trim(),
-            recipient_document: payer.identification?.number || "00000000000",
-            recipient_email: payer.email || "contato@munayarocks.com.br",
-            recipient_phone: payer.phone || "",
-            street: address.street_name || "Rua",
-            number: String(address.street_number || "S/N"),
-            complement: address.complement || "",
-            neighborhood: address.neighborhood || "Centro",
-            city: address.city || "Porto Alegre",
-            state: address.state || "RS",
-            zipcode: address.zip_code || "91380410",
-            shipping_speed: "PAC" as const,
+            recipient_name: customerName,
+            recipient_document: customerCpf.replace(/\D/g, ""),
+            recipient_email: customerEmail,
+            recipient_phone: customerPhone.replace(/\D/g, ""),
+            street: dbOrder?.street || "Rua",
+            number: String(dbOrder?.number || "S/N"),
+            complement: dbOrder?.complement || "",
+            neighborhood: dbOrder?.neighborhood || "Bairro",
+            city: dbOrder?.city || "Porto Alegre",
+            state: dbOrder?.state || "RS",
+            zipcode: String(dbOrder?.zipcode || "00000000").replace(/\D/g, ""),
+            shipping_speed: (dbOrder?.shipping_service || "PAC") as "PAC" | "SEDEX",
           },
           notes: `Pedido #${externalId} aprovado via Mercado Pago Orders API`,
         };
@@ -104,12 +123,12 @@ export async function POST(req: NextRequest) {
         }).catch((e) => console.warn("Erro ao atualizar status no Supabase:", e));
 
         // Dispara e-mail transacional de pagamento aprovado
-        if (payer.email) {
+        if (customerEmail) {
           sendPaymentConfirmedEmail({
             id: externalId,
-            customer_name: `${payer.first_name || "Cliente"} ${payer.last_name || ""}`.trim(),
-            customer_email: payer.email,
-            total_amount: Number(mpOrder.total_amount) || 1,
+            customer_name: customerName,
+            customer_email: customerEmail,
+            total_amount: Number(dbOrder?.total_amount || mpOrder.total_amount) || 89.9,
             items: dimonaPayload.items,
           }).catch((e) => console.warn("⚠️ [EMAIL] Falha ao enviar confirmação de pagamento webhook:", e));
         }

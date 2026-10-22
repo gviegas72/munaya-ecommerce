@@ -1,17 +1,19 @@
 import Link from "next/link";
-import { getStoreProducts } from "@/lib/nuvemshop";
+import { getCatalogProducts } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 export default async function Category() {
-  const products = await getStoreProducts();
+  const products = await getCatalogProducts();
 
   return (
     <div className="w-full min-h-screen p-4 md:p-8">
       <header className="mb-8 md:mb-12 mt-2 md:mt-0">
         <h1 className="font-oswald text-5xl md:text-8xl font-black uppercase tracking-tighter">
-          Coleção <br /> Inverno 26
+          Coleção Oficial <br /> Munaya Rocks
         </h1>
         <p className="mt-3 md:mt-4 text-base md:text-xl font-bold uppercase opacity-60">
-          Para vestir nas ruas, não em casa.
+          Para vestir nas ruas e nos palcos. 100% Algodão Premium Silk Screen.
         </p>
       </header>
 
@@ -20,14 +22,12 @@ export default async function Category() {
           <Link
             href={`/produto/${product.id}`}
             key={product.id}
-            className={`group relative overflow-hidden bg-foreground rounded-none border border-foreground/30 ${
-              product.span || "col-span-1 row-span-1"
-            }`}
+            className="group relative overflow-hidden bg-foreground rounded-none border border-foreground/30 col-span-1 row-span-1"
           >
             {/* Foto do Produto */}
             <div className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-[1.03]">
               <img
-                src={product.image}
+                src={product.image_url}
                 alt={product.name}
                 className="w-full h-full object-cover object-center transition-all duration-700"
               />
@@ -45,7 +45,7 @@ export default async function Category() {
               </h2>
               <div className="flex items-center justify-between mt-2">
                 <span className="font-oswald text-2xl font-bold text-[#ff66c4]">
-                  {product.price}
+                  R$ {Number(product.price).toFixed(2).replace(".", ",")}
                 </span>
                 <span className="bg-white text-black px-4 py-1.5 font-oswald text-sm font-black uppercase transform -skew-x-12">
                   Ver Peça
@@ -60,8 +60,8 @@ export default async function Category() {
               <h2 className="font-oswald text-5xl md:text-7xl font-black uppercase tracking-tighter text-center leading-none">
                 {product.name}
               </h2>
-              <span className="mt-2 font-oswald text-3xl font-bold">
-                {product.price}
+              <span className="mt-2 font-oswald text-3xl font-bold text-[#ff66c4]">
+                R$ {Number(product.price).toFixed(2).replace(".", ",")}
               </span>
 
               {/* Botão Ver Detalhes */}

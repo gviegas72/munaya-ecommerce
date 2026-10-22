@@ -79,6 +79,29 @@ export function hydrateProductVariants(p: any): DatabaseProduct {
 }
 
 /**
+ * Busca um único produto por ID ou Slug no Supabase
+ */
+export async function getProductByIdOrSlug(idOrSlug: string | number): Promise<DatabaseProduct | null> {
+  try {
+    const isNumeric = !isNaN(Number(idOrSlug));
+    let query = supabase.from("products").select("*").eq("is_active", true);
+
+    if (isNumeric) {
+      query = query.eq("id", Number(idOrSlug));
+    } else {
+      query = query.eq("slug", String(idOrSlug).trim());
+    }
+
+    const { data, error } = await query.maybeSingle();
+    if (error || !data) return null;
+    return hydrateProductVariants(data);
+  } catch (err) {
+    console.error("Erro ao buscar produto por ID/slug no Supabase:", err);
+    return null;
+  }
+}
+
+/**
  * Busca todos os produtos ativos do catálogo ordenados pela ordem da vitrine
  */
 export async function getCatalogProducts(): Promise<DatabaseProduct[]> {

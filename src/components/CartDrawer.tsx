@@ -4,25 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X, Plus, Minus, Loader2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-import { CATALOG_VARIANTS } from "@/lib/catalog-variants";
-
-const PRODUCT_ID_TO_KEY: Record<string, string> = {
-  "1": "bonzo",
-  "2": "dimebag",
-  "3": "ghost",
-  "4": "cathedral",
-  "5": "amplificador",
-  "6": "clutch",
-  "7": "soundgarden",
-  "8": "chico",
-  "9": "rolling",
-  "10": "spiritual",
-  "11": "lionheart",
-  "12": "suicidal",
-  "13": "3r",
-  "14": "monstermagnet",
-  "15": "coc",
-};
 
 export function CartDrawer() {
   const {
@@ -67,39 +48,6 @@ export function CartDrawer() {
     try {
       setIsCheckingOut(true);
       setErrorMsg(null);
-
-      const tokens = items.map((it) => {
-        let variantId = (it as any).variantId;
-
-        // 1. Tentar mapear pelo productId numérico
-        if (!variantId && it.productId) {
-          const key = PRODUCT_ID_TO_KEY[String(it.productId)];
-          if (key && CATALOG_VARIANTS[key]) {
-            variantId = CATALOG_VARIANTS[key][it.size];
-          }
-        }
-
-        // 2. Tentar mapear por correspondência de nome
-        if (!variantId) {
-          const itemKey = (it.name || "").toLowerCase();
-          for (const [key, map] of Object.entries(CATALOG_VARIANTS)) {
-            if (itemKey.includes(key)) {
-              variantId = map[it.size];
-              break;
-            }
-          }
-        }
-
-        // 3. Fallback seguro
-        if (!variantId) {
-          variantId =
-            (CATALOG_VARIANTS.bonzo && CATALOG_VARIANTS.bonzo[it.size]) ||
-            it.nuvemshopId ||
-            "1622729750";
-        }
-
-        return `${variantId}-${it.quantity || 1}`;
-      });
 
       // Redireciona para o Checkout Headless próprio na Vercel (Design fiel do Claude)
       window.location.href = "/?screen=checkout";

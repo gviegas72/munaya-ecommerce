@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { StoreProduct } from "@/lib/nuvemshop";
+import { DatabaseProduct } from "@/lib/supabase";
 import { useCart } from "@/context/CartContext";
 import {
   OFFICIAL_COLORS,
@@ -13,7 +13,7 @@ import {
 import { Ruler, Check, X } from "lucide-react";
 
 interface ProductActionSectionProps {
-  product: StoreProduct;
+  product: DatabaseProduct;
 }
 
 interface ShippingOption {
@@ -40,8 +40,6 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
   const availableSizes: string[] =
     product.sizes && product.sizes.length > 0
       ? product.sizes
-      : product.variants?.length > 0
-      ? product.variants.map((v) => v.size)
       : Array.from(OFFICIAL_SIZES);
 
   const [selectedColor, setSelectedColor] = useState<ProductColor>(
@@ -59,7 +57,7 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
   const [shippingResult, setShippingResult] = useState<ShippingResult | null>(null);
   const [shippingError, setShippingError] = useState<string | null>(null);
 
-  // SKU Oficial da Variante: [MUNAYA]-[NOME]-[COR]-[TAM]
+  // SKU Oficial da Variante: MNY-[TIPO]-[NOME]-[COR]-[TAM]
   const currentSku = generateVariantSku(
     product.sku || product.name,
     selectedColor.name,
@@ -74,21 +72,16 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
 
     setErrorMsg(null);
 
-    const matchedVariant = product.variants?.find((v) => v.size === selectedSize);
-
-    // Adiciona o produto na sacola headless com SKU, Cor e Tamanho
+    // Adiciona o produto na sacola headless com SKU, Cor e Tamanho oficiais
     addItem({
       productId: product.id,
-      nuvemshopId: String(product.nuvemshopId || product.id || "375454425"),
       name: product.name,
-      price: product.rawPrice || 119,
+      price: product.price,
       size: selectedSize,
       color: selectedColor.name,
       sku: currentSku,
-      image: product.image,
-      checkoutUrl: product.checkoutUrl,
+      image: product.image_url,
       quantity: 1,
-      variantId: matchedVariant ? Number(matchedVariant.id) : undefined,
     });
 
     setAddedFeedback(true);
@@ -159,8 +152,8 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
         <h1 className="font-oswald text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none mt-2">
           {product.name}
         </h1>
-        <p className="mt-3 font-oswald text-3xl md:text-4xl font-bold opacity-90">
-          {product.price}
+        <p className="mt-3 font-oswald text-3xl md:text-4xl font-bold text-[#ff66c4]">
+          R$ {Number(product.price).toFixed(2).replace(".", ",")}
         </p>
 
         {/* Seleção de Cores Oficiais */}
