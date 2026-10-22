@@ -44,6 +44,8 @@ import {
   ShoppingCart,
   UserCheck,
   ShieldCheck,
+  Smartphone,
+  Monitor,
 } from "lucide-react";
 import { Coupon } from "@/lib/coupons";
 import { PricingSettings, DEFAULT_PRICING_SETTINGS, calculateSellingPrice, calculateFinancialSummary } from "@/lib/pricing";
@@ -277,7 +279,15 @@ export default function AdminPage() {
   const [pin, setPin] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [activeTab, setActiveTab] = useState<"orders" | "customers" | "catalog" | "coupons" | "pricing" | "dimona" | "whatsapp">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "customers" | "catalog" | "coupons" | "pricing" | "dimona" | "whatsapp" | "emails">("orders");
+
+  // Estados da Central de Templates de E-mail (@react-email)
+  const [emailPreviewTemplate, setEmailPreviewTemplate] = useState<"created" | "paid" | "shipped">("created");
+  const [emailPreviewMode, setEmailPreviewMode] = useState<"desktop" | "mobile">("desktop");
+  const [emailTestRecipient, setEmailTestRecipient] = useState("");
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
+  const [emailTestFeedback, setEmailTestFeedback] = useState("");
+  const [emailTestError, setEmailTestError] = useState("");
 
   // Estados de Gestão de Clientes
   const [customers, setCustomers] = useState<AggregatedCustomer[]>([]);
@@ -485,6 +495,46 @@ export default function AdminPage() {
       setEvoError("Falha de conexão ao salvar credenciais.");
     } finally {
       setSavingEvo(false);
+    }
+  };
+
+  const handleSendTestEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailTestRecipient.trim() || !emailTestRecipient.includes("@")) {
+      setEmailTestError("Informe um endereço de e-mail válido para o teste.");
+      return;
+    }
+    setSendingTestEmail(true);
+    setEmailTestFeedback("");
+    setEmailTestError("");
+    try {
+      const savedPin =
+        localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/emails/preview", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-pin": savedPin,
+        },
+        body: JSON.stringify({
+          to: emailTestRecipient.trim(),
+          template: emailPreviewTemplate,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEmailTestFeedback(
+          data.simulated
+            ? `✅ E-mail '${emailPreviewTemplate}' renderizado com sucesso! (Modo simulado: configure RESEND_API_KEY no servidor para envio externo).`
+            : `✅ E-mail transacional '${emailPreviewTemplate}' disparado com sucesso via Resend para ${emailTestRecipient}!`
+        );
+      } else {
+        setEmailTestError(data.error || "Erro ao disparar e-mail de teste.");
+      }
+    } catch {
+      setEmailTestError("Falha de conexão ao enviar e-mail de teste.");
+    } finally {
+      setSendingTestEmail(false);
     }
   };
 
@@ -1646,6 +1696,18 @@ export default function AdminPage() {
             {evoStatus.state === "open" && (
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black inline-block" />
             )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab("emails")}
+            className={`flex items-center gap-2 px-6 py-3 font-oswald text-xl uppercase font-black tracking-tight transition-all shrink-0 ${
+              activeTab === "emails"
+                ? "bg-purple-600 text-white"
+                : "text-purple-400 hover:text-white"
+            }`}
+          >
+            <Mail className="w-5 h-5" />
+            <span>Templates de E-mail (@react-email)</span>
           </button>
         </div>
 
@@ -6066,6 +6128,255 @@ export default function AdminPage() {
                   <div>
                     <strong className="text-emerald-400">3. Despacho Dimona (/api/webhooks/dimona):</strong>{" "}
                     Envia o código de rastreamento e link direto assim que a encomenda é postada.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 7: CENTRAL DE TEMPLATES DE E-MAIL (@react-email) */}
+        {activeTab === "emails" && (
+          <div className="space-y-6">
+            {/* Header da Central de E-mails */}
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-neutral-950 p-6 border-2 border-purple-600/60">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono uppercase tracking-widest text-purple-400 font-bold">
+                    Componentização & Design System de E-mail
+                  </span>
+                  <span className="bg-purple-500 text-white text-[10px] font-black uppercase px-2 py-0.5 tracking-wider">
+                    ● @REACT-EMAIL V1.0
+                  </span>
+                </div>
+                <h2 className="font-oswald text-3xl font-black uppercase tracking-tight text-white">
+                  Templates Transacionais Munaya Rocks
+                </h2>
+                <p className="text-xs text-neutral-400 max-w-2xl">
+                  Templates responsivos com identidade visual rockwear, compatibilidade total com <strong>Dark Mode</strong> e injeção de dados dinâmicos (itens, código Pix Copia-e-Cola e rastreamento da transportadora).
+                </p>
+              </div>
+
+              <a
+                href={`/api/emails/preview?template=${emailPreviewTemplate}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 border border-white px-4 py-2.5 text-xs uppercase font-bold hover:bg-white hover:text-black transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Abrir Preview em Nova Aba</span>
+              </a>
+            </div>
+
+            {/* Painel de Controle: Seletor de Template, Modo de Visualização e Teste */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Coluna de Controles e Disparo de Teste (5 colunas) */}
+              <div className="lg:col-span-5 space-y-6">
+                {/* 1. Escolha do Template */}
+                <div className="bg-neutral-950 border border-neutral-800 p-5 space-y-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 block font-oswald text-base">
+                    1. Escolha o Template para Visualizar
+                  </span>
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => setEmailPreviewTemplate("created")}
+                      className={`w-full text-left p-3 border-2 transition-all cursor-pointer ${
+                        emailPreviewTemplate === "created"
+                          ? "border-[#ff66c4] bg-[#ff66c4]/15 text-white"
+                          : "border-neutral-800 hover:border-neutral-700 bg-black text-neutral-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-oswald text-base font-bold uppercase">
+                          Template 1: Pedido Registrado
+                        </span>
+                        <span className="font-mono text-[10px] bg-black px-1.5 py-0.5 text-[#ff66c4] border border-[#ff66c4]/40">
+                          PIX COPIA E COLA
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-400 mt-1">
+                        Disparado no checkout com o resumo dos itens, total e instruções de pagamento imediato.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEmailPreviewTemplate("paid")}
+                      className={`w-full text-left p-3 border-2 transition-all cursor-pointer ${
+                        emailPreviewTemplate === "paid"
+                          ? "border-emerald-500 bg-emerald-950/30 text-white"
+                          : "border-neutral-800 hover:border-neutral-700 bg-black text-neutral-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-oswald text-base font-bold uppercase">
+                          Template 2: Pagamento Aprovado
+                        </span>
+                        <span className="font-mono text-[10px] bg-black px-1.5 py-0.5 text-emerald-400 border border-emerald-500/40">
+                          ESTEIRA DIMONA
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-400 mt-1">
+                        Disparado na liquidação do pagamento; confirma início da produção têxtil artesanal.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEmailPreviewTemplate("shipped")}
+                      className={`w-full text-left p-3 border-2 transition-all cursor-pointer ${
+                        emailPreviewTemplate === "shipped"
+                          ? "border-sky-400 bg-sky-950/30 text-white"
+                          : "border-neutral-800 hover:border-neutral-700 bg-black text-neutral-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-oswald text-base font-bold uppercase">
+                          Template 3: Pedido Despachado
+                        </span>
+                        <span className="font-mono text-[10px] bg-black px-1.5 py-0.5 text-sky-400 border border-sky-400/40">
+                          RASTREIO DIRETO
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-400 mt-1">
+                        Disparado quando a fábrica posta o pacote; exibe código e link de rastreamento.
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Disparo de E-mail de Teste Real */}
+                <form
+                  onSubmit={handleSendTestEmail}
+                  className="bg-neutral-950 border border-neutral-800 p-5 space-y-4"
+                >
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 block font-oswald text-base">
+                    2. Disparar Teste Real para seu E-mail
+                  </span>
+
+                  <div>
+                    <label className="block text-xs uppercase font-bold text-neutral-300 mb-1.5 tracking-wider">
+                      E-mail de Destino *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="seu-email@gmail.com"
+                      value={emailTestRecipient}
+                      onChange={(e) => setEmailTestRecipient(e.target.value)}
+                      className="w-full bg-black border border-neutral-700 px-3.5 py-2.5 text-sm text-white font-mono focus:border-purple-400 focus:outline-none"
+                    />
+                    <span className="text-[11px] text-neutral-500 block mt-1">
+                      O template selecionado acima será renderizado e enviado imediatamente.
+                    </span>
+                  </div>
+
+                  {emailTestFeedback && (
+                    <div className="p-3 bg-emerald-950/60 border border-emerald-500 text-emerald-300 text-xs font-mono">
+                      {emailTestFeedback}
+                    </div>
+                  )}
+
+                  {emailTestError && (
+                    <div className="p-3 bg-red-950/60 border border-red-500 text-red-300 text-xs font-mono">
+                      ⚠️ {emailTestError}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={sendingTestEmail}
+                    className="w-full bg-purple-600 hover:bg-purple-500 text-white font-oswald text-sm font-black uppercase tracking-wider py-3 transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {sendingTestEmail ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Enviando Teste...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Enviar E-mail de Teste Agora</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                {/* 3. Informações Técnicas & Versionamento */}
+                <div className="bg-neutral-950 border border-neutral-800 p-4 space-y-2 text-xs font-mono text-neutral-400">
+                  <span className="text-white font-bold uppercase block font-sans">
+                    Arquitetura @react-email Munaya:
+                  </span>
+                  <div>
+                    • Arquivos fontes: <code className="text-[#ff66c4]">src/emails/</code>
+                  </div>
+                  <div>
+                    • Renderizador: <code className="text-purple-300">@react-email/render</code>
+                  </div>
+                  <div>
+                    • Provedor de Entrega: <code className="text-emerald-400">Resend API (REST)</code>
+                  </div>
+                  <div>
+                    • Script de Preview: <code className="text-white">npm run email:dev</code>
+                  </div>
+                </div>
+              </div>
+
+              {/* Coluna da Direita: Iframe de Pré-Visualização em Tempo Real (7 colunas) */}
+              <div className="lg:col-span-7 bg-neutral-950 border border-neutral-800 p-5 flex flex-col items-center">
+                {/* Seletor Desktop vs Mobile */}
+                <div className="w-full flex items-center justify-between pb-4 border-b border-neutral-800 mb-4">
+                  <span className="font-oswald text-sm font-bold uppercase text-neutral-300">
+                    Pré-Visualização do E-mail
+                  </span>
+
+                  <div className="flex items-center gap-1 bg-black border border-neutral-700 p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setEmailPreviewMode("desktop")}
+                      className={`flex items-center gap-1.5 px-3 py-1 text-xs font-bold uppercase transition-colors ${
+                        emailPreviewMode === "desktop"
+                          ? "bg-white text-black"
+                          : "text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      <Monitor className="w-3.5 h-3.5" />
+                      <span>Desktop (600px)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEmailPreviewMode("mobile")}
+                      className={`flex items-center gap-1.5 px-3 py-1 text-xs font-bold uppercase transition-colors ${
+                        emailPreviewMode === "mobile"
+                          ? "bg-white text-black"
+                          : "text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      <Smartphone className="w-3.5 h-3.5" />
+                      <span>Mobile (375px)</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Iframe Responsivo */}
+                <div
+                  className={`w-full transition-all duration-300 ${
+                    emailPreviewMode === "mobile" ? "max-w-[395px]" : "max-w-[620px]"
+                  }`}
+                >
+                  <div className="border-2 border-neutral-700 rounded-sm overflow-hidden shadow-2xl bg-black">
+                    <div className="bg-neutral-900 px-3 py-2 border-b border-neutral-700 flex items-center justify-between text-[11px] font-mono text-neutral-400">
+                      <span>De: Munaya Rocks &lt;onboarding@resend.dev&gt;</span>
+                      <span className="text-[#ff66c4] font-bold">Dark Mode</span>
+                    </div>
+                    <iframe
+                      key={`${emailPreviewTemplate}-${emailPreviewMode}`}
+                      src={`/api/emails/preview?template=${emailPreviewTemplate}`}
+                      title={`Preview E-mail ${emailPreviewTemplate}`}
+                      className="w-full h-[720px] bg-[#050505] border-none block"
+                    />
                   </div>
                 </div>
               </div>

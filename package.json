@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "email:dev": "next dev -H 0.0.0.0",
     "test:dimona": "node scripts/test-dimona.mjs"
   },
   "dependencies": {
@@ -21,6 +22,8 @@
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.1.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
