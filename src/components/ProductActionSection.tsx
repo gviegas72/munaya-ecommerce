@@ -73,7 +73,7 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
 
     setErrorMsg(null);
 
-    // Adiciona o produto na sacola headless com SKU, Cor e Tamanho oficiais
+    // Adiciona o produto na sacola headless com SKU, Cor e Tamanho oficiais e abre a gaveta da sacola imediatamente
     addItem({
       productId: product.id,
       name: product.name,
@@ -84,6 +84,7 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
       image: product.image_url,
       quantity: qty,
     });
+    openCart();
 
     setAddedFeedback(true);
     setTimeout(() => {
@@ -331,7 +332,7 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col gap-3">
+      <div className="mt-8">
         <button
           type="button"
           onClick={handleAddToPit}
@@ -343,16 +344,6 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
         >
           {addedFeedback ? `Na sacola ✕${totalCount}` : "Adicione a sacola"}
         </button>
-
-        {totalCount > 0 && (
-          <button
-            type="button"
-            onClick={openCart}
-            className="w-full border-2 border-foreground text-foreground font-oswald text-xl uppercase font-bold py-3.5 hover:bg-foreground hover:text-background transition-colors cursor-pointer"
-          >
-            Ver sacola ({totalCount}) · Fechar pedido
-          </button>
-        )}
       </div>
 
       {/* Modal Guia de Medidas */}
