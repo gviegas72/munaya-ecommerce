@@ -1374,10 +1374,23 @@ function getColorMockupForProduct(prod, colorName) {
 }
 
 function getVariantSku(prod, colorName, sizeName) {
-  let base = (prod.sku || ("MUNAYA-" + (prod.name || "ROCK"))).toUpperCase();
-  base = base.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/^CAMISETA\s+|^MUNAYA\s+/i, "");
-  if (!base.startsWith("MUNAYA-")) base = "MUNAYA-" + base;
-  base = base.replace(/[^A-Z0-9-]+/g, "-").replace(/-+/g, "-");
+  let raw = (prod.sku || prod.name || "ROCK").toUpperCase();
+  raw = raw
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/^MNY-(TSH|BON|CAN|ECO|MOL)-/i, "")
+    .replace(/^MNY-/i, "")
+    .replace(/^MUNAYA-/i, "")
+    .replace(/^CAMISETA\s+|^MUNAYA\s+/i, "");
+
+  let baseParts = raw.replace(/[^A-Z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").split("-");
+  if (baseParts.length > 0 && ["PP", "P", "M", "G", "GG", "XGG", "UNICO"].includes(baseParts[baseParts.length - 1])) {
+    baseParts.pop();
+  }
+  if (baseParts.length > 0 && ["PRETA", "BRANCA", "CINZA", "PRETO", "BRANCO"].includes(baseParts[baseParts.length - 1])) {
+    baseParts.pop();
+  }
+  const cleanName = baseParts.join("-") || "ROCK";
 
   let c = String(colorName || "PRETA").toUpperCase();
   if (c.includes("PRET") || c === "#111111") c = "PRETA";
@@ -1386,7 +1399,7 @@ function getVariantSku(prod, colorName, sizeName) {
   else c = "PRETA";
 
   const s = String(sizeName || "M").toUpperCase().trim();
-  return base + "-" + c + "-" + s;
+  return "MNY-TSH-" + cleanName + "-" + c + "-" + s;
 }
 
 function slugifyName(name) {

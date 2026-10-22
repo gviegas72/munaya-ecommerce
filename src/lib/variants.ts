@@ -39,17 +39,35 @@ export const SIZE_MEASUREMENTS_TABLE: SizeMeasurement[] = [
  * Limpa o nome ou slug para compor o Miolo do SKU
  * Ex: "Camiseta Dimebag" -> "DIMEBAG"
  * Ex: "Munaya Bonzo Series" -> "BONZO"
+ * Ex: "MNY-TSH-BONZO" -> "BONZO"
  */
 export function sanitizeSkuName(nameOrSlug: string): string {
   let clean = String(nameOrSlug || "")
     .toUpperCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/^MNY-(TSH|BON|CAN|ECO|MOL)-/i, "")
+    .replace(/^MNY-/i, "")
     .replace(/^CAMISETA\s+|^CAMISA\s+|^TSHIRT\s+|^T-SHIRT\s+/i, "")
     .replace(/^MUNAYA\s+/i, "")
     .replace(/\s+SERIES|\s+EDITION/i, "")
     .replace(/[^A-Z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+  // Se veio um SKU completo como "MNY-TSH-BONZO-PRETA-M", extrai apenas o miolo do nome
+  if (clean.includes("-")) {
+    const parts = clean.split("-");
+    // Se a última parte for tamanho conhecido e a penúltima cor conhecida, remove-as
+    if (["PP", "P", "M", "G", "GG", "XGG", "UNICO"].includes(parts[parts.length - 1])) {
+      parts.pop();
+    }
+    if (parts.length > 0 && ["PRETA", "BRANCA", "CINZA", "PRETO", "BRANCO"].includes(parts[parts.length - 1])) {
+      parts.pop();
+    }
+    if (parts.length > 0) {
+      clean = parts.join("-");
+    }
+  }
 
   if (!clean) {
     clean = "ROCK";
