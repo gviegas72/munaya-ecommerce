@@ -1151,7 +1151,7 @@ const PRODUCTS = {
   },
 };
 
-const brl = (v) => "R$ " + v.toFixed(2).replace(".", ",");
+const brl = (v) => "R$ " + (Number(v) || 0).toFixed(2).replace(".", ",");
 const dg = (v) => String(v || "").replace(/\D/g, "");
 
 const maskCpf = (v) => {
