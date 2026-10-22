@@ -17,6 +17,7 @@ export interface CartItem {
   formattedPrice: string;
   size: string;
   color?: string;
+  blankType?: string;
   sku?: string;
   image: string;
   quantity: number;
@@ -29,6 +30,7 @@ export interface CartItemInput {
   price: number | string;
   size: string;
   color?: string;
+  blankType?: string;
   sku?: string;
   image: string;
   quantity?: number;
@@ -125,6 +127,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         formattedPrice,
         size: input.size,
         color: input.color || "Preta",
+        blankType: input.blankType,
         sku: input.sku,
         image: input.image,
         quantity: qty,

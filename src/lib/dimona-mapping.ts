@@ -11,8 +11,11 @@ import { getArtworkUrl } from "./artworks";
 export interface BlankDefinition {
   id: string;
   name: string;
+  shortLabel: string;
   codePrefix: string;
+  skuType: string;
   factoryCost: number;
+  suggestedPrice: number;
   category: "vestuario" | "acessorio";
   description: string;
   availableSizes: string[];
@@ -26,8 +29,11 @@ export const DIMONA_BLANKS: Record<string, BlankDefinition> = {
   classic: {
     id: "classic",
     name: "Classic 30.1 Algodão Penteado",
+    shortLabel: "Camiseta",
     codePrefix: "CLASSIC",
+    skuType: "TSH",
     factoryCost: 42.0,
+    suggestedPrice: 89.9,
     category: "vestuario",
     description: "Malha 100% algodão penteado 30.1, toque macio e reforço de ombro a ombro.",
     availableSizes: ["PP", "P", "M", "G", "GG", "XGG"],
@@ -36,8 +42,11 @@ export const DIMONA_BLANKS: Record<string, BlankDefinition> = {
   quality: {
     id: "quality",
     name: "Quality Premium 30.1",
+    shortLabel: "Camiseta Premium",
     codePrefix: "QUALITY",
+    skuType: "TSH",
     factoryCost: 48.0,
+    suggestedPrice: 119.0,
     category: "vestuario",
     description: "Algodão premium superior com acabamento especial e gramatura encorpada.",
     availableSizes: ["PP", "P", "M", "G", "GG", "XGG"],
@@ -46,8 +55,11 @@ export const DIMONA_BLANKS: Record<string, BlankDefinition> = {
   estonada: {
     id: "estonada",
     name: "Estonada Rockwear",
+    shortLabel: "Camiseta Estonada",
     codePrefix: "ESTONADA",
+    skuType: "TSH",
     factoryCost: 55.0,
+    suggestedPrice: 129.0,
     category: "vestuario",
     description: "Malha estonada com processo de lavanderia vintage e visual desgastado autêntico.",
     availableSizes: ["P", "M", "G", "GG", "XGG"],
@@ -56,8 +68,11 @@ export const DIMONA_BLANKS: Record<string, BlankDefinition> = {
   moletom: {
     id: "moletom",
     name: "Moletom Heavy Canguru",
+    shortLabel: "Moletom",
     codePrefix: "MOLETOM",
+    skuType: "MOL",
     factoryCost: 89.0,
+    suggestedPrice: 199.9,
     category: "vestuario",
     description: "Moletom pesado 3 cabos com felpa interna, capuz forrado e bolso canguru.",
     availableSizes: ["P", "M", "G", "GG"],
@@ -66,8 +81,11 @@ export const DIMONA_BLANKS: Record<string, BlankDefinition> = {
   caneca: {
     id: "caneca",
     name: "Caneca Cerâmica Resinada 325ml",
+    shortLabel: "Caneca",
     codePrefix: "CANECA",
+    skuType: "CAN",
     factoryCost: 26.0,
+    suggestedPrice: 49.9,
     category: "acessorio",
     description: "Cerâmica importada resinada para estampa em sublimação térmica de alta fidelidade.",
     availableSizes: ["UNICO"],
@@ -76,8 +94,11 @@ export const DIMONA_BLANKS: Record<string, BlankDefinition> = {
   bone: {
     id: "bone",
     name: "Boné Snapback Premium",
+    shortLabel: "Boné",
     codePrefix: "BONE",
+    skuType: "BON",
     factoryCost: 38.0,
+    suggestedPrice: 79.9,
     category: "acessorio",
     description: "Boné modelo snapback estruturado com regulagem traseira e aba reta/curva.",
     availableSizes: ["UNICO"],
@@ -86,8 +107,11 @@ export const DIMONA_BLANKS: Record<string, BlankDefinition> = {
   ecobag: {
     id: "ecobag",
     name: "Ecobag Algodão Cru 100%",
+    shortLabel: "Ecobag",
     codePrefix: "ECOBAG",
+    skuType: "ECO",
     factoryCost: 22.0,
+    suggestedPrice: 39.9,
     category: "acessorio",
     description: "Ecobag sustentável em algodão cru resistente, alças reforçadas de 60cm.",
     availableSizes: ["UNICO"],
@@ -168,6 +192,26 @@ export interface DimonaDispatchItem {
   unit_price: number;
   blank_type: string;
   factory_cost: number;
+}
+
+/**
+ * Retorna o preço de venda efetivo para uma estampa e blank específicos
+ */
+export function getProductBlankPrice(
+  productPrice: number,
+  blankType: string = "classic",
+  customBlankPrices?: Record<string, number>
+): number {
+  if (customBlankPrices && typeof customBlankPrices[blankType] === "number" && customBlankPrices[blankType] > 0) {
+    return customBlankPrices[blankType];
+  }
+  const cleanBlank = String(blankType || "classic").toLowerCase();
+  const blank = DIMONA_BLANKS[cleanBlank] || DIMONA_BLANKS.classic;
+  // Se for camiseta classic, respeita o preço base do produto
+  if (cleanBlank === "classic") {
+    return Number(productPrice) || blank.suggestedPrice;
+  }
+  return blank.suggestedPrice;
 }
 
 /**

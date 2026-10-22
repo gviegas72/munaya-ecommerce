@@ -130,6 +130,8 @@ export async function POST(req: NextRequest) {
       is_custom_price: body.is_custom_price !== undefined ? Boolean(body.is_custom_price) : false,
       dimona_product_id: body.dimona_product_id ? String(body.dimona_product_id).trim().toUpperCase() : undefined,
       blank_type: body.blank_type ? String(body.blank_type).trim().toLowerCase() : "classic",
+      available_blanks: Array.isArray(body.available_blanks) && body.available_blanks.length > 0 ? body.available_blanks : ["classic"],
+      blank_prices: body.blank_prices && typeof body.blank_prices === "object" ? body.blank_prices : {},
       is_active: body.is_active !== undefined ? Boolean(body.is_active) : true,
       is_featured: body.is_featured !== undefined ? Boolean(body.is_featured) : false,
       display_order: parseInt(String(body.display_order ?? 10), 10) || 10,

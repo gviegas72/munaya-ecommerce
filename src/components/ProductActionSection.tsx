@@ -9,14 +9,18 @@ import {
   SIZE_MEASUREMENTS_TABLE,
   generateVariantSku,
   getColorMockupUrl,
+  blankTypeToSkuType,
   ProductColor,
 } from "@/lib/variants";
+import { DIMONA_BLANKS, getProductBlankPrice } from "@/lib/dimona-mapping";
 import { Ruler, Check, X } from "lucide-react";
 
 interface ProductActionSectionProps {
   product: DatabaseProduct;
   selectedColor?: ProductColor;
   onColorChange?: (color: ProductColor) => void;
+  selectedBlank?: string;
+  onBlankChange?: (blank: string) => void;
 }
 
 interface ShippingOption {
@@ -36,18 +40,26 @@ export function ProductActionSection({
   product,
   selectedColor: externalColor,
   onColorChange,
+  selectedBlank: externalBlank,
+  onBlankChange,
 }: ProductActionSectionProps) {
+  // Blanks / Bases ativas (Multi-Blank Desacoplado)
+  const availableBlanks: string[] =
+    product.available_blanks && product.available_blanks.length > 0
+      ? product.available_blanks
+      : ["classic", "moletom", "caneca", "bone", "ecobag"];
+
+  const [internalBlank, setInternalBlank] = useState<string>(
+    availableBlanks[0] || "classic"
+  );
+  const selectedBlank = externalBlank || internalBlank;
+  const currentBlankDef = DIMONA_BLANKS[selectedBlank] || DIMONA_BLANKS.classic;
+
   // Cores ativas (se produto tiver cores customizadas no banco ou as 3 oficiais)
   const availableColors: ProductColor[] =
     product.colors && product.colors.length > 0
       ? product.colors
       : OFFICIAL_COLORS;
-
-  // Tamanhos ativos
-  const availableSizes: string[] =
-    product.sizes && product.sizes.length > 0
-      ? product.sizes
-      : Array.from(OFFICIAL_SIZES);
 
   const [internalColor, setInternalColor] = useState<ProductColor>(
     availableColors[0] || OFFICIAL_COLORS[0]
@@ -60,7 +72,30 @@ export function ProductActionSection({
       onColorChange(col);
     }
   };
-  const [selectedSize, setSelectedSize] = useState<string>("M");
+
+  // Tamanhos disponíveis para a base selecionada
+  const currentAvailableSizes: string[] =
+    currentBlankDef.availableSizes && currentBlankDef.availableSizes.length > 0
+      ? currentBlankDef.availableSizes
+      : product.sizes && product.sizes.length > 0
+      ? product.sizes
+      : Array.from(OFFICIAL_SIZES);
+
+  const [selectedSize, setSelectedSize] = useState<string>(
+    currentAvailableSizes.includes("M") ? "M" : currentAvailableSizes[0] || "UNICO"
+  );
+
+  const handleSelectBlank = (bKey: string) => {
+    setInternalBlank(bKey);
+    if (onBlankChange) {
+      onBlankChange(bKey);
+    }
+    const def = DIMONA_BLANKS[bKey] || DIMONA_BLANKS.classic;
+    if (def.availableSizes && !def.availableSizes.includes(selectedSize)) {
+      setSelectedSize(def.availableSizes[0] || "UNICO");
+    }
+  };
+
   const [qty, setQty] = useState<number>(1);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState<boolean>(false);
   const [addedFeedback, setAddedFeedback] = useState<boolean>(false);
@@ -73,11 +108,20 @@ export function ProductActionSection({
   const [shippingResult, setShippingResult] = useState<ShippingResult | null>(null);
   const [shippingError, setShippingError] = useState<string | null>(null);
 
-  // SKU Oficial da Variante: MNY-[TIPO]-[NOME]-[COR]-[TAM]
+  // Preço dinâmico para a base física selecionada
+  const currentPrice = getProductBlankPrice(
+    Number(product.price),
+    selectedBlank,
+    product.blank_prices
+  );
+
+  // SKU Oficial da Variante com tipo dinâmico da base: MNY-[TIPO]-[NOME]-[COR]-[TAM]
+  const skuType = blankTypeToSkuType(selectedBlank);
   const currentSku = generateVariantSku(
     product.sku || product.name,
     selectedColor.name,
-    selectedSize
+    selectedSize,
+    skuType
   );
 
   const handleAddToPit = () => {
@@ -88,15 +132,16 @@ export function ProductActionSection({
 
     setErrorMsg(null);
 
-    const activeMockupUrl = getColorMockupUrl(product, selectedColor);
+    const activeMockupUrl = getColorMockupUrl(product, selectedColor, selectedBlank);
 
-    // Adiciona o produto na sacola headless com SKU, Cor e Tamanho oficiais e abre a gaveta da sacola imediatamente
+    // Adiciona o produto na sacola headless com SKU, Cor, Base e Tamanho oficiais e abre a gaveta imediatamente
     addItem({
       productId: product.id,
-      name: product.name,
-      price: product.price,
+      name: `${product.name} • ${currentBlankDef.shortLabel}`,
+      price: currentPrice,
       size: selectedSize,
       color: selectedColor.name,
+      blankType: selectedBlank,
       sku: currentSku,
       image: activeMockupUrl,
       quantity: qty,
@@ -172,8 +217,55 @@ export function ProductActionSection({
           {product.name}
         </h1>
         <p className="mt-3 font-oswald text-3xl md:text-4xl font-bold text-[#ff66c4]">
-          R$ {Number(product.price).toFixed(2).replace(".", ",")}
+          R$ {Number(currentPrice).toFixed(2).replace(".", ",")}
         </p>
+
+        {/* Central de Blanks / Escolha da Base Física */}
+        <div className="mt-6">
+          <div className="flex justify-between items-center mb-2.5">
+            <p className="font-sans font-bold uppercase tracking-widest text-xs md:text-sm">
+              Escolha a Base: <span className="text-[#ff66c4] font-black">{currentBlankDef.shortLabel}</span>
+            </p>
+            <span className="text-[11px] text-foreground/50 uppercase font-mono">
+              {currentBlankDef.category === "vestuario" ? "Vestuário" : "Acessório"}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {availableBlanks.map((bKey) => {
+              const bDef = DIMONA_BLANKS[bKey] || {
+                id: bKey,
+                shortLabel: bKey.toUpperCase(),
+                suggestedPrice: product.price,
+                category: "vestuario",
+              };
+              const isSelected = selectedBlank === bKey;
+              const bPrice = getProductBlankPrice(
+                Number(product.price),
+                bKey,
+                product.blank_prices
+              );
+              return (
+                <button
+                  key={bKey}
+                  type="button"
+                  onClick={() => handleSelectBlank(bKey)}
+                  className={`flex flex-col items-start p-2.5 border-2 transition-all cursor-pointer text-left ${
+                    isSelected
+                      ? "border-[#ff66c4] bg-[#ff66c4]/15 shadow-[0_0_12px_rgba(255,102,196,0.3)] text-white scale-[1.02]"
+                      : "border-foreground/30 hover:border-foreground/80 bg-black/40 text-foreground/80 hover:text-white"
+                  }`}
+                >
+                  <span className="font-oswald uppercase text-xs md:text-sm font-black tracking-wider leading-tight">
+                    {bDef.shortLabel}
+                  </span>
+                  <span className="font-mono text-[11px] font-bold text-[#ff66c4] mt-0.5">
+                    R$ {Number(bPrice).toFixed(2).replace(".", ",")}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Seleção de Cores Oficiais */}
         <div className="mt-6">
@@ -217,20 +309,26 @@ export function ProductActionSection({
         <div className="mt-6">
           <div className="flex justify-between items-center mb-2.5">
             <p className="font-sans font-bold uppercase tracking-widest text-xs md:text-sm">
-              Tamanho: <span className="text-[#ff66c4] font-black">{selectedSize}</span>
+              Tamanho:{" "}
+              <span className="text-[#ff66c4] font-black">
+                {selectedSize === "UNICO" ? "Único" : selectedSize}
+              </span>
             </p>
-            <button
-              type="button"
-              onClick={() => setIsSizeGuideOpen(true)}
-              className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-foreground/70 hover:text-[#ff66c4] transition-colors underline underline-offset-4 cursor-pointer"
-            >
-              <Ruler className="w-3.5 h-3.5" />
-              Guia de Medidas
-            </button>
+            {currentBlankDef.category === "vestuario" && (
+              <button
+                type="button"
+                onClick={() => setIsSizeGuideOpen(true)}
+                className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-foreground/70 hover:text-[#ff66c4] transition-colors underline underline-offset-4 cursor-pointer"
+              >
+                <Ruler className="w-3.5 h-3.5" />
+                Guia de Medidas
+              </button>
+            )}
           </div>
           <div className="flex flex-wrap gap-2.5">
-            {availableSizes.map((size) => {
+            {currentAvailableSizes.map((size) => {
               const isSelected = selectedSize === size;
+              const isUnico = size === "UNICO";
               return (
                 <button
                   key={size}
@@ -239,13 +337,15 @@ export function ProductActionSection({
                     setSelectedSize(size);
                     setErrorMsg(null);
                   }}
-                  className={`w-13 h-13 md:w-14 md:h-14 border-2 font-oswald text-lg md:text-xl font-black flex items-center justify-center transition-all cursor-pointer ${
+                  className={`${
+                    isUnico ? "px-5 h-12 md:h-13" : "w-13 h-13 md:w-14 md:h-14"
+                  } border-2 font-oswald text-base md:text-lg font-black flex items-center justify-center transition-all cursor-pointer ${
                     isSelected
                       ? "bg-[#ff66c4] text-black border-[#ff66c4] scale-105 shadow-[0_0_12px_rgba(255,102,196,0.4)]"
                       : "border-foreground/40 hover:border-foreground text-foreground hover:bg-foreground/10"
                   }`}
                 >
-                  {size}
+                  {isUnico ? "Tamanho Único" : size}
                 </button>
               );
             })}
@@ -258,7 +358,7 @@ export function ProductActionSection({
           )}
         </div>
 
-        {/* Seleção de Quantidade (Padrão Claude v3) */}
+        {/* Seleção de Quantidade */}
         <div className="mt-6">
           <p className="font-sans font-bold uppercase tracking-widest text-xs md:text-sm mb-2.5">
             Quantidade
@@ -398,7 +498,7 @@ export function ProductActionSection({
                     <th className="p-2.5 border-b border-r border-foreground/20 font-bold">Tam</th>
                     <th className="p-2.5 border-b border-r border-foreground/20 font-bold">Tórax (Largura)</th>
                     <th className="p-2.5 border-b border-r border-foreground/20 font-bold">Altura (Comp.)</th>
-                    <th className="p-2.5 border-b border-foreground/20 font-bold">Manga</th>
+                    <th className="p-2.5 border-b border-r border-foreground/20 font-bold">Manga</th>
                   </tr>
                 </thead>
                 <tbody>

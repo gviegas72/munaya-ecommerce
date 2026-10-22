@@ -415,8 +415,22 @@
             </div>
             <p style="margin: 14px 0 0 0; font-family: Oswald, sans-serif; font-size: 36px; font-weight: 700; opacity: .8;">{{ productPrice }}</p>
 
+            <sc-if value="{{ hasBlanks }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top: 32px;">
+                <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 14px; margin: 0 0 12px 0;">{{ blankLabel }}</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px;">
+                  <sc-for list="{{ productBlanks }}" as="b" hint-placeholder-count="5">
+                    <button type="button" onClick="{{ b.pick }}" aria-pressed="{{ b.pressed }}" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px 12px; border: 2px solid {{ b.border }}; background: {{ b.bg }}; color: {{ b.fg }}; cursor: pointer; box-sizing: border-box; transition: all .15s; text-align: left;">
+                      <span style="font-family: Oswald, sans-serif; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; line-height: 1.1;">{{ b.name }}</span>
+                      <span style="font-family: ui-monospace, Menlo, monospace; font-size: 11px; font-weight: 700; color: {{ accent }};">{{ b.price }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
             <sc-if value="{{ hasColors }}" hint-placeholder-val="{{ false }}">
-              <div style="margin-top: 36px;">
+              <div style="margin-top: 32px;">
                 <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 14px; margin: 0 0 16px 0;">{{ colorLabel }}</p>
                 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                   <sc-for list="{{ productColors }}" as="c" hint-placeholder-count="3">
@@ -429,13 +443,15 @@
               </div>
             </sc-if>
 
-            <div style="margin-top: 36px;">
+            <div style="margin-top: 32px;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px;">
                 <p style="font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 13px; margin: 0;">Escolha o tamanho</p>
-                <div role="button" tabindex="0" onClick="{{ openGuide }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--fg); padding-bottom: 2px; opacity: .75; transition: opacity .15s;" style-hover="opacity: 1;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><path d="M2 9h20v6H2zM6 9v3M10 9v6M14 9v3M18 9v6"></path></svg>
-                  <span>Guia de tamanhos</span>
-                </div>
+                <sc-if value="{{ hasGuide }}" hint-placeholder-val="{{ true }}">
+                  <div role="button" tabindex="0" onClick="{{ openGuide }}" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--fg); padding-bottom: 2px; opacity: .75; transition: opacity .15s;" style-hover="opacity: 1;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><path d="M2 9h20v6H2zM6 9v3M10 9v6M14 9v3M18 9v6"></path></svg>
+                    <span>Guia de tamanhos</span>
+                  </div>
+                </sc-if>
               </div>
               <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                 <sc-for list="{{ sizes }}" as="s" hint-placeholder-count="6">
@@ -1338,8 +1354,17 @@ const DEFAULT_COLORS = [
 ];
 const DEFAULT_SIZES = ["PP", "P", "M", "G", "GG", "XGG"];
 
-function getColorMockupForProduct(prod, colorName) {
+const DIMONA_BLANKS_CLIENT = {
+  classic: { id: "classic", shortLabel: "Camiseta", suggestedPrice: 89.9, sizes: ["PP", "P", "M", "G", "GG", "XGG"], cat: "vestuario" },
+  moletom: { id: "moletom", shortLabel: "Moletom", suggestedPrice: 199.9, sizes: ["P", "M", "G", "GG"], cat: "vestuario" },
+  caneca: { id: "caneca", shortLabel: "Caneca", suggestedPrice: 49.9, sizes: ["UNICO"], cat: "acessorio" },
+  bone: { id: "bone", shortLabel: "Boné", suggestedPrice: 79.9, sizes: ["UNICO"], cat: "acessorio" },
+  ecobag: { id: "ecobag", shortLabel: "Ecobag", suggestedPrice: 39.9, sizes: ["UNICO"], cat: "acessorio" },
+};
+
+function getColorMockupForProduct(prod, colorName, blankType) {
   if (!prod) return "/uploads/modelo_bonzo_01.jpg";
+  const bType = String(blankType || "classic").toLowerCase();
   const cName = String(colorName || "Preta").trim();
   const cObj = (prod.colors || DEFAULT_COLORS).find(
     (c) => c.name.toLowerCase() === cName.toLowerCase()
@@ -1356,16 +1381,17 @@ function getColorMockupForProduct(prod, colorName) {
   else if (upper.includes("BRANC") || upper === "#FFFFFF") code = "BRANCA";
   else if (upper.includes("CINZ") || upper.includes("MESCL") || upper === "#777777") code = "CINZA";
 
-  // Se for Preta, usa a foto principal
-  if (code === "PRETA") {
+  // Se for camiseta classic na cor Preta sem mockup customizado, usa a foto original
+  if (bType === "classic" && code === "PRETA") {
     return (prod.photos && prod.photos[0]) || prod.image || "/uploads/modelo_bonzo_01.jpg";
   }
 
-  // Gera mockup dinâmico SVG realista da camiseta na cor com a estampa real do produto
+  // Gera mockup dinâmico SVG realista da base física e cor com a estampa do produto
   const p = new URLSearchParams({
     color: code,
+    blank: bType,
     sku: String(prod.sku || prod.slug || prod.name || "MUNAYA"),
-    name: String(prod.name || "Camiseta Munaya"),
+    name: String(prod.name || "Munaya Rocks"),
   });
   if (prod.artwork_url) {
     p.set("art", prod.artwork_url);
@@ -1373,7 +1399,7 @@ function getColorMockupForProduct(prod, colorName) {
   return "/api/mockup?" + p.toString();
 }
 
-function getVariantSku(prod, colorName, sizeName) {
+function getVariantSku(prod, colorName, sizeName, blankType) {
   let raw = (prod.sku || prod.name || "ROCK").toUpperCase();
   raw = raw
     .normalize("NFD")
@@ -1399,7 +1425,15 @@ function getVariantSku(prod, colorName, sizeName) {
   else c = "PRETA";
 
   const s = String(sizeName || "M").toUpperCase().trim();
-  return "MNY-TSH-" + cleanName + "-" + c + "-" + s;
+
+  const b = String(blankType || "classic").toLowerCase();
+  let typePart = "TSH";
+  if (b.includes("caneca")) typePart = "CAN";
+  else if (b.includes("bone") || b.includes("boné")) typePart = "BON";
+  else if (b.includes("moletom")) typePart = "MOL";
+  else if (b.includes("ecobag")) typePart = "ECO";
+
+  return "MNY-" + typePart + "-" + cleanName + "-" + c + "-" + s;
 }
 
 function slugifyName(name) {
@@ -1442,6 +1476,7 @@ function loadSharedCart() {
       const qty = Math.max(1, Number(it.quantity) || 1);
       const rawPrice = Number(it.price) || 89.9;
       const chosenColor = it.color || "Preta";
+      const chosenBlank = it.blank_type || it.blankType || "classic";
       const rawSize = String(it.size || "M").split("·")[0].trim();
       const displaySize = String(it.size || "M").includes("·")
         ? String(it.size)
@@ -1456,7 +1491,8 @@ function loadSharedCart() {
           size: displaySize,
           rawSize: rawSize,
           color: chosenColor,
-          sku: it.sku || getVariantSku({ name: it.name, sku: it.sku }, chosenColor, rawSize),
+          blank_type: chosenBlank,
+          sku: it.sku || getVariantSku({ name: it.name, sku: it.sku }, chosenColor, rawSize, chosenBlank),
           image: it.image || "",
         });
       }
@@ -1473,7 +1509,8 @@ function saveSharedCart(cartEntries) {
     (cartEntries || []).forEach((c) => {
       const rawSize = c.rawSize || String(c.size || "M").split("·")[0].trim();
       const color = c.color || (String(c.size || "").split("·")[1] || "Preta").trim();
-      const sku = c.sku || getVariantSku({ name: c.name, sku: c.sku }, color, rawSize);
+      const blank = c.blank_type || c.blankType || "classic";
+      const sku = c.sku || getVariantSku({ name: c.name, sku: c.sku }, color, rawSize, blank);
       if (!map[sku]) {
         const pObj = PRODUCTS[c.productId] || {};
         map[sku] = {
@@ -1484,6 +1521,8 @@ function saveSharedCart(cartEntries) {
           formattedPrice: brl(Number(c.price) || 89.9),
           size: rawSize,
           color: color,
+          blankType: blank,
+          blank_type: blank,
           sku: sku,
           image: c.image || pObj.image || (pObj.photos && pObj.photos[0]) || "/uploads/modelo_bonzo_01.jpg",
           quantity: 0,
@@ -2306,26 +2345,36 @@ class Component extends DCLogic {
     const ne = e && (e.nativeEvent || e);
     const path = ne && ne.composedPath ? ne.composedPath() : [];
     if (path.some((n) => n && n.getAttribute && n.getAttribute("data-act"))) return;
-    this.go("produto", { productId: id, photoIdx: 0, size: null, color: null, qty: 1 });
+    this.go("produto", { productId: id, photoIdx: 0, size: null, color: null, blank: "classic", qty: 1 });
   };
 
   addToCart = () => {
     const p = PRODUCTS[this.state.productId] || PRODUCTS[1] || {};
+    const chosenBlank = this.state.blank || "classic";
+    const bDef = DIMONA_BLANKS_CLIENT[chosenBlank] || DIMONA_BLANKS_CLIENT.classic;
+    const blankSizes = bDef.sizes || (p.sizes || DEFAULT_SIZES);
+    const chosenSize = this.state.size || (blankSizes.length === 1 ? blankSizes[0] : null);
+    if (!chosenSize) { this.setState({ warn: true }); return; }
+
     const chosenColor = this.state.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta");
-    if (!this.state.size) { this.setState({ warn: true }); return; }
+    const effectivePrice = (p.blank_prices && p.blank_prices[chosenBlank])
+      ? p.blank_prices[chosenBlank]
+      : (chosenBlank === "classic" ? (Number(p.price) || 89.9) : bDef.suggestedPrice);
+
     const entries = [];
-    const size = this.state.size + " · " + chosenColor;
-    const variantSku = getVariantSku(p, chosenColor, this.state.size);
-    const itemImage = getColorMockupForProduct(p, chosenColor);
+    const sizeDisplay = (chosenSize === "UNICO" ? "Tamanho Único" : chosenSize) + " · " + chosenColor + " (" + bDef.shortLabel + ")";
+    const variantSku = getVariantSku(p, chosenColor, chosenSize, chosenBlank);
+    const itemImage = getColorMockupForProduct(p, chosenColor, chosenBlank);
     for (let i = 0; i < this.state.qty; i++) {
       entries.push({
         id: Date.now() + i,
         productId: p.id,
-        name: p.name,
-        price: p.price,
-        size: size,
-        rawSize: this.state.size,
+        name: p.name + " (" + bDef.shortLabel + ")",
+        price: effectivePrice,
+        size: sizeDisplay,
+        rawSize: chosenSize,
         color: chosenColor,
+        blank_type: chosenBlank,
         sku: variantSku,
         image: itemImage,
       });
@@ -2602,30 +2651,81 @@ class Component extends DCLogic {
         if (col && (cur || s.productId === 15)) this.go("colecao", { collectionId: col.id });
         else this.go("categoria");
       },
-      productName: p.name || "",
-      productPrice: brl(Number(p.price) || 89.9),
-      activeSku: getVariantSku(p, s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta"), s.size || "M"),
-      hasColors: true,
-      colorLabel: "Cor: " + (s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta")),
-      activeColorName: s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta"),
-      activeColorHex: ((p.colors || DEFAULT_COLORS).find((c) => c.name === (s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta"))) || { hex: "#111111" }).hex,
-      productColors: (p.colors || DEFAULT_COLORS).map((c) => {
-        const curColor = s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta");
-        const isSel = curColor === c.name;
+      ...(() => {
+        const activeBlank = s.blank || "classic";
+        const bDef = DIMONA_BLANKS_CLIENT[activeBlank] || DIMONA_BLANKS_CLIENT.classic;
+        const availableBlanksList = (p.available_blanks && p.available_blanks.length)
+          ? p.available_blanks
+          : ["classic", "moletom", "caneca", "bone", "ecobag"];
+
+        const effectivePrice = (p.blank_prices && p.blank_prices[activeBlank])
+          ? p.blank_prices[activeBlank]
+          : (activeBlank === "classic" ? (Number(p.price) || 89.9) : bDef.suggestedPrice);
+
+        const blankSizes = bDef.sizes || (p.sizes || DEFAULT_SIZES);
+        const activeSizeChoice = s.size || (blankSizes.length === 1 ? blankSizes[0] : (blankSizes.includes("M") ? "M" : blankSizes[0]));
+        const activeColorChoice = s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta");
+        const activeSku = getVariantSku(p, activeColorChoice, activeSizeChoice, activeBlank);
+
         return {
-          name: c.name,
-          hex: c.hex,
-          pressed: isSel,
-          ring: isSel ? accent : "transparent",
-          bg: isSel ? "rgba(255,102,196,0.15)" : "rgba(0,0,0,0.5)",
-          fg: isSel ? "#ffffff" : "var(--fg)",
-          pick: () => this.setState({ color: c.name, photoIdx: 0, warn: false }),
+          productName: p.name || "",
+          productPrice: brl(effectivePrice),
+          activeSku: activeSku,
+          hasBlanks: true,
+          blankLabel: "Base: " + bDef.shortLabel,
+          productBlanks: availableBlanksList.map((bk) => {
+            const d = DIMONA_BLANKS_CLIENT[bk] || { id: bk, shortLabel: bk.toUpperCase(), suggestedPrice: 89.9 };
+            const isSel = activeBlank === bk;
+            const pr = (p.blank_prices && p.blank_prices[bk])
+              ? p.blank_prices[bk]
+              : (bk === "classic" ? (Number(p.price) || 89.9) : d.suggestedPrice);
+            return {
+              id: bk,
+              name: d.shortLabel,
+              price: brl(pr),
+              pressed: isSel,
+              border: isSel ? accent : "rgba(255,255,255,0.25)",
+              bg: isSel ? "rgba(255,102,196,0.15)" : "rgba(0,0,0,0.5)",
+              fg: isSel ? "#ffffff" : "var(--fg)",
+              pick: () => {
+                const nextDef = DIMONA_BLANKS_CLIENT[bk] || DIMONA_BLANKS_CLIENT.classic;
+                const nextSizes = nextDef.sizes || ["M"];
+                const nextSize = nextSizes.includes(s.size) ? s.size : nextSizes[0];
+                this.setState({ blank: bk, size: nextSize, photoIdx: 0, warn: false });
+              },
+            };
+          }),
+          hasColors: true,
+          colorLabel: "Cor: " + activeColorChoice,
+          activeColorName: activeColorChoice,
+          activeColorHex: ((p.colors || DEFAULT_COLORS).find((c) => c.name === activeColorChoice) || { hex: "#111111" }).hex,
+          productColors: (p.colors || DEFAULT_COLORS).map((c) => {
+            const isSel = activeColorChoice === c.name;
+            return {
+              name: c.name,
+              hex: c.hex,
+              pressed: isSel,
+              ring: isSel ? accent : "transparent",
+              bg: isSel ? "rgba(255,102,196,0.15)" : "rgba(0,0,0,0.5)",
+              fg: isSel ? "#ffffff" : "var(--fg)",
+              pick: () => this.setState({ color: c.name, photoIdx: 0, warn: false }),
+            };
+          }),
+          sizes: blankSizes.map((label) => ({
+            label: label === "UNICO" ? "Único" : label,
+            pressed: (s.size === label) || (blankSizes.length === 1 && label === "UNICO"),
+            bg: ((s.size === label) || (blankSizes.length === 1 && label === "UNICO")) ? "var(--fg)" : "transparent",
+            fg: ((s.size === label) || (blankSizes.length === 1 && label === "UNICO")) ? "var(--bg)" : "var(--fg)",
+            pick: () => this.setState({ size: label, warn: false }),
+          })),
+          hasGuide: bDef.cat === "vestuario",
         };
-      }),
+      })(),
       warnText: "Escolha um tamanho antes de adicionar.",
       ...(() => {
+        const activeBlankChoice = s.blank || "classic";
         const activeColorChoice = s.color || (p.colors && p.colors[0] ? p.colors[0].name : "Preta");
-        const colorMockup = getColorMockupForProduct(p, activeColorChoice);
+        const colorMockup = getColorMockupForProduct(p, activeColorChoice, activeBlankChoice);
         const basePhotos = ((p.photos && p.photos.length) ? p.photos : (p.image ? [p.image] : ["/uploads/modelo_bonzo_01.jpg"])).filter(Boolean).slice(0, 6);
         const rawPhotos = [...basePhotos];
         if (rawPhotos.length > 0) {
@@ -2673,13 +2773,6 @@ class Component extends DCLogic {
         };
       })(),
 
-      sizes: (p.sizes || DEFAULT_SIZES).map((label) => ({
-        label: label,
-        pressed: s.size === label,
-        bg: s.size === label ? "var(--fg)" : "transparent",
-        fg: s.size === label ? "var(--bg)" : "var(--fg)",
-        pick: () => this.setState({ size: label, warn: false }),
-      })),
       guideOpen: s.guideOpen,
       openGuide: () => this.setState({ guideOpen: true }),
       closeGuide: () => this.setState({ guideOpen: false }),

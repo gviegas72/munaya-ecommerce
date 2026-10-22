@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { DatabaseProduct } from "@/lib/supabase";
 import { ProductColor, getColorMockupUrl, OFFICIAL_COLORS } from "@/lib/variants";
+import { DIMONA_BLANKS } from "@/lib/dimona-mapping";
 import { ProductGalleryCarousel } from "@/components/ProductGalleryCarousel";
 import { ProductActionSection } from "@/components/ProductActionSection";
 
@@ -20,22 +21,34 @@ export function ProductDetailClient({
       ? product.colors
       : OFFICIAL_COLORS;
 
+  const availableBlanks: string[] =
+    product.available_blanks && product.available_blanks.length > 0
+      ? product.available_blanks
+      : ["classic", "moletom", "caneca", "bone", "ecobag"];
+
   const [selectedColor, setSelectedColor] = useState<ProductColor>(
     availableColors[0] || OFFICIAL_COLORS[0]
   );
 
-  // URL do mockup dinâmico ou estático para a cor atualmente selecionada
-  const activeColorMockupUrl = getColorMockupUrl(product, selectedColor);
+  const [selectedBlank, setSelectedBlank] = useState<string>(
+    availableBlanks[0] || "classic"
+  );
+
+  const currentBlankDef = DIMONA_BLANKS[selectedBlank] || DIMONA_BLANKS.classic;
+
+  // URL do mockup dinâmico ou estático para a cor e base atualmente selecionadas
+  const activeColorMockupUrl = getColorMockupUrl(product, selectedColor, selectedBlank);
 
   return (
     <div className="flex flex-col md:flex-row w-full flex-1">
-      {/* Left Column - Interactive Carousel & Color Mockup Dynamic Switcher */}
+      {/* Left Column - Interactive Carousel & Color/Blank Mockup Dynamic Switcher */}
       <div className="w-full md:w-[65%] flex flex-col border-b md:border-b-0 md:border-r border-foreground bg-black">
         <ProductGalleryCarousel
           images={initialImages}
           productName={product.name}
           activeColor={selectedColor}
           colorMockupUrl={activeColorMockupUrl}
+          activeBlankLabel={currentBlankDef.shortLabel}
         />
       </div>
 
@@ -46,6 +59,8 @@ export function ProductDetailClient({
             product={product}
             selectedColor={selectedColor}
             onColorChange={setSelectedColor}
+            selectedBlank={selectedBlank}
+            onBlankChange={setSelectedBlank}
           />
         </div>
       </div>

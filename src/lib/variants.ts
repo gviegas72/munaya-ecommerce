@@ -96,6 +96,8 @@ export function sanitizeSkuColor(colorName: string): string {
  * Gera o SKU oficial da variante completa
  * Padrão Enxuto: MNY-[TIPO]-[NOME]-[COR]-[TAM]
  * Exemplo: MNY-TSH-DIMEBAG-PRETA-PP
+ * Exemplo Caneca: MNY-CAN-DIMEBAG-BRANCA-UNICO
+ * Exemplo Moletom: MNY-MOL-DIMEBAG-PRETA-G
  */
 export function generateVariantSku(
   productNameOrSlug: string,
@@ -108,6 +110,18 @@ export function generateVariantSku(
   const colorPart = sanitizeSkuColor(colorName);
   const sizePart = String(sizeName || "M").toUpperCase().trim();
   return `MNY-${typePart}-${namePart}-${colorPart}-${sizePart}`;
+}
+
+/**
+ * Mapeia o id do Blank da Dimona para o código de 3 letras do SKU Munaya
+ */
+export function blankTypeToSkuType(blankType: string = "classic"): string {
+  const b = String(blankType || "classic").toLowerCase();
+  if (b.includes("caneca")) return "CAN";
+  if (b.includes("bone") || b.includes("boné")) return "BON";
+  if (b.includes("moletom")) return "MOL";
+  if (b.includes("ecobag")) return "ECO";
+  return "TSH";
 }
 
 /**
@@ -136,24 +150,28 @@ export function getColorMockupUrl(
     artwork_url?: string;
     gallery?: string[];
   },
-  color: ProductColor
+  color: ProductColor,
+  blankType: string = "classic"
 ): string {
   if (color?.mockupUrl && String(color.mockupUrl).trim()) {
     return String(color.mockupUrl).trim();
   }
 
   const normColor = sanitizeSkuColor(color?.skuCode || color?.name || "PRETA");
+  const cleanBlank = String(blankType || "classic").toLowerCase();
   const defaultCover =
     (product.gallery && product.gallery.length > 0 && product.gallery[0]) ||
     product.image_url ||
     "/uploads/modelo_bonzo_01.jpg";
 
-  if (normColor === "PRETA") {
+  // Se for camiseta Classic na cor Preta sem mockup customizado, usa a foto de estúdio
+  if (cleanBlank === "classic" && normColor === "PRETA") {
     return defaultCover;
   }
 
   const params = new URLSearchParams({
     color: normColor,
+    blank: cleanBlank,
     sku: String(product.sku || product.slug || product.name || "MUNAYA"),
     name: String(product.name || "Camiseta Munaya Rocks"),
   });

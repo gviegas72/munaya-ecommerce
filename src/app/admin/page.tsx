@@ -97,6 +97,8 @@ interface NewProductForm {
   is_custom_price: boolean;
   dimona_product_id: string;
   blank_type: string;
+  available_blanks?: string[];
+  blank_prices?: Record<string, number>;
   display_order: number;
 }
 
@@ -119,6 +121,8 @@ const INITIAL_NEW_PRODUCT: NewProductForm = {
   is_custom_price: false,
   dimona_product_id: "",
   blank_type: "classic",
+  available_blanks: ["classic", "moletom", "caneca", "bone", "ecobag"],
+  blank_prices: {},
   display_order: 10,
 };
 
@@ -178,6 +182,8 @@ interface Product {
   is_custom_price?: boolean;
   dimona_product_id?: string;
   blank_type?: string;
+  available_blanks?: string[];
+  blank_prices?: Record<string, number>;
   display_order: number;
   badge?: string;
 }
@@ -1004,6 +1010,11 @@ export default function AdminPage() {
       is_custom_price: prod.is_custom_price !== undefined ? prod.is_custom_price : false,
       dimona_product_id: prod.dimona_product_id || "",
       blank_type: prod.blank_type || "classic",
+      available_blanks:
+        prod.available_blanks && prod.available_blanks.length > 0
+          ? prod.available_blanks
+          : ["classic", "moletom", "caneca", "bone", "ecobag"],
+      blank_prices: prod.blank_prices || {},
       display_order: prod.display_order || 10,
     });
     setEditGalleryUrlInput("");
@@ -1119,6 +1130,8 @@ export default function AdminPage() {
         is_custom_price: editingProduct.is_custom_price,
         dimona_product_id: editingProduct.dimona_product_id ? editingProduct.dimona_product_id.trim().toUpperCase() : "",
         blank_type: editingProduct.blank_type || "classic",
+        available_blanks: editingProduct.available_blanks,
+        blank_prices: editingProduct.blank_prices,
         display_order:
           parseInt(String(editingProduct.display_order), 10) || 10,
       };
@@ -3576,6 +3589,73 @@ export default function AdminPage() {
                             className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1.5 text-xs font-mono text-cyan-300 uppercase focus:border-[#ff66c4] focus:outline-none"
                           />
                         </div>
+
+                        {/* Multi-Blank: Seleção de Bases Físicas para esta estampa */}
+                        <div className="col-span-2 pt-2 border-t border-neutral-800">
+                          <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1.5">
+                            Bases Físicas Disponíveis para esta Estampa (Multi-Blank)
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {Object.values(DIMONA_BLANKS).map((b) => {
+                              const isChecked = (newProduct.available_blanks || []).includes(b.id);
+                              const customPrice = newProduct.blank_prices?.[b.id] ?? b.suggestedPrice;
+                              return (
+                                <div
+                                  key={b.id}
+                                  className={`flex items-center justify-between p-2 border ${
+                                    isChecked
+                                      ? "border-[#ff66c4]/60 bg-neutral-950"
+                                      : "border-neutral-800 bg-neutral-950/40 opacity-60"
+                                  }`}
+                                >
+                                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={(e) => {
+                                        const current = newProduct.available_blanks || [];
+                                        const next = e.target.checked
+                                          ? [...current, b.id]
+                                          : current.filter((x) => x !== b.id);
+                                        setNewProduct((prev) => ({
+                                          ...prev,
+                                          available_blanks: next,
+                                        }));
+                                      }}
+                                      className="accent-[#ff66c4] w-4 h-4"
+                                    />
+                                    <div>
+                                      <p className="text-xs font-bold text-white uppercase">{b.shortLabel}</p>
+                                      <p className="text-[10px] text-neutral-400 font-mono">
+                                        Custo: R$ {b.factoryCost.toFixed(2)}
+                                      </p>
+                                    </div>
+                                  </label>
+
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[11px] text-neutral-400 font-mono">R$</span>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      value={customPrice}
+                                      onChange={(e) => {
+                                        const val = parseFloat(e.target.value) || 0;
+                                        setNewProduct((prev) => ({
+                                          ...prev,
+                                          blank_prices: {
+                                            ...(prev.blank_prices || {}),
+                                            [b.id]: val,
+                                          },
+                                        }));
+                                      }}
+                                      className="w-20 bg-neutral-900 border border-neutral-700 px-1.5 py-0.5 text-xs text-white font-mono text-right focus:border-[#ff66c4] focus:outline-none"
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -4412,6 +4492,76 @@ export default function AdminPage() {
                             }
                             className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1.5 text-xs font-mono text-cyan-300 uppercase focus:border-[#ff66c4] focus:outline-none"
                           />
+                        </div>
+
+                        {/* Multi-Blank: Seleção de Bases Físicas para esta estampa */}
+                        <div className="col-span-2 pt-2 border-t border-neutral-800">
+                          <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1.5">
+                            Bases Físicas Disponíveis para esta Estampa (Multi-Blank)
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {Object.values(DIMONA_BLANKS).map((b) => {
+                              const isChecked = (editingProduct.available_blanks || []).includes(b.id);
+                              const customPrice = editingProduct.blank_prices?.[b.id] ?? b.suggestedPrice;
+                              return (
+                                <div
+                                  key={b.id}
+                                  className={`flex items-center justify-between p-2 border ${
+                                    isChecked
+                                      ? "border-[#ff66c4]/60 bg-neutral-950"
+                                      : "border-neutral-800 bg-neutral-950/40 opacity-60"
+                                  }`}
+                                >
+                                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={(e) => {
+                                        const current = editingProduct.available_blanks || [];
+                                        const next = e.target.checked
+                                          ? [...current, b.id]
+                                          : current.filter((x) => x !== b.id);
+                                        setEditingProduct((prev) =>
+                                          prev ? { ...prev, available_blanks: next } : null
+                                        );
+                                      }}
+                                      className="accent-[#ff66c4] w-4 h-4"
+                                    />
+                                    <div>
+                                      <p className="text-xs font-bold text-white uppercase">{b.shortLabel}</p>
+                                      <p className="text-[10px] text-neutral-400 font-mono">
+                                        Custo: R$ {b.factoryCost.toFixed(2)}
+                                      </p>
+                                    </div>
+                                  </label>
+
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[11px] text-neutral-400 font-mono">R$</span>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      value={customPrice}
+                                      onChange={(e) => {
+                                        const val = parseFloat(e.target.value) || 0;
+                                        setEditingProduct((prev) =>
+                                          prev
+                                            ? {
+                                                ...prev,
+                                                blank_prices: {
+                                                  ...(prev.blank_prices || {}),
+                                                  [b.id]: val,
+                                                },
+                                              }
+                                            : null
+                                        );
+                                      }}
+                                      className="w-20 bg-neutral-900 border border-neutral-700 px-1.5 py-0.5 text-xs text-white font-mono text-right focus:border-[#ff66c4] focus:outline-none"
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
 

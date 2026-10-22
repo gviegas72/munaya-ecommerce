@@ -43,7 +43,9 @@ export interface DatabaseProduct {
   is_featured: boolean;
   is_custom_price?: boolean; // Trava contra recálculo de markup em lote
   dimona_product_id?: string; // ID do produto/modelo na Dimona (De/Para)
-  blank_type?: string;        // Tipo de blank (classic, quality, estonada, etc.)
+  blank_type?: string;        // Tipo de blank padrão (classic, quality, estonada, etc.)
+  available_blanks?: string[]; // Lista de blanks habilitados para esta estampa
+  blank_prices?: Record<string, number>; // Preços customizados por blank
   display_order: number;
   badge?: string;
   sku?: string;
@@ -96,6 +98,20 @@ export function hydrateProductVariants(p: any): DatabaseProduct {
       ? [coverUrl]
       : [];
 
+  const available_blanks =
+    Array.isArray(p.available_blanks) && p.available_blanks.length > 0
+      ? p.available_blanks
+      : Array.isArray(meta.available_blanks) && meta.available_blanks.length > 0
+      ? meta.available_blanks
+      : ["classic"];
+
+  const blank_prices =
+    p.blank_prices && typeof p.blank_prices === "object"
+      ? p.blank_prices
+      : meta.blank_prices && typeof meta.blank_prices === "object"
+      ? meta.blank_prices
+      : {};
+
   return {
     ...p,
     image_url: coverUrl || gallery[0] || "",
@@ -103,6 +119,8 @@ export function hydrateProductVariants(p: any): DatabaseProduct {
     is_custom_price: p.is_custom_price !== undefined ? Boolean(p.is_custom_price) : Boolean(meta.is_custom_price || false),
     dimona_product_id: p.dimona_product_id !== undefined ? String(p.dimona_product_id || "") : String(meta.dimona_product_id || ""),
     blank_type: p.blank_type || meta.blank_type || "classic",
+    available_blanks,
+    blank_prices,
     sku: baseSku,
     colors,
     sizes,
@@ -252,6 +270,8 @@ export async function createProductAdmin(
       ...(productData.is_custom_price !== undefined ? { is_custom_price: productData.is_custom_price } : {}),
       ...(productData.dimona_product_id !== undefined ? { dimona_product_id: productData.dimona_product_id } : {}),
       ...(productData.blank_type !== undefined ? { blank_type: productData.blank_type } : {}),
+      ...(productData.available_blanks !== undefined ? { available_blanks: productData.available_blanks } : {}),
+      ...(productData.blank_prices !== undefined ? { blank_prices: productData.blank_prices } : {}),
     };
 
     const insertPayload: any = {
@@ -269,6 +289,8 @@ export async function createProductAdmin(
     delete insertPayload.is_custom_price;
     delete insertPayload.dimona_product_id;
     delete insertPayload.blank_type;
+    delete insertPayload.available_blanks;
+    delete insertPayload.blank_prices;
 
     const { data, error } = await supabaseAdmin
       .from("products")
@@ -368,6 +390,8 @@ export async function updateProductAdmin(
       ...(updates.is_custom_price !== undefined ? { is_custom_price: updates.is_custom_price } : {}),
       ...(updates.dimona_product_id !== undefined ? { dimona_product_id: updates.dimona_product_id } : {}),
       ...(updates.blank_type !== undefined ? { blank_type: updates.blank_type } : {}),
+      ...(updates.available_blanks !== undefined ? { available_blanks: updates.available_blanks } : {}),
+      ...(updates.blank_prices !== undefined ? { blank_prices: updates.blank_prices } : {}),
     };
 
     const updatePayload: any = {
@@ -384,6 +408,8 @@ export async function updateProductAdmin(
     delete updatePayload.is_custom_price;
     delete updatePayload.dimona_product_id;
     delete updatePayload.blank_type;
+    delete updatePayload.available_blanks;
+    delete updatePayload.blank_prices;
 
     const { data, error } = await supabaseAdmin
       .from("products")

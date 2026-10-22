@@ -9,6 +9,7 @@ interface ProductGalleryCarouselProps {
   productName: string;
   activeColor?: ProductColor;
   colorMockupUrl?: string;
+  activeBlankLabel?: string;
 }
 
 export function ProductGalleryCarousel({
@@ -16,6 +17,7 @@ export function ProductGalleryCarousel({
   productName,
   activeColor,
   colorMockupUrl,
+  activeBlankLabel,
 }: ProductGalleryCarouselProps) {
   const validImages = (images || [])
     .map((u) => String(u || "").trim())
@@ -38,10 +40,10 @@ export function ProductGalleryCarousel({
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
-  // Ao trocar a cor selecionada, volta imediatamente para a foto #1 (mockup da cor ativa)
+  // Ao trocar a cor ou base selecionada, volta imediatamente para a foto #1 (mockup dinâmico)
   useEffect(() => {
     setActiveIndex(0);
-  }, [activeColor?.name, colorMockupUrl]);
+  }, [activeColor?.name, colorMockupUrl, activeBlankLabel]);
 
   const hasMultiple = gallery.length > 1;
   const safeIndex = activeIndex < gallery.length ? activeIndex : 0;
@@ -97,7 +99,7 @@ export function ProductGalleryCarousel({
           className="w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-105"
         />
 
-        {/* Badge da Cor Ativa no canto superior direito */}
+        {/* Badge da Cor/Base Ativa no canto superior direito */}
         {activeColor && (
           <div className="absolute top-4 right-4 z-10 bg-black/85 border border-foreground/50 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground flex items-center gap-2">
             <span
@@ -105,7 +107,7 @@ export function ProductGalleryCarousel({
               style={{ backgroundColor: activeColor.hex }}
             />
             <span>
-              Cor: <strong className="text-[#ff66c4]">{activeColor.name}</strong>
+              {activeBlankLabel ? `${activeBlankLabel} • ` : ""}Cor: <strong className="text-[#ff66c4]">{activeColor.name}</strong>
             </span>
           </div>
         )}

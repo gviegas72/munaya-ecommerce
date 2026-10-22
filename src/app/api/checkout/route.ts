@@ -7,6 +7,7 @@ import { sanitizeString, sanitizeDigits } from "@/lib/sanitize";
 import { sendOrderCreatedEmail } from "@/lib/email";
 import { sendOrderCreatedWhatsApp } from "@/lib/whatsapp";
 import { validateCouponCode, incrementCouponUsage } from "@/lib/coupons";
+import { getProductBlankPrice } from "@/lib/dimona-mapping";
 
 /**
  * Endpoint de Processamento de Pagamento no Checkout Headless Munaya
@@ -103,7 +104,22 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const officialPrice = Number(dbProd.price);
+      let itemBlank = String(it.blank_type || it.blankType || it.blank || "").toLowerCase();
+      if (!itemBlank && it.sku) {
+        const upper = String(it.sku).toUpperCase();
+        if (upper.includes("-CAN-") || upper.includes("-CANECA-")) itemBlank = "caneca";
+        else if (upper.includes("-MOL-") || upper.includes("-MOLETOM-")) itemBlank = "moletom";
+        else if (upper.includes("-BON-") || upper.includes("-BONE-")) itemBlank = "bone";
+        else if (upper.includes("-ECO-") || upper.includes("-ECOBAG-")) itemBlank = "ecobag";
+      }
+      if (!itemBlank) {
+        itemBlank = String(dbProd.blank_type || "classic").toLowerCase();
+      }
+      const officialPrice = getProductBlankPrice(
+        Number(dbProd.price),
+        itemBlank,
+        dbProd.blank_prices
+      );
       const qty = Math.max(1, parseInt(String(it.quantity || it.qty || 1), 10));
       calculatedSubtotal += officialPrice * qty;
 
@@ -115,6 +131,7 @@ export async function POST(req: NextRequest) {
         size: it.size || "M",
         color: it.color || "Preta",
         sku: it.sku,
+        blank_type: itemBlank,
       });
     }
 
