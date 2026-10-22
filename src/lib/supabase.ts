@@ -90,17 +90,36 @@ export function hydrateProductVariants(p: any): DatabaseProduct {
  */
 export async function getProductByIdOrSlug(idOrSlug: string | number): Promise<DatabaseProduct | null> {
   try {
-    const isNumeric = !isNaN(Number(idOrSlug));
-    let query = supabase.from("products").select("*").eq("is_active", true);
+    const raw = String(idOrSlug).trim();
+    const isNumeric = !isNaN(Number(raw)) && /^\d+$/.test(raw);
 
+    let query = supabase.from("products").select("*").eq("is_active", true);
     if (isNumeric) {
-      query = query.eq("id", Number(idOrSlug));
+      query = query.eq("id", Number(raw));
     } else {
-      query = query.eq("slug", String(idOrSlug).trim());
+      query = query.eq("slug", raw);
     }
 
-    const { data, error } = await query.maybeSingle();
-    if (error || !data) return null;
+    let { data, error } = await query.maybeSingle();
+
+    // Fallback: se não encontrou, tenta a condição oposta
+    if (!data || error) {
+      let fallbackQuery = supabase.from("products").select("*").eq("is_active", true);
+      if (isNumeric) {
+        fallbackQuery = fallbackQuery.eq("slug", raw);
+      } else {
+        const parsed = parseInt(raw, 10);
+        if (!isNaN(parsed)) {
+          fallbackQuery = fallbackQuery.eq("id", parsed);
+        } else {
+          return null;
+        }
+      }
+      const fallbackRes = await fallbackQuery.maybeSingle();
+      data = fallbackRes.data;
+    }
+
+    if (!data) return null;
     return hydrateProductVariants(data);
   } catch (err) {
     console.error("Erro ao buscar produto por ID/slug no Supabase:", err);

@@ -20,7 +20,7 @@ export default async function Category() {
       <div className="grid grid-cols-1 md:grid-cols-3 auto-rows-[340px] md:auto-rows-[400px] gap-4 md:gap-8">
         {products.map((product) => (
           <Link
-            href={`/produto/${product.id}`}
+            href={`/produto/${product.slug || product.id}`}
             key={product.id}
             className="group relative overflow-hidden bg-foreground rounded-none border border-foreground/30 col-span-1 row-span-1"
           >

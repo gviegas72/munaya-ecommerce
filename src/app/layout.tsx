@@ -18,6 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://munayarocks.vercel.app"),
   title: "Munaya Rocks | A Arte do Caos",
   description: "Munaya reinventa a arte de se vestir com o rock. Irreverente, pesado e focado no lifestyle.",
   icons: {
