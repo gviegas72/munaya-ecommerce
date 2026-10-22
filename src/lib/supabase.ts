@@ -191,6 +191,7 @@ export async function createProductAdmin(
     delete insertPayload.sku;
     delete insertPayload.colors;
     delete insertPayload.sizes;
+    delete insertPayload.is_custom_price;
 
     const { data, error } = await supabaseAdmin
       .from("products")
@@ -285,6 +286,8 @@ export async function updateProductAdmin(
     delete updatePayload.sku;
     delete updatePayload.colors;
     delete updatePayload.sizes;
+    // Removemos do payload raiz para não quebrar tabelas do Supabase que ainda não rodaram a migration SQL
+    delete updatePayload.is_custom_price;
 
     const { data, error } = await supabaseAdmin
       .from("products")
