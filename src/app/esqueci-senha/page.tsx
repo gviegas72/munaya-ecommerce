@@ -24,20 +24,17 @@ export default function EsqueciSenhaPage() {
     setLoading(true);
 
     try {
-      // Define a URL de redirecionamento para o callback no mesmo host
-      const redirectOrigin =
-        typeof window !== "undefined"
-          ? window.location.origin
-          : "https://munayarocks.vercel.app";
-      const redirectTo = `${redirectOrigin}/auth/callback?next=/redefinir-senha`;
-
-      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-        redirectTo,
+      // Dispara a geração de token e envio imediato por e-mail via API da loja (Resend + Supabase Admin)
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail }),
       });
 
-      if (error) {
-        // Log técnico discreto sem expor se o e-mail existe ou não
-        console.warn("Retorno da recuperação de senha:", error.message);
+      const data = await res.json();
+      if (!res.ok && data?.error) {
+        setErrorMsg(data.error);
+        return;
       }
 
       // Por segurança contra enumeração de contas, sempre exibimos a mensagem de confirmação

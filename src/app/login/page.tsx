@@ -148,6 +148,9 @@ export default function LoginPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    try {
+      window.localStorage.removeItem("munaya.conta.v1");
+    } catch (e) {}
     setCurrentUser(null);
   };
 

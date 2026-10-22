@@ -1409,6 +1409,28 @@ class Component extends DCLogic {
     } catch (err) {}
 
     try {
+      const sp = new URLSearchParams(window.location.search);
+      const reqScreen = sp.get("screen");
+      if (reqScreen === "colecoes") this.setState({ screen: "colecoes" });
+      else if (reqScreen === "sobre") this.setState({ screen: "info", infoTitle: "Sobre" });
+      else if (reqScreen === "categoria") this.setState({ screen: "categoria" });
+    } catch (e) {}
+
+    try {
+      const sbRaw = window.localStorage.getItem("sb-jaxxkyvsgasgaccbejln-auth-token");
+      if (sbRaw) {
+        const sbData = JSON.parse(sbRaw);
+        const sbEmail = sbData?.user?.email || "";
+        if (sbEmail) {
+          this.setState((s) => ({
+            authed: true,
+            account: s.account || Object.assign({}, EMPTY_ACCT, { email: sbEmail, nome: sbEmail.split("@")[0] }),
+          }));
+        }
+      }
+    } catch (e) {}
+
+    try {
       const raw = window.localStorage.getItem(STORE);
       if (raw) {
         const data = JSON.parse(raw);
@@ -2162,11 +2184,9 @@ class Component extends DCLogic {
 
       contaLabel: s.authed ? "Minha conta" : "Entrar",
       contaColor: s.screen === "conta" || s.screen === "login" ? accent : "var(--fg)",
-      goConta: () => this.setState({
-        screen: s.authed ? "conta" : "login",
-        loginErr: "",
-        acctForm: s.account ? Object.assign({}, EMPTY_ACCT, s.account, { senha: undefined }) : s.acctForm,
-      }),
+      goConta: () => {
+        window.location.href = "/login";
+      },
 
       loginEmail: s.loginForm.email,
       loginSenha: s.loginForm.senha,

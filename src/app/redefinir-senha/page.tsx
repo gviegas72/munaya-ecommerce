@@ -28,9 +28,50 @@ export default function RedefinirSenhaPage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    // 1. Verifica se já existe sessão ativa (estabelecida via callback ou link mágico)
     async function checkUserSession() {
       try {
+        if (typeof window !== "undefined") {
+          // 1. Verifica se a URL veio com ?token_hash=...&type=recovery (Link Direto Munaya/Resend)
+          const searchParams = new URLSearchParams(window.location.search);
+          const tokenHash = searchParams.get("token_hash");
+          const type = searchParams.get("type");
+
+          if (tokenHash && type === "recovery") {
+            const { data: otpData, error: otpErr } = await supabase.auth.verifyOtp({
+              token_hash: tokenHash,
+              type: "recovery",
+            });
+            if (!otpErr && (otpData?.session || otpData?.user)) {
+              setHasValidSession(true);
+              setCheckingSession(false);
+              return;
+            }
+          }
+
+          // 2. Verifica se a URL veio com fragmento hash (#access_token=...&refresh_token=...)
+          if (window.location.hash) {
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const accessToken = hashParams.get("access_token");
+            const refreshToken = hashParams.get("refresh_token");
+            if (accessToken && refreshToken) {
+              const { data: sessionData, error: sessionErr } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+              if (!sessionErr && sessionData?.session) {
+                setHasValidSession(true);
+                setCheckingSession(false);
+                return;
+              }
+            } else if (window.location.hash.includes("type=recovery")) {
+              setHasValidSession(true);
+              setCheckingSession(false);
+              return;
+            }
+          }
+        }
+
+        // 3. Verifica se já existe sessão ativa no navegador
         const { data } = await supabase.auth.getSession();
         if (data?.session?.user) {
           setHasValidSession(true);
@@ -38,14 +79,7 @@ export default function RedefinirSenhaPage() {
           return;
         }
 
-        // 2. Se a URL veio com fragmento hash (#access_token=...&type=recovery)
-        if (typeof window !== "undefined" && window.location.hash.includes("type=recovery")) {
-          setHasValidSession(true);
-          setCheckingSession(false);
-          return;
-        }
-
-        // Aguarda evento de auth state change caso o Supabase ainda esteja processando o token
+        // 4. Listener para eventos de autenticação assíncronos
         const { data: authListener } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (event === "PASSWORD_RECOVERY" || session?.user) {
@@ -55,10 +89,9 @@ export default function RedefinirSenhaPage() {
           }
         );
 
-        // Fallback de timeout de 2 segundos para checagem de sessão
         const timer = setTimeout(() => {
           setCheckingSession(false);
-        }, 2000);
+        }, 2500);
 
         return () => {
           authListener?.subscription?.unsubscribe();
