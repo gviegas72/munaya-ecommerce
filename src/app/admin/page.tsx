@@ -88,13 +88,14 @@ interface NewProductForm {
   badge: string;
   is_active: boolean;
   is_featured: boolean;
+  is_custom_price: boolean;
   display_order: number;
 }
 
 const INITIAL_NEW_PRODUCT: NewProductForm = {
   name: "",
   slug: "",
-  sku: "MUNAYA-NOVA",
+  sku: "MNY-TSH-NOVA",
   colors: OFFICIAL_COLORS, // Preta, Branca e Cinza
   sizes: Array.from(OFFICIAL_SIZES), // PP, P, M, G, GG, XGG
   subtitle: "100% Algodão Premium Silk Screen",
@@ -106,6 +107,7 @@ const INITIAL_NEW_PRODUCT: NewProductForm = {
   badge: "Bonzo Series",
   is_active: true,
   is_featured: false,
+  is_custom_price: false,
   display_order: 10,
 };
 
@@ -161,6 +163,7 @@ interface Product {
   artwork_url?: string;
   is_active: boolean;
   is_featured: boolean;
+  is_custom_price?: boolean;
   display_order: number;
   badge?: string;
 }
@@ -786,6 +789,7 @@ export default function AdminPage() {
       badge: prod.badge || "",
       is_active: prod.is_active !== undefined ? prod.is_active : true,
       is_featured: prod.is_featured !== undefined ? prod.is_featured : false,
+      is_custom_price: prod.is_custom_price !== undefined ? prod.is_custom_price : false,
       display_order: prod.display_order || 10,
     });
     setEditError("");
@@ -867,6 +871,7 @@ export default function AdminPage() {
         badge: editingProduct.badge || null,
         is_active: editingProduct.is_active,
         is_featured: editingProduct.is_featured,
+        is_custom_price: editingProduct.is_custom_price,
         display_order:
           parseInt(String(editingProduct.display_order), 10) || 10,
       };
@@ -910,6 +915,7 @@ export default function AdminPage() {
                   badge: editingProduct.badge || undefined,
                   is_active: editingProduct.is_active,
                   is_featured: editingProduct.is_featured,
+                  is_custom_price: editingProduct.is_custom_price,
                   display_order:
                     parseInt(String(editingProduct.display_order), 10) || 10,
                 }
@@ -1694,6 +1700,12 @@ export default function AdminPage() {
                               {prod.is_featured && (
                                 <span className="text-[10px] uppercase font-bold bg-amber-950 border border-amber-500 text-amber-300 px-1.5 py-0.5">
                                   ★ Destaque
+                                </span>
+                              )}
+
+                              {prod.is_custom_price && (
+                                <span className="text-[10px] uppercase font-bold bg-[#ff66c4]/20 border border-[#ff66c4] text-[#ff66c4] px-1.5 py-0.5 font-mono">
+                                  🔒 Preço Travado
                                 </span>
                               )}
                             </div>
@@ -3267,7 +3279,7 @@ export default function AdminPage() {
                       />
                     </div>
 
-                    <div className="flex items-center gap-6 pt-2">
+                    <div className="flex items-center gap-6 pt-2 flex-wrap">
                       <label className="flex items-center gap-2 cursor-pointer text-xs">
                         <input
                           type="checkbox"
@@ -3301,6 +3313,24 @@ export default function AdminPage() {
                         />
                         <span className="uppercase font-bold text-neutral-200">
                           Destaque Home
+                        </span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer text-xs bg-[#ff66c4]/10 border border-[#ff66c4]/40 px-2 py-1">
+                        <input
+                          type="checkbox"
+                          checked={editingProduct.is_custom_price}
+                          onChange={(e) =>
+                            setEditingProduct((prev) =>
+                              prev
+                                ? { ...prev, is_custom_price: e.target.checked }
+                                : null
+                            )
+                          }
+                          className="w-4 h-4 accent-[#ff66c4]"
+                        />
+                        <span className="uppercase font-bold text-[#ff66c4]">
+                          🔒 Travar Preço Individual
                         </span>
                       </label>
                     </div>

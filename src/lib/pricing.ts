@@ -219,8 +219,16 @@ export async function applyPricingToCatalog(
   }
 
   let updatedCount = 0;
+  let skippedCustomCount = 0;
 
   for (const prod of products) {
+    // Trava de Preço Customizado (is_custom_price):
+    // Se o lojista definiu um preço manual especial, NÃO sobrescreve no lote!
+    if (prod.is_custom_price) {
+      skippedCustomCount += 1;
+      continue;
+    }
+
     // Identifica o tipo de malha (padrão classic ou estonada se tiver 'estonada' na descrição/nome)
     const isEstonada =
       (prod.name || "").toLowerCase().includes("estonad") ||
@@ -238,6 +246,16 @@ export async function applyPricingToCatalog(
       updatedCount += 1;
     }
   }
+
+  const message = skippedCustomCount > 0
+    ? `Preços atualizados em ${updatedCount} produtos. ${skippedCustomCount} produto(s) com preço travado foram preservados.`
+    : `Preços atualizados em ${updatedCount} produtos.`;
+
+  return {
+    success: true,
+    updatedCount,
+    message,
+  };
 
   return {
     success: true,

@@ -40,6 +40,7 @@ export interface DatabaseProduct {
   artwork_url: string;
   is_active: boolean;
   is_featured: boolean;
+  is_custom_price?: boolean; // Trava contra recálculo de markup em lote
   display_order: number;
   badge?: string;
   sku?: string;
@@ -72,6 +73,7 @@ export function hydrateProductVariants(p: any): DatabaseProduct {
 
   return {
     ...p,
+    is_custom_price: p.is_custom_price !== undefined ? Boolean(p.is_custom_price) : Boolean(meta.is_custom_price || false),
     sku: baseSku,
     colors,
     sizes,
@@ -272,6 +274,7 @@ export async function updateProductAdmin(
       ...(updates.sku ? { sku: updates.sku } : {}),
       ...(updates.colors ? { colors: updates.colors } : {}),
       ...(updates.sizes ? { sizes: updates.sizes } : {}),
+      ...(updates.is_custom_price !== undefined ? { is_custom_price: updates.is_custom_price } : {}),
     };
 
     const updatePayload: any = {

@@ -165,10 +165,11 @@ ON CONFLICT (id) DO UPDATE SET
     badge = EXCLUDED.badge;
 
 -- ==============================================================================
--- 🎸 MIGRAÇÃO: ADIÇÃO DE SKU, CORES E TAMANHOS (PADRÃO NUVEMSHOP)
+-- 🎸 MIGRAÇÃO: ADIÇÃO DE SKU, CORES, TAMANHOS E TRAVA DE PREÇO CUSTOMIZADO
 -- ==============================================================================
 ALTER TABLE public.products 
 ADD COLUMN IF NOT EXISTS sku TEXT,
 ADD COLUMN IF NOT EXISTS colors JSONB DEFAULT '[{"name": "Preta", "hex": "#111111", "skuCode": "PRETA"}]'::jsonb,
-ADD COLUMN IF NOT EXISTS sizes JSONB DEFAULT '["PP", "P", "M", "G", "GG", "XGG"]'::jsonb;
+ADD COLUMN IF NOT EXISTS sizes JSONB DEFAULT '["PP", "P", "M", "G", "GG", "XGG"]'::jsonb,
+ADD COLUMN IF NOT EXISTS is_custom_price BOOLEAN NOT NULL DEFAULT false;
 
