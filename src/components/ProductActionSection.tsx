@@ -46,10 +46,11 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
     availableColors[0] || OFFICIAL_COLORS[0]
   );
   const [selectedSize, setSelectedSize] = useState<string>("M");
+  const [qty, setQty] = useState<number>(1);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState<boolean>(false);
   const [addedFeedback, setAddedFeedback] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const { addItem } = useCart();
+  const { addItem, totalCount, openCart } = useCart();
 
   // Estados do cálculo de frete
   const [cep, setCep] = useState<string>("");
@@ -66,7 +67,7 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
 
   const handleAddToPit = () => {
     if (!selectedSize) {
-      setErrorMsg("Por favor, selecione um tamanho antes de adicionar.");
+      setErrorMsg("Escolha um tamanho antes de adicionar.");
       return;
     }
 
@@ -81,13 +82,13 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
       color: selectedColor.name,
       sku: currentSku,
       image: product.image_url,
-      quantity: 1,
+      quantity: qty,
     });
 
     setAddedFeedback(true);
     setTimeout(() => {
       setAddedFeedback(false);
-    }, 2000);
+    }, 2500);
   };
 
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,6 +240,36 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
           )}
         </div>
 
+        {/* Seleção de Quantidade (Padrão Claude v3) */}
+        <div className="mt-6">
+          <p className="font-sans font-bold uppercase tracking-widest text-xs md:text-sm mb-2.5">
+            Quantidade
+          </p>
+          <div className="inline-flex items-stretch border-2 border-foreground">
+            <button
+              type="button"
+              onClick={() => setQty((q) => Math.max(1, q - 1))}
+              disabled={qty <= 1}
+              aria-label="Diminuir quantidade"
+              className="w-12 h-12 border-r-2 border-foreground font-oswald text-2xl font-bold flex items-center justify-center hover:bg-foreground hover:text-background transition-colors disabled:opacity-35 cursor-pointer"
+            >
+              –
+            </button>
+            <div className="w-16 h-12 flex items-center justify-center font-oswald text-2xl font-bold">
+              {qty}
+            </div>
+            <button
+              type="button"
+              onClick={() => setQty((q) => Math.min(10, q + 1))}
+              disabled={qty >= 10}
+              aria-label="Aumentar quantidade"
+              className="w-12 h-12 border-l-2 border-foreground font-oswald text-2xl font-bold flex items-center justify-center hover:bg-foreground hover:text-background transition-colors disabled:opacity-35 cursor-pointer"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
         {/* Descrição do Produto */}
         <p className="mt-6 text-sm md:text-base opacity-75 leading-relaxed">
           {product.description}
@@ -300,18 +331,28 @@ export function ProductActionSection({ product }: ProductActionSectionProps) {
         </div>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 flex flex-col gap-3">
         <button
           type="button"
           onClick={handleAddToPit}
-          className={`w-full font-oswald text-2xl md:text-4xl uppercase font-black py-5 md:py-6 transition-all cursor-pointer ${
+          className={`w-full font-oswald text-2xl md:text-3xl uppercase font-bold py-5 md:py-6 transition-all cursor-pointer ${
             addedFeedback
               ? "bg-[#ff66c4] text-black scale-[1.02]"
               : "bg-foreground text-background hover:scale-[1.02] active:scale-95 hover:bg-[#ff66c4] hover:text-black"
           }`}
         >
-          {addedFeedback ? "No Pit! 🤘" : "Add to Pit"}
+          {addedFeedback ? `Na sacola ✕${totalCount}` : "Adicione a sacola"}
         </button>
+
+        {totalCount > 0 && (
+          <button
+            type="button"
+            onClick={openCart}
+            className="w-full border-2 border-foreground text-foreground font-oswald text-xl uppercase font-bold py-3.5 hover:bg-foreground hover:text-background transition-colors cursor-pointer"
+          >
+            Ver sacola ({totalCount}) · Fechar pedido
+          </button>
+        )}
       </div>
 
       {/* Modal Guia de Medidas */}
