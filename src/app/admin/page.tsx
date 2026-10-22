@@ -38,6 +38,12 @@ import {
   Sparkles,
   ArrowRight,
   Play,
+  Users,
+  Phone,
+  MapPin,
+  ShoppingCart,
+  UserCheck,
+  ShieldCheck,
 } from "lucide-react";
 import { Coupon } from "@/lib/coupons";
 import { PricingSettings, DEFAULT_PRICING_SETTINGS, calculateSellingPrice, calculateFinancialSummary } from "@/lib/pricing";
@@ -52,6 +58,7 @@ import {
   DIMONA_BLANKS,
   resolveDimonaSku,
 } from "@/lib/dimona-mapping";
+import { AggregatedCustomer } from "@/app/api/customers/route";
 
 
 interface CouponFormData {
@@ -270,7 +277,13 @@ export default function AdminPage() {
   const [pin, setPin] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [activeTab, setActiveTab] = useState<"orders" | "catalog" | "coupons" | "pricing" | "dimona" | "whatsapp">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "customers" | "catalog" | "coupons" | "pricing" | "dimona" | "whatsapp">("orders");
+
+  // Estados de Gestão de Clientes
+  const [customers, setCustomers] = useState<AggregatedCustomer[]>([]);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState<AggregatedCustomer | null>(null);
 
   // Estados da Evolution API (WhatsApp Transacional)
   const [evoSettings, setEvoSettings] = useState({
@@ -378,12 +391,34 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAuthed) {
       loadOrders();
+      loadCustomers();
       loadProducts();
       loadCoupons();
       loadPricing();
       loadEvolutionConfig();
     }
   }, [isAuthed]);
+
+  const loadCustomers = async () => {
+    setLoadingCustomers(true);
+    try {
+      const savedPin =
+        typeof window !== "undefined"
+          ? localStorage.getItem("munaya_admin_token") || "munaya2026"
+          : "munaya2026";
+      const res = await fetch("/api/customers", {
+        headers: { "x-admin-pin": savedPin },
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.customers)) {
+        setCustomers(data.customers);
+      }
+    } catch (e) {
+      console.error("Erro ao carregar clientes:", e);
+    } finally {
+      setLoadingCustomers(false);
+    }
+  };
 
   const loadEvolutionConfig = async () => {
     setLoadingEvo(true);
@@ -1523,10 +1558,10 @@ export default function AdminPage() {
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
         {/* Navigation Tabs */}
-        <div className="flex border-b-2 border-white">
+        <div className="flex border-b-2 border-white overflow-x-auto">
           <button
             onClick={() => setActiveTab("orders")}
-            className={`flex items-center gap-2 px-6 py-3 font-oswald text-xl uppercase font-black tracking-tight transition-all ${
+            className={`flex items-center gap-2 px-6 py-3 font-oswald text-xl uppercase font-black tracking-tight transition-all shrink-0 ${
               activeTab === "orders"
                 ? "bg-white text-black"
                 : "text-neutral-400 hover:text-white"
@@ -1534,6 +1569,21 @@ export default function AdminPage() {
           >
             <Package className="w-5 h-5" />
             <span>Pedidos & Despacho ({orders.length})</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab("customers");
+              if (customers.length === 0) loadCustomers();
+            }}
+            className={`flex items-center gap-2 px-6 py-3 font-oswald text-xl uppercase font-black tracking-tight transition-all shrink-0 ${
+              activeTab === "customers"
+                ? "bg-white text-black"
+                : "text-neutral-400 hover:text-white"
+            }`}
+          >
+            <Users className="w-5 h-5" />
+            <span>Clientes ({customers.length})</span>
           </button>
 
           <button
@@ -1891,7 +1941,476 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TAB 2: CATÁLOGO */}
+        {/* TAB 2: CLIENTES & HISTÓRICO DE COMPRAS */}
+        {activeTab === "customers" && (() => {
+          const totalCustomers = customers.length;
+          const buyers = customers.filter((c) => c.total_orders > 0);
+          const totalRevenue = customers.reduce((acc, c) => acc + (c.total_spent || 0), 0);
+          const avgLtv = buyers.length > 0 ? totalRevenue / buyers.length : 0;
+          const topCustomer = customers.reduce(
+            (max: AggregatedCustomer | null, c) =>
+              (c.total_spent || 0) > (max?.total_spent || 0) ? c : max,
+            null
+          );
+
+          const filteredCustomers = customers.filter((c) => {
+            if (!customerSearch.trim()) return true;
+            const term = customerSearch.trim().toLowerCase();
+            const cleanCpf = (c.cpf || "").replace(/\D/g, "");
+            const cleanPhone = (c.phone || "").replace(/\D/g, "");
+            return (
+              c.name.toLowerCase().includes(term) ||
+              c.email.toLowerCase().includes(term) ||
+              cleanCpf.includes(term) ||
+              cleanPhone.includes(term) ||
+              c.addresses.some(
+                (a) =>
+                  a.city.toLowerCase().includes(term) ||
+                  a.state.toLowerCase().includes(term)
+              )
+            );
+          });
+
+          return (
+            <div className="space-y-6">
+              {/* Stat Cards de Clientes */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="border border-neutral-800 bg-neutral-950 p-4">
+                  <span className="text-xs uppercase font-bold text-neutral-500 tracking-wider flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-neutral-400" />
+                    Total de Clientes
+                  </span>
+                  <p className="font-oswald text-3xl md:text-4xl font-bold mt-1 text-white">
+                    {totalCustomers}
+                  </p>
+                  <p className="text-[11px] text-neutral-400 mt-1">
+                    {buyers.length} com compras registradas
+                  </p>
+                </div>
+
+                <div className="border border-neutral-800 bg-neutral-950 p-4">
+                  <span className="text-xs uppercase font-bold text-neutral-500 tracking-wider flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-[#ff66c4]" />
+                    LTV Consolidado
+                  </span>
+                  <p className="font-oswald text-3xl md:text-4xl font-bold mt-1 text-[#ff66c4]">
+                    R$ {totalRevenue.toFixed(2).replace(".", ",")}
+                  </p>
+                  <p className="text-[11px] text-neutral-400 mt-1">
+                    Faturamento total acumulado
+                  </p>
+                </div>
+
+                <div className="border border-neutral-800 bg-neutral-950 p-4">
+                  <span className="text-xs uppercase font-bold text-neutral-500 tracking-wider flex items-center gap-1.5">
+                    <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                    LTV Médio / Cliente
+                  </span>
+                  <p className="font-oswald text-3xl md:text-4xl font-bold mt-1 text-emerald-400">
+                    R$ {avgLtv.toFixed(2).replace(".", ",")}
+                  </p>
+                  <p className="text-[11px] text-neutral-400 mt-1">
+                    Média por comprador ativo
+                  </p>
+                </div>
+
+                <div className="border border-neutral-800 bg-neutral-950 p-4">
+                  <span className="text-xs uppercase font-bold text-neutral-500 tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    Cliente VIP (Maior LTV)
+                  </span>
+                  <p className="font-oswald text-xl md:text-2xl font-bold mt-1 text-amber-300 truncate" title={topCustomer?.name || "Nenhum"}>
+                    {topCustomer ? topCustomer.name.split(" ")[0] : "—"}
+                  </p>
+                  <p className="text-[11px] text-amber-400/80 mt-1 font-mono">
+                    {topCustomer ? `R$ ${topCustomer.total_spent.toFixed(2).replace(".", ",")}` : "Sem histórico"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Barra de Busca e Ações */}
+              <div className="flex flex-wrap items-center justify-between gap-4 bg-neutral-950 p-4 border border-neutral-800">
+                <div className="relative flex-1 min-w-[260px]">
+                  <Search className="w-4 h-4 absolute left-3 top-3.5 text-neutral-500" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nome, e-mail, telefone, CPF ou cidade..."
+                    value={customerSearch}
+                    onChange={(e) => setCustomerSearch(e.target.value)}
+                    className="w-full bg-neutral-900 border border-neutral-700 pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-white"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={loadCustomers}
+                    disabled={loadingCustomers}
+                    className="flex items-center gap-2 border border-white px-4 py-2.5 text-xs uppercase font-bold hover:bg-white hover:text-black transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${loadingCustomers ? "animate-spin" : ""}`} />
+                    <span>Recarregar Clientes</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tabela de Clientes */}
+              {loadingCustomers ? (
+                <div className="p-12 text-center border border-neutral-800 bg-neutral-950 text-neutral-400 font-mono text-sm">
+                  <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-3 text-[#ff66c4]" />
+                  Carregando cadastro de clientes e métricas de LTV...
+                </div>
+              ) : filteredCustomers.length === 0 ? (
+                <div className="p-12 text-center border border-neutral-800 bg-neutral-950 text-neutral-400">
+                  <Users className="w-8 h-8 mx-auto mb-3 text-neutral-600" />
+                  <p className="text-base font-bold text-white uppercase font-oswald">Nenhum cliente encontrado</p>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    {customerSearch ? "Tente buscar por outro termo ou limpe a busca." : "Nenhum pedido ou cadastro foi realizado ainda."}
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto border border-neutral-800 bg-neutral-950">
+                  <table className="w-full text-left font-sans text-xs">
+                    <thead className="bg-neutral-900/80 uppercase font-oswald tracking-wider text-neutral-400 text-sm border-b border-neutral-800">
+                      <tr>
+                        <th className="p-3.5">Cliente</th>
+                        <th className="p-3.5">CPF</th>
+                        <th className="p-3.5">WhatsApp / Contato</th>
+                        <th className="p-3.5">Localização</th>
+                        <th className="p-3.5 text-center">Pedidos</th>
+                        <th className="p-3.5 text-right">LTV Total</th>
+                        <th className="p-3.5 text-right">Última Compra</th>
+                        <th className="p-3.5 text-center">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-800/60 font-mono">
+                      {filteredCustomers.map((cust) => {
+                        const cleanPhone = cust.phone.replace(/\D/g, "");
+                        const waUrl = cleanPhone
+                          ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(
+                              `Olá ${cust.name.split(" ")[0]}! Aqui é da equipe Munaya Rocks.`
+                            )}`
+                          : null;
+                        const latestAddress = cust.addresses[0];
+                        const formattedCpf = cust.cpf
+                          ? cust.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+                          : "—";
+
+                        return (
+                          <tr
+                            key={cust.id}
+                            className="hover:bg-neutral-900/40 transition-colors"
+                          >
+                            <td className="p-3.5">
+                              <div className="font-sans font-bold text-sm text-white">
+                                {cust.name}
+                              </div>
+                              <div className="text-neutral-400 text-xs font-mono">
+                                {cust.email}
+                              </div>
+                              {cust.has_account && (
+                                <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-1.5 py-0.2 rounded">
+                                  <UserCheck className="w-2.5 h-2.5" />
+                                  Conta no Site
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="p-3.5 text-neutral-300">
+                              {formattedCpf}
+                            </td>
+
+                            <td className="p-3.5">
+                              {cleanPhone ? (
+                                <a
+                                  href={waUrl || "#"}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 transition-colors font-bold group"
+                                  title="Iniciar conversa no WhatsApp"
+                                >
+                                  <MessageCircle className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                                  <span>{cust.phone}</span>
+                                </a>
+                              ) : (
+                                <span className="text-neutral-600">—</span>
+                              )}
+                            </td>
+
+                            <td className="p-3.5 text-neutral-300 font-sans text-xs">
+                              {latestAddress ? (
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="w-3 h-3 text-neutral-500 shrink-0" />
+                                  <span>
+                                    {latestAddress.city}/{latestAddress.state}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-neutral-600">—</span>
+                              )}
+                            </td>
+
+                            <td className="p-3.5 text-center">
+                              <span className="px-2 py-0.5 text-xs font-bold rounded bg-neutral-900 border border-neutral-700 text-white">
+                                {cust.total_orders} {cust.total_orders === 1 ? "pedido" : "pedidos"}
+                              </span>
+                            </td>
+
+                            <td className="p-3.5 text-right font-bold text-sm text-[#ff66c4]">
+                              R$ {cust.total_spent.toFixed(2).replace(".", ",")}
+                            </td>
+
+                            <td className="p-3.5 text-right text-neutral-400 text-xs">
+                              {cust.last_order_at
+                                ? new Date(cust.last_order_at).toLocaleDateString("pt-BR")
+                                : "—"}
+                            </td>
+
+                            <td className="p-3.5 text-center">
+                              <button
+                                onClick={() => setSelectedCustomer(cust)}
+                                className="px-3 py-1.5 bg-neutral-900 hover:bg-white hover:text-black border border-neutral-700 text-neutral-200 text-xs uppercase font-bold tracking-wider transition-colors cursor-pointer"
+                              >
+                                Ver Ficha
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* MODAL DE FICHA COMPLETA DO CLIENTE */}
+              {selectedCustomer && (
+                <div
+                  className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+                  onClick={() => setSelectedCustomer(null)}
+                >
+                  <div
+                    className="bg-[#0e0e0e] border-2 border-neutral-700 max-w-3xl w-full p-6 md:p-8 relative shadow-[0_0_50px_rgba(0,0,0,0.95)] my-8 max-h-[90vh] overflow-y-auto"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Topo do Modal */}
+                    <div className="flex justify-between items-start border-b border-neutral-800 pb-4 mb-6">
+                      <div>
+                        <div className="flex items-center gap-2.5">
+                          <h2 className="font-oswald text-3xl md:text-4xl font-black uppercase text-white tracking-tight">
+                            {selectedCustomer.name}
+                          </h2>
+                          {selectedCustomer.total_spent >= 200 && (
+                            <span className="font-oswald text-xs uppercase px-2 py-0.5 bg-amber-400 text-black font-black">
+                              VIP
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-mono text-xs text-neutral-400 mt-1">
+                          {selectedCustomer.email}
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCustomer(null)}
+                        className="w-9 h-9 flex items-center justify-center border border-neutral-700 hover:border-[#ff66c4] hover:text-[#ff66c4] text-neutral-300 transition-colors cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Resumo de Indicadores Cadastrais */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                      <div className="bg-neutral-950 border border-neutral-800 p-3">
+                        <span className="text-[10px] uppercase font-bold text-neutral-500">
+                          Documento CPF
+                        </span>
+                        <p className="font-mono text-xs font-bold text-neutral-200 mt-0.5">
+                          {selectedCustomer.cpf || "Não informado"}
+                        </p>
+                      </div>
+
+                      <div className="bg-neutral-950 border border-neutral-800 p-3">
+                        <span className="text-[10px] uppercase font-bold text-neutral-500">
+                          WhatsApp / Telefone
+                        </span>
+                        <p className="font-mono text-xs font-bold text-emerald-400 mt-0.5">
+                          {selectedCustomer.phone || "Não informado"}
+                        </p>
+                      </div>
+
+                      <div className="bg-neutral-950 border border-neutral-800 p-3">
+                        <span className="text-[10px] uppercase font-bold text-neutral-500">
+                          Total de Pedidos
+                        </span>
+                        <p className="font-oswald text-xl font-bold text-white mt-0.5">
+                          {selectedCustomer.total_orders}
+                        </p>
+                      </div>
+
+                      <div className="bg-neutral-950 border border-neutral-800 p-3">
+                        <span className="text-[10px] uppercase font-bold text-neutral-500">
+                          LTV (Total Comprado)
+                        </span>
+                        <p className="font-oswald text-xl font-bold text-[#ff66c4] mt-0.5">
+                          R$ {selectedCustomer.total_spent.toFixed(2).replace(".", ",")}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Botão de Contato Rápido via WhatsApp */}
+                    {selectedCustomer.phone && (
+                      <div className="mb-6 flex items-center gap-3">
+                        <a
+                          href={`https://wa.me/55${selectedCustomer.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                            `Olá ${selectedCustomer.name.split(" ")[0]}! Aqui é da equipe Munaya Rocks. Tudo bem?`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 bg-emerald-500 text-black px-4 py-2 font-oswald text-sm font-black uppercase tracking-wider hover:bg-emerald-400 transition-colors"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>Chamar no WhatsApp ({selectedCustomer.phone})</span>
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Endereços de Entrega Registrados */}
+                    <div className="mb-6">
+                      <h3 className="font-oswald text-lg uppercase font-bold text-neutral-200 tracking-wider mb-2.5 flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4 text-[#ff66c4]" />
+                        Endereços de Entrega ({selectedCustomer.addresses.length})
+                      </h3>
+                      {selectedCustomer.addresses.length === 0 ? (
+                        <p className="text-xs text-neutral-500 font-mono italic">
+                          Nenhum endereço registrado ainda.
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {selectedCustomer.addresses.map((addr, idx) => (
+                            <div
+                              key={idx}
+                              className="bg-neutral-950 border border-neutral-800 p-3 text-xs font-mono text-neutral-300"
+                            >
+                              <p className="font-bold text-white">
+                                {addr.street}, {addr.number}
+                                {addr.complement ? ` - ${addr.complement}` : ""}
+                              </p>
+                              <p className="text-neutral-400 mt-0.5">
+                                {addr.neighborhood} — {addr.city}/{addr.state}
+                              </p>
+                              <p className="text-neutral-500 text-[11px] mt-0.5">
+                                CEP: {addr.zipcode}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Histórico Completo de Pedidos */}
+                    <div>
+                      <h3 className="font-oswald text-lg uppercase font-bold text-neutral-200 tracking-wider mb-3 flex items-center gap-1.5">
+                        <Package className="w-4 h-4 text-[#ff66c4]" />
+                        Linha do Tempo de Pedidos ({selectedCustomer.orders.length})
+                      </h3>
+                      {selectedCustomer.orders.length === 0 ? (
+                        <p className="text-xs text-neutral-500 font-mono italic">
+                          Nenhum pedido realizado ainda.
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedCustomer.orders.map((ord) => {
+                            const isPaid = ["pago", "aprovado", "approved", "completed"].includes(
+                              String(ord.payment_status).toLowerCase()
+                            );
+                            return (
+                              <div
+                                key={ord.id}
+                                className="bg-neutral-950 border border-neutral-800 p-4 space-y-2.5"
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-800/80 pb-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-mono text-xs font-bold text-white">
+                                      Pedido #{ord.id}
+                                    </span>
+                                    <span
+                                      className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded ${
+                                        isPaid
+                                          ? "bg-emerald-950/60 text-emerald-400 border border-emerald-500/30"
+                                          : "bg-amber-950/60 text-amber-400 border border-amber-500/30"
+                                      }`}
+                                    >
+                                      {ord.payment_status}
+                                    </span>
+                                    <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-neutral-900 border border-neutral-700 text-neutral-300">
+                                      {ord.payment_method}
+                                    </span>
+                                  </div>
+
+                                  <div className="font-oswald text-lg font-bold text-[#ff66c4]">
+                                    R$ {ord.total_amount.toFixed(2).replace(".", ",")}
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-wrap items-center justify-between text-[11px] font-mono text-neutral-400 gap-2">
+                                  <span>
+                                    📅 {new Date(ord.created_at).toLocaleString("pt-BR")}
+                                  </span>
+                                  {ord.tracking_code && (
+                                    <span className="text-sky-400 font-bold">
+                                      📦 Rastreio: {ord.tracking_code}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Itens do Pedido */}
+                                {ord.items && ord.items.length > 0 && (
+                                  <div className="pt-2 border-t border-neutral-800/50">
+                                    <span className="text-[10px] uppercase font-bold text-neutral-500 block mb-1">
+                                      Itens do Pedido ({ord.items.length}):
+                                    </span>
+                                    <div className="space-y-1">
+                                      {ord.items.map((it: any, iIdx: number) => (
+                                        <div
+                                          key={iIdx}
+                                          className="flex items-center justify-between text-xs font-mono text-neutral-300 bg-neutral-900/50 px-2 py-1"
+                                        >
+                                          <span>
+                                            {it.name || "Camiseta Munaya"} • {it.color || "Preta"} / {it.size || "M"} (x{it.quantity || it.qty || 1})
+                                          </span>
+                                          <span className="text-neutral-400">
+                                            R$ {Number(it.price || it.unit_price || 0).toFixed(2).replace(".", ",")}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Rodapé do Modal */}
+                    <div className="mt-6 pt-4 border-t border-neutral-800 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCustomer(null)}
+                        className="px-6 py-2 border border-neutral-700 text-neutral-300 uppercase font-bold text-xs tracking-wider hover:bg-white hover:text-black transition-colors cursor-pointer"
+                      >
+                        Fechar Ficha
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* TAB 3: CATÁLOGO */}
         {activeTab === "catalog" && (() => {
           const collectionCounts = ADMIN_COLLECTIONS.map((c) => {
             const prods = products.filter((p) => {
