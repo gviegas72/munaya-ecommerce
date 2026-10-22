@@ -15,18 +15,25 @@ import {
   LogOut,
   ShoppingBag,
   CheckCircle2,
+  UserPlus,
+  LogIn,
 } from "lucide-react";
+
+type AuthMode = "login" | "register";
 
 export default function LoginPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [checkingAuth, setCheckingAuth] = useState(false);
 
+  const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [registerSuccessMsg, setRegisterSuccessMsg] = useState("");
 
   useEffect(() => {
     async function checkAuth() {
@@ -58,6 +65,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+    setRegisterSuccessMsg("");
     setLoading(true);
 
     try {
@@ -76,6 +84,51 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       setErrorMsg("Erro de comunicação ao entrar. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setRegisterSuccessMsg("");
+
+    if (password.length < 6) {
+      setErrorMsg("A senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMsg("As duas senhas digitadas não coincidem.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) {
+        setErrorMsg(error.message || "Erro ao criar conta. Verifique os dados informados.");
+        return;
+      }
+
+      if (data?.session?.user) {
+        // Autenticado imediatamente (se auto-confirm estiver habilitado no Supabase)
+        setCurrentUser(data.session.user);
+      } else {
+        // Exige confirmação por e-mail
+        setRegisterSuccessMsg(
+          "Conta criada com sucesso! Enviamos um link de confirmação para o seu e-mail. Caso seu projeto não exija confirmação, você já pode entrar."
+        );
+        setAuthMode("login");
+      }
+    } catch (err: any) {
+      setErrorMsg("Erro de comunicação ao criar conta. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -107,7 +160,7 @@ export default function LoginPage() {
             <div className="space-y-1">
               <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 inline-flex items-center gap-1.5">
                 <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                Sessão Ativa
+                Sessão Conectada
               </span>
               <h1 className="font-oswald text-3xl font-black uppercase tracking-tight text-white mt-2">
                 Minha Conta
@@ -130,7 +183,7 @@ export default function LoginPage() {
                 href="/esqueci-senha"
                 className="w-full bg-neutral-900 border border-neutral-700 text-neutral-300 font-oswald text-sm font-bold uppercase py-2.5 tracking-wider hover:border-[#ff66c4] hover:text-white transition-colors"
               >
-                Alterar Minha Senha
+                Testar Recuperação de Senha
               </Link>
 
               <button
@@ -145,14 +198,15 @@ export default function LoginPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="space-y-2">
+            {/* Header com Abas Entrar / Criar Conta */}
+            <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-[#ff66c4]/10 border border-[#ff66c4] text-[#ff66c4] flex items-center justify-center">
-                  <User className="w-5 h-5" />
+                  {authMode === "login" ? <LogIn className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
                 </div>
                 <div>
                   <h1 className="font-oswald text-3xl md:text-4xl font-black uppercase tracking-tight text-white leading-none">
-                    Entrar na Conta
+                    {authMode === "login" ? "Entrar na Conta" : "Criar Nova Conta"}
                   </h1>
                   <span className="text-xs text-neutral-400 font-mono uppercase tracking-wider">
                     Munaya Rocks · Área do Cliente
@@ -160,10 +214,45 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <p className="text-sm text-neutral-400 pt-2 leading-relaxed">
-                Acesse sua conta para acompanhar seus pedidos e agilizar suas próximas compras.
-              </p>
+              {/* Seletor de Abas */}
+              <div className="grid grid-cols-2 border border-neutral-800 bg-neutral-900 p-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("login");
+                    setErrorMsg("");
+                  }}
+                  className={`py-2 text-xs font-oswald uppercase tracking-wider font-bold transition-all ${
+                    authMode === "login"
+                      ? "bg-[#ff66c4] text-black shadow"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  Já tenho conta
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("register");
+                    setErrorMsg("");
+                  }}
+                  className={`py-2 text-xs font-oswald uppercase tracking-wider font-bold transition-all ${
+                    authMode === "register"
+                      ? "bg-[#ff66c4] text-black shadow"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  Criar conta
+                </button>
+              </div>
             </div>
+
+            {registerSuccessMsg && (
+              <div className="bg-emerald-950/80 border border-emerald-500 text-emerald-200 p-3 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                <span>{registerSuccessMsg}</span>
+              </div>
+            )}
 
             {errorMsg && (
               <div className="bg-red-950/80 border border-red-500 text-red-200 p-3 text-xs flex items-center gap-2">
@@ -172,77 +261,184 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-xs uppercase font-bold text-neutral-300 mb-1.5 tracking-wider">
-                  E-mail *
-                </label>
-                <div className="relative">
-                  <Mail className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="voce@email.com"
-                    className="w-full bg-neutral-900 border border-neutral-700 pl-10 pr-3 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#ff66c4] font-sans"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs uppercase font-bold text-neutral-300 tracking-wider">
-                    Senha *
+            {/* FORMULÁRIO: ENTRAR */}
+            {authMode === "login" ? (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs uppercase font-bold text-neutral-300 mb-1.5 tracking-wider">
+                    E-mail *
                   </label>
-                  {/* Link Esqueci Minha Senha */}
-                  <Link
-                    href="/esqueci-senha"
-                    className="text-xs text-[#ff66c4] hover:underline font-mono uppercase tracking-wider"
-                  >
-                    Esqueci minha senha
-                  </Link>
+                  <div className="relative">
+                    <Mail className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="voce@email.com"
+                      className="w-full bg-neutral-900 border border-neutral-700 pl-10 pr-3 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#ff66c4] font-sans"
+                    />
+                  </div>
                 </div>
-                <div className="relative">
-                  <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-neutral-900 border border-neutral-700 pl-10 pr-10 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#ff66c4] font-mono"
-                  />
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs uppercase font-bold text-neutral-300 tracking-wider">
+                      Senha *
+                    </label>
+                    {/* Link Esqueci Minha Senha */}
+                    <Link
+                      href="/esqueci-senha"
+                      className="text-xs text-[#ff66c4] hover:underline font-mono uppercase tracking-wider"
+                    >
+                      Esqueci minha senha
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-neutral-900 border border-neutral-700 pl-10 pr-10 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#ff66c4] font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-white text-black font-oswald text-lg font-black uppercase py-3.5 tracking-wider hover:bg-[#ff66c4] hover:text-black transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Autenticando...</span>
+                    </>
+                  ) : (
+                    <span>Entrar</span>
+                  )}
+                </button>
+              </form>
+            ) : (
+              /* FORMULÁRIO: CRIAR CONTA */
+              <form onSubmit={handleRegister} className="space-y-4">
+                <div>
+                  <label className="block text-xs uppercase font-bold text-neutral-300 mb-1.5 tracking-wider">
+                    Seu Melhor E-mail *
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="voce@email.com"
+                      className="w-full bg-neutral-900 border border-neutral-700 pl-10 pr-3 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#ff66c4] font-sans"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase font-bold text-neutral-300 mb-1.5 tracking-wider">
+                    Criar Senha (Mínimo 6 caracteres) *
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={6}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-neutral-900 border border-neutral-700 pl-10 pr-10 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#ff66c4] font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase font-bold text-neutral-300 mb-1.5 tracking-wider">
+                    Confirmar Senha *
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={6}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-neutral-900 border border-neutral-700 pl-10 pr-3 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#ff66c4] font-mono"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#ff66c4] text-black font-oswald text-lg font-black uppercase py-3.5 tracking-wider hover:bg-white hover:text-black transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Criando Conta...</span>
+                    </>
+                  ) : (
+                    <span>Cadastrar Conta Gratuita</span>
+                  )}
+                </button>
+              </form>
+            )}
+
+            <div className="text-center pt-2 border-t border-neutral-900">
+              {authMode === "login" ? (
+                <p className="text-xs text-neutral-400">
+                  Ainda não tem conta?{" "}
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white"
+                    onClick={() => {
+                      setAuthMode("register");
+                      setErrorMsg("");
+                    }}
+                    className="text-[#ff66c4] hover:underline font-bold uppercase tracking-wider cursor-pointer"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    Criar conta agora
                   </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-white text-black font-oswald text-lg font-black uppercase py-3.5 tracking-wider hover:bg-[#ff66c4] hover:text-black transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Autenticando...</span>
-                  </>
-                ) : (
-                  <span>Entrar</span>
-                )}
-              </button>
-            </form>
-
-            <div className="text-center pt-3 border-t border-neutral-900 space-y-2">
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Novo por aqui? Você pode criar sua conta automaticamente ao concluir seu primeiro pedido no checkout.
-              </p>
+                </p>
+              ) : (
+                <p className="text-xs text-neutral-400">
+                  Já possui conta?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("login");
+                      setErrorMsg("");
+                    }}
+                    className="text-[#ff66c4] hover:underline font-bold uppercase tracking-wider cursor-pointer"
+                  >
+                    Fazer login
+                  </button>
+                </p>
+              )}
             </div>
           </div>
         )}
