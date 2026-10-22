@@ -1457,7 +1457,7 @@ class Component extends DCLogic {
           });
           const sorted = res.products.slice().sort((a, b) => (Number(a.display_order) || 99) - (Number(b.display_order) || 99));
           const order = sorted.map((p) => p.id);
-          this.setState({ catalogOrder: order });
+          this.setState({ catalogOrder: order, catalogLoadedAt: Date.now() });
         }
       })
       .catch(() => {});
