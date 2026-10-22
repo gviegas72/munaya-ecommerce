@@ -1813,9 +1813,20 @@ export default function AdminPage() {
                                 {prod.sku || generateBaseSku(prod.name)}
                               </span>
                             </div>
-                            <p className="text-xs text-neutral-400 truncate font-mono">
-                              slug: {prod.slug}
-                            </p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <p className="text-xs text-neutral-400 truncate font-mono">
+                                slug: {prod.slug}
+                              </p>
+                              <a
+                                href={`/produto/${prod.slug || prod.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-neutral-500 hover:text-[#ff66c4] transition-colors inline-flex items-center"
+                                title="Abrir na loja"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
                           </div>
                         </div>
 
@@ -1964,8 +1975,27 @@ export default function AdminPage() {
                           </label>
                         </div>
 
-                        {/* Botões: Editar Completo, Salvar Rápido e Excluir */}
-                        <div className="flex items-center gap-2 pt-1">
+                        {/* Botões: Ver na Loja, Editar Completo, Salvar Rápido e Excluir */}
+                        <div className="flex items-center gap-2 pt-1 flex-wrap sm:flex-nowrap">
+                          <a
+                            href={`/produto/${prod.slug || prod.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`flex items-center justify-center gap-1.5 border font-oswald text-xs font-bold uppercase px-3 py-2 transition-colors ${
+                              prod.is_active
+                                ? "border-neutral-700 bg-neutral-900 text-neutral-300 hover:text-white hover:border-[#ff66c4] hover:bg-[#ff66c4]/15"
+                                : "border-neutral-800 bg-neutral-950 text-neutral-500 hover:text-neutral-300 opacity-60 hover:opacity-100"
+                            }`}
+                            title={
+                              prod.is_active
+                                ? "Ver página deste produto na loja (abre em nova aba)"
+                                : "Produto Pausado/Rascunho (não visível para clientes anônimos na vitrine)"
+                            }
+                          >
+                            <ExternalLink className="w-3.5 h-3.5 text-[#ff66c4]" />
+                            <span>Ver na Loja</span>
+                          </a>
+
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(prod)}
@@ -3102,13 +3132,23 @@ export default function AdminPage() {
                     <Pencil className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-oswald text-2xl font-bold uppercase tracking-tight text-white">
                         Editar Estampa #{editingProduct.id}
                       </h3>
                       <span className="font-mono text-xs text-[#ff66c4] bg-[#ff66c4]/10 border border-[#ff66c4]/30 px-2 py-0.5">
                         {editingProduct.slug}
                       </span>
+                      <a
+                        href={`/produto/${editingProduct.slug || editingProduct.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-oswald uppercase tracking-wider text-neutral-300 hover:text-white bg-neutral-900 hover:bg-[#ff66c4] hover:text-black border border-neutral-700 hover:border-[#ff66c4] px-2.5 py-1 transition-colors ml-1"
+                        title="Ver página deste produto na loja em nova aba"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-[#ff66c4]" />
+                        <span>Ver na Loja</span>
+                      </a>
                     </div>
                     <p className="text-xs text-neutral-400 uppercase tracking-wider">
                       Atualize fotos, arte Dimona, preços, coleção e informações na vitrine
@@ -4303,9 +4343,20 @@ export default function AdminPage() {
                                 <span className="font-bold text-white uppercase text-sm block">
                                   {prod.name}
                                 </span>
-                                <span className="text-[10px] text-neutral-500 font-mono">
-                                  ID #{prod.id} · {prod.slug}
-                                </span>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-[10px] text-neutral-500 font-mono">
+                                    ID #{prod.id} · {prod.slug}
+                                  </span>
+                                  <a
+                                    href={`/produto/${prod.slug || prod.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-neutral-500 hover:text-[#ff66c4] transition-colors"
+                                    title="Ver Produto na Loja"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
                               </div>
                             </div>
                           </td>
