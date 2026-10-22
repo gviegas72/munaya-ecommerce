@@ -27,10 +27,11 @@
 - **Objetivo:** Vincular os SKUs canônicos Munaya (`MNY-TSH-DIMEBAG-PRETA-G`) aos IDs de produtos e variantes exatos da API v2 da Dimona.
 - **Branch:** `feat/dimona-sku-mapping`
 - **Critérios de Aceite:**
-  - [ ] Estrutura / tabela `sku_dimona_mappings` ou campos de integração para resolução determinística de código de fábrica.
-  - [ ] Interface no `/admin` para associar estampa ao ID do catálogo da Dimona (Dimona Product ID / SKU Fábrica).
-  - [ ] Webhook do Mercado Pago despachando com os IDs exatos de esteira e artwork URL.
-- **Status:** 🟡 **EM ANDAMENTO**
+  - [x] Estrutura / motor `dimona-mapping.ts` com Anti-Corruption Layer (ACL) para resolução determinística de código de fábrica.
+  - [x] Interface no `/admin` com aba dedicada *"Esteira Dimona (De/Para)"* para visualização, troca rápida de blanks e simulação de despacho via API v2.
+  - [x] Seção de mapeamento no modal de edição e cadastro de estampa com prévia em tempo real de SKU e custos.
+  - [x] Webhook do Mercado Pago despachando com os códigos de esteira resolvidos, artwork URLs e mockups oficiais.
+- **Status:** ✅ **CONCLUÍDO E HOMOLOGADO PELO FUNDADOR**
 
 ---
 
