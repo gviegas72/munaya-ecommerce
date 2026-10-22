@@ -37,6 +37,7 @@ import {
   TrendingUp,
   Sparkles,
   ArrowRight,
+  Play,
 } from "lucide-react";
 import { Coupon } from "@/lib/coupons";
 import { PricingSettings, DEFAULT_PRICING_SETTINGS, calculateSellingPrice, calculateFinancialSummary } from "@/lib/pricing";
@@ -47,6 +48,10 @@ import {
   generateVariantSku,
   ProductColor,
 } from "@/lib/variants";
+import {
+  DIMONA_BLANKS,
+  resolveDimonaSku,
+} from "@/lib/dimona-mapping";
 
 
 interface CouponFormData {
@@ -89,6 +94,8 @@ interface NewProductForm {
   is_active: boolean;
   is_featured: boolean;
   is_custom_price: boolean;
+  dimona_product_id: string;
+  blank_type: string;
   display_order: number;
 }
 
@@ -108,6 +115,8 @@ const INITIAL_NEW_PRODUCT: NewProductForm = {
   is_active: true,
   is_featured: false,
   is_custom_price: false,
+  dimona_product_id: "",
+  blank_type: "classic",
   display_order: 10,
 };
 
@@ -164,6 +173,8 @@ interface Product {
   is_active: boolean;
   is_featured: boolean;
   is_custom_price?: boolean;
+  dimona_product_id?: string;
+  blank_type?: string;
   display_order: number;
   badge?: string;
 }
@@ -250,7 +261,7 @@ export default function AdminPage() {
   const [pin, setPin] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [activeTab, setActiveTab] = useState<"orders" | "catalog" | "coupons" | "pricing">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "catalog" | "coupons" | "pricing" | "dimona">("orders");
 
   // Estados de Pedidos
   const [orders, setOrders] = useState<Order[]>([]);
@@ -274,6 +285,13 @@ export default function AdminPage() {
   const [savingPricing, setSavingPricing] = useState(false);
   const [applyingPricing, setApplyingPricing] = useState(false);
   const [pricingFeedback, setPricingFeedback] = useState("");
+
+  // Estados da Esteira Dimona (De/Para)
+  const [dimonaSearch, setDimonaSearch] = useState("");
+  const [dimonaFilterBlank, setDimonaFilterBlank] = useState("all");
+  const [simulatingDimona, setSimulatingDimona] = useState(false);
+  const [dimonaSimulationResult, setDimonaSimulationResult] = useState<any | null>(null);
+  const [updatingBlankId, setUpdatingBlankId] = useState<number | null>(null);
 
 
 
@@ -790,6 +808,8 @@ export default function AdminPage() {
       is_active: prod.is_active !== undefined ? prod.is_active : true,
       is_featured: prod.is_featured !== undefined ? prod.is_featured : false,
       is_custom_price: prod.is_custom_price !== undefined ? prod.is_custom_price : false,
+      dimona_product_id: prod.dimona_product_id || "",
+      blank_type: prod.blank_type || "classic",
       display_order: prod.display_order || 10,
     });
     setEditError("");
@@ -872,6 +892,8 @@ export default function AdminPage() {
         is_active: editingProduct.is_active,
         is_featured: editingProduct.is_featured,
         is_custom_price: editingProduct.is_custom_price,
+        dimona_product_id: editingProduct.dimona_product_id ? editingProduct.dimona_product_id.trim().toUpperCase() : "",
+        blank_type: editingProduct.blank_type || "classic",
         display_order:
           parseInt(String(editingProduct.display_order), 10) || 10,
       };
@@ -1115,6 +1137,57 @@ export default function AdminPage() {
     );
   }
 
+  const handleQuickUpdateBlank = async (productId: number, newBlank: string) => {
+    setUpdatingBlankId(productId);
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-admin-pin": savedPin },
+        body: JSON.stringify({ id: productId, blank_type: newBlank }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionMsg(`Blank atualizado para ${newBlank.toUpperCase()} com sucesso!`);
+        setTimeout(() => setActionMsg(""), 3000);
+        await loadProducts();
+      } else {
+        alert("Erro ao atualizar blank: " + (data.error || "Erro desconhecido"));
+      }
+    } catch (e: any) {
+      alert("Erro de rede: " + (e?.message || String(e)));
+    } finally {
+      setUpdatingBlankId(null);
+    }
+  };
+
+  const handleSimulateDimona = async (prod: Product) => {
+    setSimulatingDimona(true);
+    setDimonaSimulationResult(null);
+    try {
+      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const res = await fetch("/api/dimona/test-dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-pin": savedPin },
+        body: JSON.stringify({
+          productId: prod.id,
+          color: prod.colors?.[0]?.name || "Preta",
+          size: prod.sizes?.[0] || "M",
+          blank_type: prod.blank_type || "classic",
+        }),
+      });
+      const data = await res.json();
+      setDimonaSimulationResult(data);
+    } catch (e: any) {
+      setDimonaSimulationResult({
+        success: false,
+        error: "Falha de rede ao simular pedido Dimona: " + (e?.message || String(e)),
+      });
+    } finally {
+      setSimulatingDimona(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       {/* Top Bar */}
@@ -1203,6 +1276,18 @@ export default function AdminPage() {
           >
             <Calculator className="w-5 h-5" />
             <span>Custos & Markup</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("dimona")}
+            className={`flex items-center gap-2 px-6 py-3 font-oswald text-xl uppercase font-black tracking-tight transition-all ${
+              activeTab === "dimona"
+                ? "bg-[#ff66c4] text-black"
+                : "text-neutral-400 hover:text-white"
+            }`}
+          >
+            <Layers className="w-5 h-5" />
+            <span>Esteira Dimona (De/Para)</span>
           </button>
         </div>
 
@@ -1706,6 +1791,16 @@ export default function AdminPage() {
                               {prod.is_custom_price && (
                                 <span className="text-[10px] uppercase font-bold bg-[#ff66c4]/20 border border-[#ff66c4] text-[#ff66c4] px-1.5 py-0.5 font-mono">
                                   🔒 Preço Travado
+                                </span>
+                              )}
+
+                              <span className="text-[10px] uppercase font-bold bg-neutral-900 border border-neutral-700 text-neutral-300 px-1.5 py-0.5 font-mono">
+                                🏭 {prod.blank_type ? prod.blank_type.toUpperCase() : "CLASSIC"}
+                              </span>
+
+                              {prod.dimona_product_id && (
+                                <span className="text-[10px] uppercase font-bold bg-cyan-950/80 border border-cyan-500 text-cyan-300 px-1.5 py-0.5 font-mono">
+                                  DIM: {prod.dimona_product_id}
                                 </span>
                               )}
                             </div>
@@ -2904,6 +2999,60 @@ export default function AdminPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Integração & Esteira Dimona (De/Para) */}
+                    <div className="border border-neutral-800 p-3 bg-neutral-900/60 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs uppercase font-bold text-neutral-200">
+                          3. 🏭 Mapeamento De/Para Dimona
+                        </label>
+                        <span className="text-[10px] font-mono text-[#ff66c4] bg-[#ff66c4]/10 px-1.5 py-0.5 border border-[#ff66c4]/30">
+                          Fábrica Print-on-Demand
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1">
+                            Blank / Malha Base
+                          </label>
+                          <select
+                            value={newProduct.blank_type || "classic"}
+                            onChange={(e) =>
+                              setNewProduct((prev) => ({
+                                ...prev,
+                                blank_type: e.target.value,
+                              }))
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1.5 text-xs text-white focus:border-[#ff66c4] focus:outline-none"
+                          >
+                            {Object.values(DIMONA_BLANKS).map((b) => (
+                              <option key={b.id} value={b.id}>
+                                {b.name} (R$ {b.factoryCost.toFixed(2)})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1">
+                            ID Modelo Dimona (Opcional)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Ex: DIM-4921"
+                            value={newProduct.dimona_product_id || ""}
+                            onChange={(e) =>
+                              setNewProduct((prev) => ({
+                                ...prev,
+                                dimona_product_id: e.target.value.toUpperCase(),
+                              }))
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1.5 text-xs font-mono text-cyan-300 uppercase focus:border-[#ff66c4] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -3486,6 +3635,93 @@ export default function AdminPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Integração & Esteira Dimona (De/Para) */}
+                    <div className="border border-neutral-800 p-3 bg-neutral-900/60 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs uppercase font-bold text-neutral-200">
+                          3. 🏭 Mapeamento De/Para Dimona
+                        </label>
+                        <span className="text-[10px] font-mono text-[#ff66c4] bg-[#ff66c4]/10 px-1.5 py-0.5 border border-[#ff66c4]/30">
+                          Fábrica Print-on-Demand
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1">
+                            Blank / Malha Base
+                          </label>
+                          <select
+                            value={editingProduct.blank_type || "classic"}
+                            onChange={(e) =>
+                              setEditingProduct((prev) =>
+                                prev ? { ...prev, blank_type: e.target.value } : null
+                              )
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1.5 text-xs text-white focus:border-[#ff66c4] focus:outline-none"
+                          >
+                            {Object.values(DIMONA_BLANKS).map((b) => (
+                              <option key={b.id} value={b.id}>
+                                {b.name} (R$ {b.factoryCost.toFixed(2)})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-neutral-300 mb-1">
+                            ID Modelo Dimona (Opcional)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Ex: DIM-4921 (ou vazio p/ auto)"
+                            value={editingProduct.dimona_product_id || ""}
+                            onChange={(e) =>
+                              setEditingProduct((prev) =>
+                                prev ? { ...prev, dimona_product_id: e.target.value.toUpperCase() } : null
+                              )
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-700 px-2 py-1.5 text-xs font-mono text-cyan-300 uppercase focus:border-[#ff66c4] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Preview do De/Para em Tempo Real */}
+                      {(() => {
+                        const resolved = resolveDimonaSku(
+                          editingProduct.sku || editingProduct.name,
+                          {
+                            dimonaProductId: editingProduct.dimona_product_id,
+                            blankType: editingProduct.blank_type || "classic",
+                            colorName: editingProduct.colors[0]?.name || "Preta",
+                            sizeName: editingProduct.sizes[0] || "M",
+                          }
+                        );
+                        return (
+                          <div className="p-2.5 bg-black border border-neutral-800 text-[11px] font-mono space-y-1">
+                            <div className="flex items-center justify-between text-neutral-400">
+                              <span>SKU Loja (Canônico):</span>
+                              <span className="text-white font-bold">
+                                {editingProduct.sku || "MNY-TSH-..."}-{resolved.colorCode}-{resolved.sizeCode}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-[#ff66c4]">
+                              <span>➔ SKU Fábrica Dimona:</span>
+                              <span className="font-bold underline">
+                                {resolved.dimonaSku}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-neutral-400 pt-1 border-t border-neutral-900">
+                              <span>Custo Base Fábrica:</span>
+                              <span className="text-emerald-400 font-bold">
+                                R$ {resolved.factoryCost.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
 
@@ -3871,6 +4107,452 @@ export default function AdminPage() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: ESTEIRA DIMONA (DE/PARA) */}
+        {activeTab === "dimona" && (() => {
+          const filteredDimonaProducts = products.filter((p) => {
+            const matchesSearch =
+              dimonaSearch === "" ||
+              p.name.toLowerCase().includes(dimonaSearch.toLowerCase()) ||
+              p.slug.toLowerCase().includes(dimonaSearch.toLowerCase()) ||
+              (p.sku && p.sku.toLowerCase().includes(dimonaSearch.toLowerCase())) ||
+              (p.dimona_product_id && p.dimona_product_id.toLowerCase().includes(dimonaSearch.toLowerCase()));
+
+            const matchesBlank =
+              dimonaFilterBlank === "all" ||
+              (p.blank_type || "classic").toLowerCase() === dimonaFilterBlank.toLowerCase();
+
+            return matchesSearch && matchesBlank;
+          });
+
+          const totalProducts = products.length;
+          const withArtwork = products.filter((p) => Boolean(p.artwork_url)).length;
+          const withCustomDimonaId = products.filter((p) => Boolean(p.dimona_product_id)).length;
+          const avgFactoryCost = products.length > 0
+            ? products.reduce((acc, p) => {
+                const b = DIMONA_BLANKS[p.blank_type || "classic"] || DIMONA_BLANKS.classic;
+                return acc + b.factoryCost;
+              }, 0) / products.length
+            : 42.0;
+
+          return (
+            <div className="space-y-6">
+              {/* Header com Contexto & Métricas */}
+              <div className="border border-neutral-800 bg-neutral-950 p-6 space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[#ff66c4] text-black flex items-center justify-center font-black">
+                        <Layers className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h2 className="font-oswald text-2xl md:text-3xl font-black uppercase tracking-tight text-white">
+                          Esteira de Produção Dimona (De/Para Oficial)
+                        </h2>
+                        <p className="text-xs text-neutral-400 uppercase tracking-wider font-mono">
+                          Anti-Corruption Layer (ACL) · Resolução determinística de SKUs de fábrica
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={loadProducts}
+                      className="flex items-center gap-2 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 text-xs font-bold uppercase transition-colors"
+                    >
+                      <RefreshCw className="w-4 h-4 text-[#ff66c4]" />
+                      <span>Atualizar Catálogo</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Métricas da Esteira */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="border border-neutral-800 bg-black p-4">
+                    <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">
+                      Total de Estampas
+                    </span>
+                    <p className="font-oswald text-3xl font-black text-white mt-1">
+                      {totalProducts}
+                    </p>
+                    <span className="text-[11px] text-neutral-400 font-mono">
+                      Catálogo ativo
+                    </span>
+                  </div>
+
+                  <div className="border border-neutral-800 bg-black p-4">
+                    <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">
+                      Artes DTG Prontas
+                    </span>
+                    <p className="font-oswald text-3xl font-black text-emerald-400 mt-1">
+                      {withArtwork} / {totalProducts}
+                    </p>
+                    <span className="text-[11px] text-emerald-500/80 font-mono">
+                      {totalProducts > 0 ? Math.round((withArtwork / totalProducts) * 100) : 0}% com arquivo master
+                    </span>
+                  </div>
+
+                  <div className="border border-neutral-800 bg-black p-4">
+                    <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">
+                      Modelos com ID Dimona
+                    </span>
+                    <p className="font-oswald text-3xl font-black text-cyan-400 mt-1">
+                      {withCustomDimonaId}
+                    </p>
+                    <span className="text-[11px] text-neutral-400 font-mono">
+                      Mapeamento explícito
+                    </span>
+                  </div>
+
+                  <div className="border border-neutral-800 bg-black p-4">
+                    <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">
+                      Custo Médio de Fábrica
+                    </span>
+                    <p className="font-oswald text-3xl font-black text-[#ff66c4] mt-1">
+                      R$ {avgFactoryCost.toFixed(2).replace(".", ",")}
+                    </p>
+                    <span className="text-[11px] text-neutral-400 font-mono">
+                      Por peça produzida
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filtros e Busca */}
+              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-neutral-950 border border-neutral-800 p-4">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                  <input
+                    type="text"
+                    placeholder="Filtrar por estampa, SKU Munaya ou ID Dimona..."
+                    value={dimonaSearch}
+                    onChange={(e) => setDimonaSearch(e.target.value)}
+                    className="w-full bg-black border border-neutral-800 pl-9 pr-4 py-2 text-xs text-white placeholder-neutral-600 focus:border-[#ff66c4] focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs uppercase font-bold text-neutral-400 whitespace-nowrap">
+                    Blank de Fábrica:
+                  </span>
+                  <select
+                    value={dimonaFilterBlank}
+                    onChange={(e) => setDimonaFilterBlank(e.target.value)}
+                    className="bg-black border border-neutral-800 px-3 py-2 text-xs text-white focus:border-[#ff66c4] focus:outline-none uppercase font-bold"
+                  >
+                    <option value="all">TODOS OS BLANKS ({products.length})</option>
+                    {Object.values(DIMONA_BLANKS).map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} (R$ {b.factoryCost.toFixed(2)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Tabela de De/Para */}
+              <div className="border border-neutral-800 bg-neutral-950 overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-neutral-800 bg-black text-[11px] uppercase tracking-wider text-neutral-400 font-mono">
+                      <th className="p-3">Estampa / Produto</th>
+                      <th className="p-3">SKU Loja (Canônico)</th>
+                      <th className="p-3">Blank Vinculado (Fábrica)</th>
+                      <th className="p-3">ID Dimona</th>
+                      <th className="p-3">Arte DTG (Designs)</th>
+                      <th className="p-3">Resolução Fábrica (SKU & Custo)</th>
+                      <th className="p-3 text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-900 text-xs">
+                    {filteredDimonaProducts.map((prod) => {
+                      const curBlank = DIMONA_BLANKS[prod.blank_type || "classic"] || DIMONA_BLANKS.classic;
+                      const sampleColor = prod.colors?.[0]?.name || "Preta";
+                      const sampleSize = prod.sizes?.[0] || "M";
+                      const resolved = resolveDimonaSku(prod.sku || prod.name, {
+                        dimonaProductId: prod.dimona_product_id,
+                        blankType: prod.blank_type || "classic",
+                        colorName: sampleColor,
+                        sizeName: sampleSize,
+                      });
+
+                      return (
+                        <tr key={prod.id} className="hover:bg-neutral-900/50 transition-colors">
+                          {/* Produto e Mockup */}
+                          <td className="p-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-12 bg-neutral-900 border border-neutral-800 flex-shrink-0 overflow-hidden">
+                                {prod.image_url ? (
+                                  <img
+                                    src={prod.image_url}
+                                    alt={prod.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-neutral-600">
+                                    <ImageIcon className="w-4 h-4" />
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <span className="font-bold text-white uppercase text-sm block">
+                                  {prod.name}
+                                </span>
+                                <span className="text-[10px] text-neutral-500 font-mono">
+                                  ID #{prod.id} · {prod.slug}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* SKU Canônico */}
+                          <td className="p-3">
+                            <span className="font-mono text-[#ff66c4] font-bold text-xs bg-[#ff66c4]/10 border border-[#ff66c4]/30 px-2 py-0.5">
+                              {prod.sku || generateBaseSku(prod.name)}
+                            </span>
+                          </td>
+
+                          {/* Blank / Malha */}
+                          <td className="p-3">
+                            <div className="relative inline-block w-full max-w-[210px]">
+                              <select
+                                disabled={updatingBlankId === prod.id}
+                                value={prod.blank_type || "classic"}
+                                onChange={(e) => handleQuickUpdateBlank(prod.id, e.target.value)}
+                                className="w-full bg-black border border-neutral-700 px-2.5 py-1 text-xs text-white focus:border-[#ff66c4] focus:outline-none uppercase font-bold cursor-pointer disabled:opacity-50"
+                              >
+                                {Object.values(DIMONA_BLANKS).map((b) => (
+                                  <option key={b.id} value={b.id}>
+                                    {b.name} (R$ {b.factoryCost.toFixed(2)})
+                                  </option>
+                                ))}
+                              </select>
+                              {updatingBlankId === prod.id && (
+                                <span className="text-[10px] text-[#ff66c4] font-mono block mt-0.5">
+                                  Salvando...
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* ID Dimona */}
+                          <td className="p-3 font-mono">
+                            {prod.dimona_product_id ? (
+                              <span className="text-cyan-300 font-bold bg-cyan-950/80 border border-cyan-500/50 px-2 py-0.5">
+                                {prod.dimona_product_id}
+                              </span>
+                            ) : (
+                              <span className="text-neutral-500 text-[11px] italic">
+                                Automático
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Arte DTG */}
+                          <td className="p-3">
+                            {prod.artwork_url ? (
+                              <a
+                                href={prod.artwork_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/50 px-2 py-0.5 hover:bg-emerald-900 transition-colors font-mono"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Arte OK</span>
+                                <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
+                              </a>
+                            ) : (
+                              <button
+                                onClick={() => handleOpenEdit(prod)}
+                                className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 bg-amber-950/80 border border-amber-500/50 px-2 py-0.5 hover:bg-amber-900 transition-colors font-mono"
+                              >
+                                <AlertCircle className="w-3.5 h-3.5" />
+                                <span>+ Enviar Arte</span>
+                              </button>
+                            )}
+                          </td>
+
+                          {/* Resolução de Fábrica */}
+                          <td className="p-3 font-mono">
+                            <div className="space-y-0.5">
+                              <span className="text-white font-bold block text-xs underline decoration-neutral-700">
+                                {resolved.dimonaSku}
+                              </span>
+                              <div className="flex items-center gap-2 text-[10px] text-neutral-400">
+                                <span>Custo: R$ {curBlank.factoryCost.toFixed(2)}</span>
+                                <span>·</span>
+                                <span>Venda: R$ {prod.price.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Ações */}
+                          <td className="p-3 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleSimulateDimona(prod)}
+                                disabled={simulatingDimona}
+                                className="flex items-center gap-1 px-3 py-1.5 border border-[#ff66c4] bg-[#ff66c4]/10 hover:bg-[#ff66c4] hover:text-black text-[#ff66c4] uppercase font-bold text-[11px] tracking-wider transition-colors disabled:opacity-50"
+                                title="Testar payload exato que vai para a Dimona"
+                              >
+                                <Play className="w-3 h-3" />
+                                <span>Simular</span>
+                              </button>
+
+                              <button
+                                onClick={() => handleOpenEdit(prod)}
+                                className="p-1.5 border border-neutral-700 hover:border-white text-neutral-400 hover:text-white transition-colors"
+                                title="Editar Estampa"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Informações da Integração */}
+              <div className="border border-neutral-800 bg-neutral-950 p-6 space-y-3">
+                <h4 className="font-oswald text-lg font-bold uppercase tracking-tight text-white flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  Esteira 100% Autônoma Integrada
+                </h4>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Quando um pedido é aprovado via Mercado Pago no Webhook (<code className="text-[#ff66c4]">/api/webhooks/mercadopago</code>), a Camada Anti-Corrupção (ACL) intercepta cada item, cruza com as regras de De/Para da tabela acima, traduz o SKU do produto para o código oficial da fábrica (<code className="text-emerald-400">DIM-[BLANK]-[COR]-[TAM]</code>), injeta a URL pública da arte de impressão em alta definição e dispara automaticamente a ordem de confecção para a Camisa Dimona via API v2.
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* MODAL DE RESULTADO DA SIMULAÇÃO DIMONA */}
+        {dimonaSimulationResult && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
+            <div className="relative w-full max-w-2xl bg-neutral-950 border-2 border-[#ff66c4] shadow-[0_0_50px_rgba(255,102,196,0.35)] p-6 space-y-5 my-8">
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-[#ff66c4] text-black flex items-center justify-center font-black">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-oswald text-xl font-bold uppercase tracking-tight text-white">
+                      Resultado da Simulação de Esteira Dimona
+                    </h3>
+                    <p className="text-[11px] text-neutral-400 font-mono">
+                      Validação pré-despacho & Payload gerado para a API v2
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDimonaSimulationResult(null)}
+                  className="text-neutral-400 hover:text-white p-2 hover:bg-neutral-900"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Status de Validação */}
+              <div className="space-y-3">
+                {dimonaSimulationResult.validation?.valid ? (
+                  <div className="bg-emerald-950/80 border border-emerald-500 text-emerald-200 p-3 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <div>
+                      <strong className="block font-bold">✓ Validação Pré-Despacho Aprovada com Sucesso</strong>
+                      <span className="text-[11px] opacity-90">
+                        O item possui SKU de fábrica resolvido, arte em alta definição e todos os campos obrigatórios da esteira.
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-amber-950/80 border border-amber-500 text-amber-200 p-3 text-xs space-y-1">
+                    <div className="flex items-center gap-2 font-bold text-amber-400">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span>Inconsistências Detectadas na Validação:</span>
+                    </div>
+                    <ul className="list-disc pl-5 text-[11px] space-y-0.5">
+                      {dimonaSimulationResult.validation?.errors?.map((err: string, i: number) => (
+                        <li key={i}>{err}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Resumo dos Dados Traduzidos */}
+                {dimonaSimulationResult.item && (
+                  <div className="grid grid-cols-2 gap-3 p-3 bg-black border border-neutral-800 text-xs font-mono">
+                    <div>
+                      <span className="text-neutral-500 text-[10px] block">SKU FÁBRICA RESOLVIDO:</span>
+                      <strong className="text-[#ff66c4] text-sm">
+                        {dimonaSimulationResult.resolvedSku}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500 text-[10px] block">BLANK DESTE PRODUTO:</span>
+                      <strong className="text-white">
+                        {dimonaSimulationResult.blank?.name} (R$ {dimonaSimulationResult.blank?.factoryCost.toFixed(2)})
+                      </strong>
+                    </div>
+                    <div className="col-span-2 pt-2 border-t border-neutral-900">
+                      <span className="text-neutral-500 text-[10px] block">URL DA ARTE (DESIGNS):</span>
+                      <a
+                        href={dimonaSimulationResult.item.artwork_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-emerald-400 hover:underline truncate block"
+                      >
+                        {dimonaSimulationResult.item.artwork_url}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Resposta do Client da Dimona */}
+                {dimonaSimulationResult.dimonaResponse && (
+                  <div className="p-3 bg-neutral-900/60 border border-neutral-800 space-y-1 text-xs font-mono">
+                    <span className="text-neutral-400 text-[10px] block font-bold">
+                      RETORNO DA API DIMONA:
+                    </span>
+                    <div className="text-emerald-300">
+                      Status: <strong>{dimonaSimulationResult.dimonaResponse.status}</strong>
+                    </div>
+                    <div className="text-white">
+                      Order ID Retornado: <strong>{dimonaSimulationResult.dimonaResponse.order_id}</strong>
+                    </div>
+                    <p className="text-neutral-400 text-[11px] pt-1">
+                      {dimonaSimulationResult.dimonaResponse.message}
+                    </p>
+                  </div>
+                )}
+
+                {/* JSON Payload Sent */}
+                {dimonaSimulationResult.payloadSent && (
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-neutral-400 block mb-1 font-mono">
+                      JSON Payload Transmitido para a Dimona (POST /order):
+                    </span>
+                    <pre className="p-3 bg-black border border-neutral-800 text-[11px] font-mono text-neutral-300 overflow-x-auto max-h-48">
+                      {JSON.stringify(dimonaSimulationResult.payloadSent, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-2 border-t border-neutral-800">
+                <button
+                  onClick={() => setDimonaSimulationResult(null)}
+                  className="px-6 py-2.5 bg-[#ff66c4] text-black font-oswald text-base font-black uppercase tracking-wider hover:bg-white transition-colors"
+                >
+                  Fechar Simulação
+                </button>
               </div>
             </div>
           </div>

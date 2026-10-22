@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMercadoPagoOrder } from "@/lib/mercadopago";
 import { createDimonaOrder } from "@/lib/dimona";
-import { getArtworkUrl } from "@/lib/artworks";
-import { saveDatabaseOrder, supabaseAdmin } from "@/lib/supabase";
+import { buildDimonaDispatchItem, validateDimonaOrderData } from "@/lib/dimona-mapping";
+import { saveDatabaseOrder, supabaseAdmin, getCatalogProducts } from "@/lib/supabase";
 import { verifyMercadoPagoWebhookSignature } from "@/lib/mp-webhook-auth";
 import { sendPaymentConfirmedEmail } from "@/lib/email";
 
@@ -77,38 +77,55 @@ export async function POST(req: NextRequest) {
           ? dbOrder.items
           : (mpOrder.items || []);
 
+        // Busca o catálogo para cruzar parâmetros de esteira (blank_type, dimona_product_id)
+        const catalogProducts = await getCatalogProducts().catch(() => []);
+
         const dimonaItems = rawItems.map((it: any) => {
-          const sku = it.sku || `MNY-TSH-${String(it.name || it.title || "ROCK").toUpperCase().replace(/\s+/g, "-")}-${it.color || "PRETA"}-${it.size || "M"}`;
-          return {
-            sku,
-            name: it.name || it.title || "Camiseta Munaya Rocks",
-            qty: Number(it.quantity || it.qty) || 1,
-            size: it.size || "M",
-            color: it.color || "Preta",
-            unit_price: Number(it.price || it.unit_price) || 89.9,
-            artwork_url: it.artwork_url || getArtworkUrl(sku),
+          const matchedProd = catalogProducts.find(
+            (p: any) =>
+              p.id === it.productId ||
+              p.id === it.product_id ||
+              p.slug === it.slug ||
+              (p.name && it.name && p.name.toLowerCase() === it.name.toLowerCase())
+          );
+
+          const productMeta = {
+            dimona_product_id: matchedProd?.dimona_product_id,
+            blank_type: matchedProd?.blank_type || "classic",
+            artwork_url: matchedProd?.artwork_url || it.artwork_url,
+            image_url: matchedProd?.image_url || it.image_url,
           };
+
+          return buildDimonaDispatchItem(it, productMeta);
         });
 
-        // Monta o payload de produção para a Dimona com o endereço real
+        const deliveryData = {
+          recipient_name: customerName,
+          recipient_document: customerCpf.replace(/\D/g, ""),
+          recipient_email: customerEmail,
+          recipient_phone: customerPhone.replace(/\D/g, ""),
+          street: dbOrder?.street || "Rua",
+          number: String(dbOrder?.number || "S/N"),
+          complement: dbOrder?.complement || "",
+          neighborhood: dbOrder?.neighborhood || "Bairro",
+          city: dbOrder?.city || "Porto Alegre",
+          state: dbOrder?.state || "RS",
+          zipcode: String(dbOrder?.zipcode || "00000000").replace(/\D/g, ""),
+          shipping_speed: ((dbOrder?.shipping_service || "PAC") as "PAC" | "SEDEX"),
+        };
+
+        // Validação da camada anti-corrupção antes do despacho
+        const validation = validateDimonaOrderData(externalId, dimonaItems, deliveryData);
+        if (!validation.valid) {
+          console.warn("⚠️ [DIMONA ACL WARNING] Inconsistências detectadas no pedido antes do despacho:", validation.errors);
+        }
+
+        // Monta o payload de produção para a Dimona com o endereço real e SKUs de fábrica
         const dimonaPayload = {
           external_id: externalId,
           items: dimonaItems,
-          delivery: {
-            recipient_name: customerName,
-            recipient_document: customerCpf.replace(/\D/g, ""),
-            recipient_email: customerEmail,
-            recipient_phone: customerPhone.replace(/\D/g, ""),
-            street: dbOrder?.street || "Rua",
-            number: String(dbOrder?.number || "S/N"),
-            complement: dbOrder?.complement || "",
-            neighborhood: dbOrder?.neighborhood || "Bairro",
-            city: dbOrder?.city || "Porto Alegre",
-            state: dbOrder?.state || "RS",
-            zipcode: String(dbOrder?.zipcode || "00000000").replace(/\D/g, ""),
-            shipping_speed: (dbOrder?.shipping_service || "PAC") as "PAC" | "SEDEX",
-          },
-          notes: `Pedido #${externalId} aprovado via Mercado Pago Orders API`,
+          delivery: deliveryData,
+          notes: `Pedido #${externalId} aprovado via Mercado Pago Orders API | De/Para Dimona ACL`,
         };
 
         const dimonaRes = await createDimonaOrder(dimonaPayload);

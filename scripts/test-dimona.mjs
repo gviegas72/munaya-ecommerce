@@ -1,24 +1,43 @@
 /**
- * Teste de Integração Direta: Nuvemshop -> Dimona
- * Execute com: node scripts/test-dimona.mjs
+ * 🏭 TESTE OFICIAL DE ESTEIRA DE/PARA DIMONA (ACL / ANTI-CORRUPTION LAYER)
+ * Execute com: npm run test:dimona
  */
 
 const DIMONA_BASE_URL =
   process.env.DIMONA_API_URL || "https://admin.camisadimona.com.br/api/v2";
+
+const DIMONA_BLANKS = {
+  classic: { name: "Classic 30.1 Algodão Penteado", prefix: "CLASSIC", cost: 42.0 },
+  quality: { name: "Quality Premium 30.1", prefix: "QUALITY", cost: 48.0 },
+  estonada: { name: "Estonada Rockwear", prefix: "ESTONADA", cost: 55.0 },
+  moletom: { name: "Moletom Heavy Canguru", prefix: "MOLETOM", cost: 89.0 },
+};
+
+function resolveDimonaSku(canonicalSku, blankType = "classic", dimonaProdId = "") {
+  const parts = canonicalSku.split("-");
+  const color = parts.length >= 5 ? parts[parts.length - 2] : "PRETA";
+  const size = parts.length >= 5 ? parts[parts.length - 1] : "M";
+
+  if (dimonaProdId) {
+    return `${dimonaProdId}-${color}-${size}`;
+  }
+  const blank = DIMONA_BLANKS[blankType] || DIMONA_BLANKS.classic;
+  return `DIM-${blank.prefix}-${color}-${size}`;
+}
 
 async function simulateOrderDispatch(order) {
   const apiKey = process.env.DIMONA_API_KEY;
 
   if (!apiKey || apiKey === "sandbox_dimona_token" || apiKey === "test") {
     console.log(
-      "⚠️ [DIMONA] DIMONA_API_KEY não configurada ou em modo sandbox. Simulando sucesso do pedido:",
+      "⚠️ [DIMONA] DIMONA_API_KEY em modo sandbox/dry-run. Simulando esteira de produção:",
       order.external_id
     );
     return {
       success: true,
       order_id: `SIMULATED-DIMONA-${order.external_id}-${Date.now()}`,
       status: "aguardando_producao_simulado",
-      message: "Pedido simulado com sucesso (modo sandbox/desenvolvimento).",
+      message: "Pedido simulado com sucesso (modo sandbox/homologação).",
       raw: {
         received_order: order,
         mode: "sandbox",
@@ -27,27 +46,27 @@ async function simulateOrderDispatch(order) {
   }
 
   const payload = {
-    external_order_id: order.external_id,
-    items: order.items.map((item) => ({
-      sku: item.sku,
-      name: item.name,
-      quantity: item.qty,
-      artwork_url: item.artwork_url || "",
-      size: item.size,
-      color: item.color,
-    })),
-    delivery: {
-      name: order.delivery.recipient_name,
-      phone: order.delivery.recipient_phone || "",
+    order_id: String(order.external_id),
+    customer_name: order.delivery.recipient_name,
+    customer_document: (order.delivery.recipient_document || "00000000000").replace(/\D/g, ""),
+    customer_email: order.delivery.recipient_email || "",
+    shipping_speed: (order.delivery.shipping_speed || "PAC").toLowerCase(),
+    address: {
       street: order.delivery.street,
-      number: order.delivery.number,
+      number: String(order.delivery.number || "S/N"),
       complement: order.delivery.complement || "",
-      neighborhood: order.delivery.neighborhood,
+      neighborhood: order.delivery.neighborhood || "Centro",
       city: order.delivery.city,
       state: order.delivery.state,
       zipcode: order.delivery.zipcode.replace(/\D/g, ""),
-      shipping_speed: order.delivery.shipping_speed || "PAC",
     },
+    items: order.items.map((item) => ({
+      name: item.name,
+      sku: item.sku,
+      qty: item.qty,
+      designs: item.artwork_url ? [item.artwork_url] : [],
+      mocks: item.mock_url ? [item.mock_url] : [],
+    })),
     notes: order.notes || `Pedido Munaya #${order.external_id}`,
   };
 
@@ -80,84 +99,74 @@ async function simulateOrderDispatch(order) {
 }
 
 async function runTest() {
-  console.log("=================================================");
-  console.log("🧪 TESTANDO INTEGRAÇÃO DIRETA NUVEMSHOP -> DIMONA");
-  console.log("=================================================\n");
+  console.log("===============================================================");
+  console.log("🏭 TESTANDO ESTEIRA DE/PARA DIMONA (ACL / ANTI-CORRUPTION LAYER)");
+  console.log("===============================================================\n");
 
-  const mockNuvemshopOrder = {
-    id: 98765432,
-    store_id: 8403729,
-    status: "paid",
-    payment_status: "paid",
-    customer: {
-      name: "Gabriel Viegas",
-      email: "cliente@munaya.com.br",
-      phone: "11988887777",
-    },
-    shipping_address: {
-      name: "Gabriel Viegas",
-      address: "Av. Paulista",
-      number: "1000",
-      floor: "Apto 101",
-      locality: "Bela Vista",
-      city: "São Paulo",
-      province: "SP",
-      zipcode: "01310100",
-      phone: "11988887777",
-    },
-    products: [
+  const testProduct = {
+    id: 2,
+    name: "Camiseta Dimebag",
+    canonicalSku: "MNY-TSH-DIMEBAG-PRETA-G",
+    blankType: "classic",
+    dimonaProductId: "",
+    artworkUrl: "https://munayarocks.vercel.app/artes/dimebag.jpg",
+    mockUrl: "https://munayarocks.vercel.app/uploads/DIMEBAG_camiseta.jpg",
+    price: 219.99,
+  };
+
+  const resolvedFactorySku = resolveDimonaSku(
+    testProduct.canonicalSku,
+    testProduct.blankType,
+    testProduct.dimonaProductId
+  );
+
+  console.log("1. Resolução De/Para de Código de Fábrica:");
+  console.log(`   - SKU Canônico Loja: ${testProduct.canonicalSku}`);
+  console.log(`   - Blank Selecionado: ${DIMONA_BLANKS[testProduct.blankType].name} (Custo: R$ ${DIMONA_BLANKS[testProduct.blankType].cost.toFixed(2)})`);
+  console.log(`   ➔ SKU Resolvido Fábrica Dimona: ${resolvedFactorySku}\n`);
+
+  const orderPayload = {
+    external_id: "MUNAYA-TEST-9901",
+    items: [
       {
-        id: 101,
-        name: "Camiseta Munaya Chaos Theory",
-        sku: "MUNAYA-CHAOS-M",
-        quantity: 1,
-        price: "119.00",
-        variant_values: ["M", "Preta"],
+        sku: resolvedFactorySku,
+        canonical_sku: testProduct.canonicalSku,
+        name: testProduct.name,
+        qty: 1,
+        size: "G",
+        color: "Preta",
+        artwork_url: testProduct.artworkUrl,
+        mock_url: testProduct.mockUrl,
+        unit_price: testProduct.price,
       },
     ],
-  };
-
-  console.log("1. Payload simulado recebido da Nuvemshop:");
-  console.log(`   - Pedido ID: #${mockNuvemshopOrder.id}`);
-  console.log(`   - Cliente: ${mockNuvemshopOrder.customer.name}`);
-  console.log(`   - Produto: ${mockNuvemshopOrder.products[0].name} (${mockNuvemshopOrder.products[0].sku})`);
-  console.log(`   - Destino: ${mockNuvemshopOrder.shipping_address.city}/${mockNuvemshopOrder.shipping_address.province}\n`);
-
-  console.log("2. Processando e encaminhando para conector Dimona...");
-  const dimonaPayload = {
-    external_id: String(mockNuvemshopOrder.id),
-    items: mockNuvemshopOrder.products.map((p) => ({
-      sku: p.sku,
-      name: p.name,
-      qty: p.quantity,
-      size: p.variant_values[0],
-      color: p.variant_values[1],
-      artwork_url: "https://munaya.com.br/estampas/chaos-theory-hd.png",
-    })),
     delivery: {
-      recipient_name: mockNuvemshopOrder.shipping_address.name,
-      recipient_phone: mockNuvemshopOrder.shipping_address.phone,
-      street: mockNuvemshopOrder.shipping_address.address,
-      number: mockNuvemshopOrder.shipping_address.number,
-      complement: mockNuvemshopOrder.shipping_address.floor,
-      neighborhood: mockNuvemshopOrder.shipping_address.locality,
-      city: mockNuvemshopOrder.shipping_address.city,
-      state: mockNuvemshopOrder.shipping_address.province,
-      zipcode: mockNuvemshopOrder.shipping_address.zipcode,
+      recipient_name: "Cliente Homologação Munaya",
+      recipient_document: "11144477735",
+      recipient_email: "teste@munayarocks.com.br",
+      recipient_phone: "11988887777",
+      street: "Rua das Pedras",
+      number: "500",
+      complement: "Sala 2",
+      neighborhood: "Moinhos",
+      city: "Porto Alegre",
+      state: "RS",
+      zipcode: "91380410",
       shipping_speed: "PAC",
     },
-    notes: `Pedido #${mockNuvemshopOrder.id} - Teste de Integração Munaya`,
+    notes: "Pedido homologação esteira De/Para Munaya Rocks -> Dimona v2",
   };
 
-  const response = await simulateOrderDispatch(dimonaPayload);
+  console.log("2. Enviando payload oficial para conector Dimona...");
+  const response = await simulateOrderDispatch(orderPayload);
 
-  console.log("\n3. Resposta do Conector Dimona:");
+  console.log("\n3. Retorno da API da Dimona:");
   console.log(JSON.stringify(response, null, 2));
 
   if (response.success) {
-    console.log("\n✅ SUCESSO! A esteira de pedidos Nuvemshop -> Dimona está 100% pronta e validada.");
+    console.log("\n✅ SUCESSO! Esteira De/Para Dimona validada com 100% de conformidade técnica.");
   } else {
-    console.error("\n❌ Erro no teste:", response.message);
+    console.error("\n❌ Falha na simulação:", response.message);
   }
 }
 

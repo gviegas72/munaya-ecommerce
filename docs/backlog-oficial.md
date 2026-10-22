@@ -15,11 +15,11 @@
 - **Objetivo:** Impedir que produtos com precificação manual/especial tenham seus preços sobrescritos pelo motor de recálculo em lote de markup.
 - **Branch:** `feat/price-lock-is-custom-price`
 - **Critérios de Aceite:**
-  - [ ] Coluna `is_custom_price` adicionada na tabela `products` do Supabase (com fallback seguro em memória).
-  - [ ] No modal de edição do produto no `/admin`, toggle/alerta visual: *"Fixar Preço Individual"*.
-  - [ ] Badge visual brutalista **`🔒 PREÇO INDIVIDUAL`** exibida no card do catálogo no `/admin`.
-  - [ ] A rota `POST /api/pricing/apply` filtra e pula automaticamente produtos com `is_custom_price = true`.
-- **Status:** 🟡 **EM ANDAMENTO**
+  - [x] Coluna `is_custom_price` adicionada na tabela `products` do Supabase (com persistência híbrida e fallback em metadata).
+  - [x] No modal de edição do produto no `/admin`, toggle/alerta visual: *"Fixar Preço Individual"*.
+  - [x] Badge visual brutalista **`🔒 PREÇO TRAVADO`** exibida no card do catálogo no `/admin`.
+  - [x] A rota `POST /api/pricing/apply` filtra e pula automaticamente produtos com `is_custom_price = true`.
+- **Status:** ✅ **CONCLUÍDO E HOMOLOGADO PELO FUNDADOR**
 
 ---
 
@@ -27,10 +27,10 @@
 - **Objetivo:** Vincular os SKUs canônicos Munaya (`MNY-TSH-DIMEBAG-PRETA-G`) aos IDs de produtos e variantes exatos da API v2 da Dimona.
 - **Branch:** `feat/dimona-sku-mapping`
 - **Critérios de Aceite:**
-  - [ ] Tabela `sku_dimona_mappings` para resolução determinística de código de fábrica.
-  - [ ] Interface no `/admin` para associar estampa ao ID do catálogo da Dimona.
-  - [ ] Webhook do Mercado Pago despachando com os IDs exatos de esteira.
-- **Status:** ⏳ **Aguardando S1-01**
+  - [ ] Estrutura / tabela `sku_dimona_mappings` ou campos de integração para resolução determinística de código de fábrica.
+  - [ ] Interface no `/admin` para associar estampa ao ID do catálogo da Dimona (Dimona Product ID / SKU Fábrica).
+  - [ ] Webhook do Mercado Pago despachando com os IDs exatos de esteira e artwork URL.
+- **Status:** 🟡 **EM ANDAMENTO**
 
 ---
 

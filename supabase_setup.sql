@@ -165,11 +165,27 @@ ON CONFLICT (id) DO UPDATE SET
     badge = EXCLUDED.badge;
 
 -- ==============================================================================
--- 🎸 MIGRAÇÃO: ADIÇÃO DE SKU, CORES, TAMANHOS E TRAVA DE PREÇO CUSTOMIZADO
+-- 🎸 MIGRAÇÃO: ADIÇÃO DE SKU, CORES, TAMANHOS, TRAVA DE PREÇO E DE/PARA DIMONA
 -- ==============================================================================
 ALTER TABLE public.products 
 ADD COLUMN IF NOT EXISTS sku TEXT,
 ADD COLUMN IF NOT EXISTS colors JSONB DEFAULT '[{"name": "Preta", "hex": "#111111", "skuCode": "PRETA"}]'::jsonb,
 ADD COLUMN IF NOT EXISTS sizes JSONB DEFAULT '["PP", "P", "M", "G", "GG", "XGG"]'::jsonb,
-ADD COLUMN IF NOT EXISTS is_custom_price BOOLEAN NOT NULL DEFAULT false;
+ADD COLUMN IF NOT EXISTS is_custom_price BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN IF NOT EXISTS dimona_product_id TEXT,
+ADD COLUMN IF NOT EXISTS blank_type TEXT DEFAULT 'classic';
+
+-- Tabela opcional de de/para individual por variante para customizações avançadas
+CREATE TABLE IF NOT EXISTS public.sku_dimona_mappings (
+    id BIGSERIAL PRIMARY KEY,
+    munaya_sku TEXT NOT NULL UNIQUE,
+    dimona_sku TEXT NOT NULL,
+    dimona_product_id TEXT,
+    blank_type TEXT DEFAULT 'classic',
+    factory_cost NUMERIC(10, 2) DEFAULT 42.00,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 

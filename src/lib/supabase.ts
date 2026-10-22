@@ -41,6 +41,8 @@ export interface DatabaseProduct {
   is_active: boolean;
   is_featured: boolean;
   is_custom_price?: boolean; // Trava contra recálculo de markup em lote
+  dimona_product_id?: string; // ID do produto/modelo na Dimona (De/Para)
+  blank_type?: string;        // Tipo de blank (classic, quality, estonada, etc.)
   display_order: number;
   badge?: string;
   sku?: string;
@@ -74,6 +76,8 @@ export function hydrateProductVariants(p: any): DatabaseProduct {
   return {
     ...p,
     is_custom_price: p.is_custom_price !== undefined ? Boolean(p.is_custom_price) : Boolean(meta.is_custom_price || false),
+    dimona_product_id: p.dimona_product_id !== undefined ? String(p.dimona_product_id || "") : String(meta.dimona_product_id || ""),
+    blank_type: p.blank_type || meta.blank_type || "classic",
     sku: baseSku,
     colors,
     sizes,
@@ -179,6 +183,9 @@ export async function createProductAdmin(
         productData.sizes ||
         currentMeta.sizes ||
         Array.from(OFFICIAL_SIZES),
+      ...(productData.is_custom_price !== undefined ? { is_custom_price: productData.is_custom_price } : {}),
+      ...(productData.dimona_product_id !== undefined ? { dimona_product_id: productData.dimona_product_id } : {}),
+      ...(productData.blank_type !== undefined ? { blank_type: productData.blank_type } : {}),
     };
 
     const insertPayload: any = {
@@ -192,6 +199,8 @@ export async function createProductAdmin(
     delete insertPayload.colors;
     delete insertPayload.sizes;
     delete insertPayload.is_custom_price;
+    delete insertPayload.dimona_product_id;
+    delete insertPayload.blank_type;
 
     const { data, error } = await supabaseAdmin
       .from("products")
@@ -276,6 +285,8 @@ export async function updateProductAdmin(
       ...(updates.colors ? { colors: updates.colors } : {}),
       ...(updates.sizes ? { sizes: updates.sizes } : {}),
       ...(updates.is_custom_price !== undefined ? { is_custom_price: updates.is_custom_price } : {}),
+      ...(updates.dimona_product_id !== undefined ? { dimona_product_id: updates.dimona_product_id } : {}),
+      ...(updates.blank_type !== undefined ? { blank_type: updates.blank_type } : {}),
     };
 
     const updatePayload: any = {
@@ -288,6 +299,8 @@ export async function updateProductAdmin(
     delete updatePayload.sizes;
     // Removemos do payload raiz para não quebrar tabelas do Supabase que ainda não rodaram a migration SQL
     delete updatePayload.is_custom_price;
+    delete updatePayload.dimona_product_id;
+    delete updatePayload.blank_type;
 
     const { data, error } = await supabaseAdmin
       .from("products")

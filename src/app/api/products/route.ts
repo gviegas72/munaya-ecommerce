@@ -117,6 +117,9 @@ export async function POST(req: NextRequest) {
       image_url: imageUrl,
       artwork_url: artworkUrl,
       badge: body.badge ? String(body.badge).trim() : undefined,
+      is_custom_price: body.is_custom_price !== undefined ? Boolean(body.is_custom_price) : false,
+      dimona_product_id: body.dimona_product_id ? String(body.dimona_product_id).trim().toUpperCase() : undefined,
+      blank_type: body.blank_type ? String(body.blank_type).trim().toLowerCase() : "classic",
       is_active: body.is_active !== undefined ? Boolean(body.is_active) : true,
       is_featured: body.is_featured !== undefined ? Boolean(body.is_featured) : false,
       display_order: parseInt(String(body.display_order ?? 10), 10) || 10,
@@ -257,6 +260,14 @@ export async function PATCH(req: NextRequest) {
       if (!isNaN(cleanOrder)) {
         updates.display_order = cleanOrder;
       }
+    }
+
+    if (updates.dimona_product_id !== undefined) {
+      updates.dimona_product_id = updates.dimona_product_id ? String(updates.dimona_product_id).trim().toUpperCase() : "";
+    }
+
+    if (updates.blank_type !== undefined) {
+      updates.blank_type = updates.blank_type ? String(updates.blank_type).trim().toLowerCase() : "classic";
     }
 
     const res = await updateProductAdmin(Number(id), updates);
