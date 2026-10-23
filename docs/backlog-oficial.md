@@ -78,11 +78,13 @@
 
 ### 🚀 Sprint 1: Fundação, Performance Mobile & Recuperação de Receita
 1. **[V2 - #06] Otimização Mobile, Lazy Loading & Core Web Vitals (next/image)**
-   - **GitHub Issue:** #30 | **RICE Score:** 20.0 | **Prioridade:** `priority: P1-alta`
-   - **Objetivo:** Migrar tags `<img>` para `next/image` ou atributos `loading="lazy"`, `decoding="async"` e WebP, eliminando a lentidão de LCP no mobile (4G) e reduzindo a taxa de rejeição.
+   - **GitHub Issue:** #30 | **RICE Score:** 20.0 | **Commit:** `a736aa3`
+   - **Entrega:** Imagens da vitrine e PDP migradas para `next/image` com `priority` nos primeiros 3 itens (LCP imediato), WebP/AVIF responsivo, lazy loading nativo nas peças abaixo da dobra e decoding assíncrono.
+   - **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
 2. **[V2 - #07] Login Social com 1-Clique (Google & Apple via Supabase OAuth)**
-   - **GitHub Issue:** #31 | **RICE Score:** 14.4 | **Prioridade:** `priority: P1-alta`
-   - **Objetivo:** Reduzir o atrito de cadastro a 1 clique na tela de login e checkout via provedores OAuth do Supabase.
+   - **GitHub Issue:** #31 | **RICE Score:** 14.4 | **Commit:** `a736aa3`
+   - **Entrega:** Botões de autenticação social com 1-clique (Google e Apple) integrados ao Supabase Auth, callback de redirecionamento seguro (`/auth/callback`), design brutalista e sincronização automática de perfil.
+   - **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
 3. **[V2 - #08] Recuperação Automática de Carrinho Abandonado (WhatsApp & Resend)**
    - **GitHub Issue:** #32 | **RICE Score:** 12.6 | **Prioridade:** `priority: P1-alta`
    - **Objetivo:** Disparo inteligente de WhatsApp (Evolution API) e e-mail transacional (Resend) 20 minutos após o abandono com foto da peça e link do carrinho já preenchido.
