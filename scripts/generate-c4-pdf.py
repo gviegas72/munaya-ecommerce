@@ -327,7 +327,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div class="legend-item"><span class="legend-color" style="background:#0f172a; border: 1.5px solid #38bdf8;"></span> <strong>Sistema Interno</strong> (Plataforma Munaya)</div>
         <div class="legend-item"><span class="legend-color" style="background:#475569;"></span> <strong>Sistemas Externos</strong> (Gateways, POD, Mensageria, BaaS)</div>
         <div class="legend-item"><span class="legend-color" style="background:#16a34a;"></span> <strong>Fulfillment & Webhook</strong> (Esteira Fabril)</div>
-        <div class="legend-item"><span class="legend-color" style="background:#25d366;"></span> <strong>Mensageria Transacional</strong> (WhatsApp & E-mail)</div>
+        <div class="legend-item"><span class="legend-color" style="background:#059669;"></span> <strong>Mensageria Transacional</strong> (WhatsApp & E-mail)</div>
       </div>
 
       <svg class="svg-canvas" viewBox="0 0 1020 440" xmlns="http://www.w3.org/2000/svg">
@@ -365,7 +365,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         </defs>
 
         <!-- ATORES (Esquerda) -->
-        <!-- Cliente Final -->
         <g filter="url(#shadow)">
           <rect x="25" y="60" width="160" height="125" rx="8" fill="url(#userGrad)"/>
           <circle cx="105" cy="92" r="14" fill="#ffffff"/>
@@ -376,7 +375,6 @@ HTML_CONTENT = """<!DOCTYPE html>
           <text x="105" y="177" font-family="Inter" font-size="7.5" fill="#bae6fd" text-anchor="middle">e recebe alertas no WhatsApp/E-mail</text>
         </g>
 
-        <!-- Administrador Munaya -->
         <g filter="url(#shadow)">
           <rect x="25" y="240" width="160" height="125" rx="8" fill="url(#userGrad)"/>
           <circle cx="105" cy="272" r="14" fill="#ffffff"/>
@@ -391,7 +389,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         <g filter="url(#shadow)">
           <rect x="315" y="45" width="315" height="350" rx="12" fill="url(#systemGrad)" stroke="#38bdf8" stroke-width="2"/>
           
-          <!-- Badges do Sistema -->
           <rect x="330" y="58" width="95" height="18" rx="4" fill="#0284c7"/>
           <text x="377" y="70" font-family="Inter" font-size="8" font-weight="800" fill="#ffffff" text-anchor="middle">SOFTWARE SYSTEM</text>
           <rect x="432" y="58" width="85" height="18" rx="4" fill="#065f46"/>
@@ -403,22 +400,21 @@ HTML_CONTENT = """<!DOCTYPE html>
           <rect x="330" y="128" width="285" height="252" rx="8" fill="#1e293b" stroke="#334155" stroke-dasharray="3 3"/>
           <text x="472" y="146" font-family="Inter" font-size="9" font-weight="700" fill="#f8fafc" text-anchor="middle">Módulos & Capacidades Principais:</text>
           
-          <text x="342" y="166" font-family="Inter" font-size="8" fill="#e2e8f0">• <strong>Storefront:</strong> Vitrine, Mockups 3D dinâmicos por cor/blank</text>
-          <text x="342" y="182" font-family="Inter" font-size="8" fill="#e2e8f0">• <strong>Área do Cliente:</strong> /account (Pedidos, dados e senha)</text>
-          <text x="342" y="198" font-family="Inter" font-size="8" fill="#e2e8f0">• <strong>Checkout Pix:</strong> QrCode dinâmico com recálculo no servidor</text>
-          <text x="342" y="214" font-family="Inter" font-size="8" fill="#93c5fd">• <strong>WhatsApp Bot:</strong> Evolution API v1/v2 com fallback wa.me</text>
-          <text x="342" y="230" font-family="Inter" font-size="8" fill="#c4b5fd">• <strong>E-mails Transacionais:</strong> Templates @react-email via Resend</text>
-          <text x="342" y="246" font-family="Inter" font-size="8" fill="#86efac">• <strong>Pipeline POD:</strong> Despacho Dimona + Webhook de rastreio</text>
-          <text x="342" y="262" font-family="Inter" font-size="8" fill="#fde047">• <strong>Cupons & Pricing:</strong> Validação de descontos e regras de margem</text>
-          <text x="342" y="278" font-family="Inter" font-size="8" fill="#e2e8f0">• <strong>Admin Completo:</strong> Gestão de clientes, blanks e logs RBAC</text>
-          <text x="342" y="294" font-family="Inter" font-size="8" fill="#a7f3d0">• <strong>Segurança:</strong> Rate Limiting, HMAC-SHA256, HSTS e timingSafeEqual</text>
+          <text x="342" y="166" font-family="Inter" font-size="8" fill="#e2e8f0">• <tspan font-weight="700">Storefront:</tspan> Vitrine, Mockups 3D dinâmicos por cor/blank</text>
+          <text x="342" y="182" font-family="Inter" font-size="8" fill="#e2e8f0">• <tspan font-weight="700">Área do Cliente:</tspan> /account (Pedidos, dados e senha)</text>
+          <text x="342" y="198" font-family="Inter" font-size="8" fill="#e2e8f0">• <tspan font-weight="700">Checkout Pix:</tspan> QrCode dinâmico com recálculo no servidor</text>
+          <text x="342" y="214" font-family="Inter" font-size="8" fill="#93c5fd">• <tspan font-weight="700">WhatsApp Bot:</tspan> Evolution API v1/v2 com fallback wa.me</text>
+          <text x="342" y="230" font-family="Inter" font-size="8" fill="#c4b5fd">• <tspan font-weight="700">E-mails Transacionais:</tspan> Templates @react-email via Resend</text>
+          <text x="342" y="246" font-family="Inter" font-size="8" fill="#86efac">• <tspan font-weight="700">Pipeline POD:</tspan> Despacho Dimona + Webhook de rastreio</text>
+          <text x="342" y="262" font-family="Inter" font-size="8" fill="#fde047">• <tspan font-weight="700">Cupons & Pricing:</tspan> Validação de descontos e regras de margem</text>
+          <text x="342" y="278" font-family="Inter" font-size="8" fill="#e2e8f0">• <tspan font-weight="700">Admin Completo:</tspan> Gestão de clientes, blanks e logs RBAC</text>
+          <text x="342" y="294" font-family="Inter" font-size="8" fill="#a7f3d0">• <tspan font-weight="700">Segurança:</tspan> Rate Limiting, HMAC-SHA256, HSTS e timingSafeEqual</text>
           
           <text x="342" y="322" font-family="Inter" font-size="8" font-weight="700" fill="#38bdf8">Vercel Edge Global Network • TLS 1.3 End-to-End</text>
           <text x="342" y="336" font-family="Inter" font-size="7.5" fill="#94a3b8">BaaS Serverless com Postgres Relacional Supabase</text>
         </g>
 
         <!-- SISTEMAS EXTERNOS (Direita - 6 Conexões) -->
-        <!-- 1. Camisa Dimona -->
         <g filter="url(#shadow)">
           <rect x="745" y="25" width="250" height="58" rx="6" fill="url(#extGrad)" stroke="#16a34a" stroke-width="1.5"/>
           <text x="870" y="44" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Camisa Dimona (API v2 + Webhook)</text>
@@ -426,7 +422,6 @@ HTML_CONTENT = """<!DOCTYPE html>
           <text x="870" y="69" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">Envio de pedidos DTG + Ingestão de rastreio Correios/Jadlog</text>
         </g>
 
-        <!-- 2. Mercado Pago -->
         <g filter="url(#shadow)">
           <rect x="745" y="88" width="250" height="58" rx="6" fill="url(#extGrad)" stroke="#0ea5e9" stroke-width="1.5"/>
           <text x="870" y="107" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Mercado Pago (Orders API + IPN)</text>
@@ -434,7 +429,6 @@ HTML_CONTENT = """<!DOCTYPE html>
           <text x="870" y="132" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">Geração Pix imediata e Webhook com assinatura HMAC-SHA256</text>
         </g>
 
-        <!-- 3. Evolution API (WhatsApp) - NOVA -->
         <g filter="url(#shadow)">
           <rect x="745" y="151" width="250" height="58" rx="6" fill="url(#extGrad)" stroke="#059669" stroke-width="2"/>
           <text x="870" y="170" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Evolution API (WhatsApp v1/v2) ✨</text>
@@ -442,7 +436,6 @@ HTML_CONTENT = """<!DOCTYPE html>
           <text x="870" y="195" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">Envio ativo de Pix Copia e Cola, confirmação e código de rastreio</text>
         </g>
 
-        <!-- 4. Resend (E-mail @react-email) - NOVA -->
         <g filter="url(#shadow)">
           <rect x="745" y="214" width="250" height="58" rx="6" fill="url(#extGrad)" stroke="#7c3aed" stroke-width="1.8"/>
           <text x="870" y="233" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Resend API (@react-email) ✨</text>
@@ -450,7 +443,6 @@ HTML_CONTENT = """<!DOCTYPE html>
           <text x="870" y="258" font-family="Inter" font-size="7.5" fill="#cbd5e1" text-anchor="middle">OrderCreated, PaymentConfirmed, OrderShipped e Reset de Senha</text>
         </g>
 
-        <!-- 5. Supabase Cloud -->
         <g filter="url(#shadow)">
           <rect x="745" y="277" width="250" height="58" rx="6" fill="url(#extGrad)" stroke="#14b8a6" stroke-width="1.5"/>
           <text x="870" y="296" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Supabase Cloud (Postgres + Auth + CDN)</text>
@@ -458,7 +450,6 @@ HTML_CONTENT = """<!DOCTYPE html>
           <text x="870" y="321" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">PostgreSQL com RLS, Auth Clientes/RBAC e Trilha de Auditoria</text>
         </g>
 
-        <!-- 6. ViaCEP API -->
         <g filter="url(#shadow)">
           <rect x="745" y="340" width="250" height="55" rx="6" fill="url(#extGrad)"/>
           <text x="870" y="359" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">ViaCEP API</text>
@@ -467,27 +458,19 @@ HTML_CONTENT = """<!DOCTYPE html>
         </g>
 
         <!-- CONECTORES -->
-        <!-- Cliente -> Munaya -->
         <path d="M 185 105 L 307 105" stroke="#0284c7" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
         <rect x="195" y="90" width="105" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
         <text x="247" y="102" font-family="Inter" font-size="7.5" fill="#0369a1" text-anchor="middle" font-weight="700">HTTPS / HSTS / TLS</text>
 
-        <!-- Admin -> Munaya -->
         <path d="M 185 285 L 307 285" stroke="#0284c7" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
         <rect x="195" y="270" width="105" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
         <text x="247" y="282" font-family="Inter" font-size="7.5" fill="#0369a1" text-anchor="middle" font-weight="700">RBAC timingSafeEqual</text>
 
-        <!-- Munaya <-> Dimona -->
         <path d="M 630 65 L 737 54" stroke="#16a34a" stroke-width="1.8" fill="none" marker-end="url(#arrow-green)"/>
-        <!-- Munaya <-> Mercado Pago -->
         <path d="M 630 115 L 737 117" stroke="#0ea5e9" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-        <!-- Munaya -> Evolution API -->
         <path d="M 630 180 L 737 180" stroke="#059669" stroke-width="2" fill="none" marker-end="url(#arrow-wa)"/>
-        <!-- Munaya -> Resend -->
         <path d="M 630 240 L 737 243" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#arrow-email)"/>
-        <!-- Munaya -> Supabase -->
         <path d="M 630 305 L 737 306" stroke="#14b8a6" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-        <!-- Munaya -> ViaCEP -->
         <path d="M 630 365 L 737 367" stroke="#475569" stroke-width="1.5" stroke-dasharray="3 3" fill="none" marker-end="url(#arrow)"/>
       </svg>
     </div>
@@ -674,17 +657,11 @@ HTML_CONTENT = """<!DOCTYPE html>
         <rect x="439" y="324" width="25" height="15" rx="3" fill="#ffffff" stroke="#0f766e"/>
         <text x="451" y="335" font-family="Inter" font-size="7" fill="#0f766e" text-anchor="middle" font-weight="700">SQL</text>
 
-        <!-- Backend -> Dimona -->
         <path d="M 720 70 L 755 55" stroke="#16a34a" stroke-width="1.8" fill="none" marker-end="url(#arrow-green)"/>
-        <!-- Backend -> MP -->
         <path d="M 720 120 L 755 115" stroke="#0ea5e9" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-        <!-- Backend -> Evolution WhatsApp -->
         <path d="M 720 175 L 755 175" stroke="#059669" stroke-width="2" fill="none" marker-end="url(#arrow-wa)"/>
-        <!-- Backend -> Resend Email -->
         <path d="M 720 235 L 755 235" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#arrow-email)"/>
-        <!-- Backend -> Supabase -->
         <path d="M 720 295 L 755 295" stroke="#14b8a6" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-        <!-- Backend -> ViaCEP -->
         <path d="M 720 355 L 755 355" stroke="#475569" stroke-width="1.5" stroke-dasharray="3 3" fill="none" marker-end="url(#arrow)"/>
       </svg>
     </div>
@@ -726,180 +703,180 @@ HTML_CONTENT = """<!DOCTYPE html>
 
       <svg class="svg-canvas" viewBox="0 0 1020 440" xmlns="http://www.w3.org/2000/svg">
         <!-- BOUNDARY: APP ROUTER -->
-        <rect x="15" y="15" width="715" height="402" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <rect x="15" y="15" width="705" height="402" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
         <text x="30" y="32" font-family="Inter" font-size="9.5" font-weight="700" fill="#475569">COMPONENTES INTERNOS DA API & CAMADA DE SERVIÇOS [Next.js App Router]</text>
 
-        <!-- COLUNA 1: ROUTE HANDLERS & WEBHOOKS (Entradas HTTP) -->
+        <!-- COLUNA 1: ROUTE HANDLERS & WEBHOOKS (x=30, w=175) -->
         <g filter="url(#shadow)">
-          <rect x="30" y="45" width="165" height="68" rx="6" fill="#0284c7"/>
-          <text x="112" y="65" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">Checkout Controller</text>
-          <text x="112" y="78" font-family="JetBrains Mono" font-size="7" fill="#e0f2fe" text-anchor="middle">POST /api/checkout</text>
-          <text x="112" y="92" font-family="Inter" font-size="7" fill="#bae6fd" text-anchor="middle">Recalcula totais + Cria Pix MP</text>
-          <text x="112" y="103" font-family="Inter" font-size="7" fill="#a7f3d0" text-anchor="middle">Dispara WhatsApp & E-mail Pix</text>
+          <rect x="30" y="45" width="175" height="64" rx="6" fill="#0284c7"/>
+          <text x="117" y="65" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">Checkout Controller</text>
+          <text x="117" y="78" font-family="JetBrains Mono" font-size="7" fill="#e0f2fe" text-anchor="middle">POST /api/checkout</text>
+          <text x="117" y="92" font-family="Inter" font-size="7" fill="#bae6fd" text-anchor="middle">Recalcula totais + Cria Pix MP</text>
+          <text x="117" y="103" font-family="Inter" font-size="7" fill="#a7f3d0" text-anchor="middle">Inicia WhatsApp e E-mail Pix</text>
         </g>
 
         <g filter="url(#shadow)">
-          <rect x="30" y="122" width="165" height="62" rx="6" fill="#0284c7"/>
-          <text x="112" y="141" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">Shipping Controller</text>
-          <text x="112" y="154" font-family="JetBrains Mono" font-size="7" fill="#e0f2fe" text-anchor="middle">POST /api/shipping</text>
-          <text x="112" y="168" font-family="Inter" font-size="7" fill="#bae6fd" text-anchor="middle">Cotação Dimona + ViaCEP</text>
-          <text x="112" y="179" font-family="Inter" font-size="7" fill="#bae6fd" text-anchor="middle">Rate Limited (30 req/min)</text>
+          <rect x="30" y="118" width="175" height="60" rx="6" fill="#0284c7"/>
+          <text x="117" y="137" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">Shipping Controller</text>
+          <text x="117" y="150" font-family="JetBrains Mono" font-size="7" fill="#e0f2fe" text-anchor="middle">POST /api/shipping</text>
+          <text x="117" y="164" font-family="Inter" font-size="7" fill="#bae6fd" text-anchor="middle">Cotação Dimona + ViaCEP</text>
+          <text x="117" y="174" font-family="Inter" font-size="7" fill="#bae6fd" text-anchor="middle">Rate Limited (30 req/min)</text>
         </g>
 
         <g filter="url(#shadow)">
-          <rect x="30" y="193" width="165" height="75" rx="6" fill="#0284c7"/>
-          <text x="112" y="213" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">MP Webhook Handler</text>
-          <text x="112" y="226" font-family="JetBrains Mono" font-size="6.5" fill="#e0f2fe" text-anchor="middle">POST /api/webhooks/mercadopago</text>
-          <text x="112" y="240" font-family="Inter" font-size="7" fill="#a7f3d0" text-anchor="middle">1. Valida HMAC-SHA256</text>
-          <text x="112" y="251" font-family="Inter" font-size="7" fill="#a7f3d0" text-anchor="middle">2. Despacha ordem à Dimona</text>
-          <text x="112" y="262" font-family="Inter" font-size="7" fill="#a7f3d0" text-anchor="middle">3. Dispara WhatsApp de Aprovado</text>
+          <rect x="30" y="186" width="175" height="70" rx="6" fill="#0284c7"/>
+          <text x="117" y="206" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">MP Webhook Handler</text>
+          <text x="117" y="219" font-family="JetBrains Mono" font-size="6.5" fill="#e0f2fe" text-anchor="middle">POST /api/webhooks/mercadopago</text>
+          <text x="117" y="233" font-family="Inter" font-size="7" fill="#a7f3d0" text-anchor="middle">1. Valida HMAC-SHA256</text>
+          <text x="117" y="244" font-family="Inter" font-size="7" fill="#a7f3d0" text-anchor="middle">2. Despacha ordem à Dimona</text>
         </g>
 
         <g filter="url(#shadow)">
-          <rect x="30" y="277" width="165" height="72" rx="6" fill="#0284c7" stroke="#16a34a" stroke-width="1.8"/>
-          <text x="112" y="296" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Dimona Webhook ✨</text>
-          <text x="112" y="309" font-family="JetBrains Mono" font-size="6.5" fill="#e0f2fe" text-anchor="middle">POST /api/webhooks/dimona</text>
-          <text x="112" y="323" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">1. Ingestão de Rastreio Fabril</text>
-          <text x="112" y="334" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">2. Dispara WhatsApp com Link</text>
-          <text x="112" y="344" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">3. Dispara OrderShippedEmail</text>
+          <rect x="30" y="264" width="175" height="70" rx="6" fill="#0284c7" stroke="#16a34a" stroke-width="1.8"/>
+          <text x="117" y="284" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Dimona Webhook ✨</text>
+          <text x="117" y="297" font-family="JetBrains Mono" font-size="6.5" fill="#e0f2fe" text-anchor="middle">POST /api/webhooks/dimona</text>
+          <text x="117" y="311" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">1. Ingestão de Rastreio Fabril</text>
+          <text x="117" y="322" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">2. Dispara WhatsApp & E-mail</text>
         </g>
 
         <g filter="url(#shadow)">
-          <rect x="30" y="357" width="165" height="50" rx="6" fill="#0284c7"/>
-          <text x="112" y="375" font-family="Inter" font-size="9.5" font-weight="700" fill="#ffffff" text-anchor="middle">Account & Admin API</text>
-          <text x="112" y="388" font-family="JetBrains Mono" font-size="6.5" fill="#e0f2fe" text-anchor="middle">/account/orders, /admin/audit</text>
-          <text x="112" y="399" font-family="Inter" font-size="7" fill="#bae6fd" text-anchor="middle">Autenticação RBAC e Auditoria</text>
+          <rect x="30" y="342" width="175" height="65" rx="6" fill="#0284c7"/>
+          <text x="117" y="362" font-family="Inter" font-size="9.5" font-weight="700" fill="#ffffff" text-anchor="middle">Account & Admin API</text>
+          <text x="117" y="375" font-family="JetBrains Mono" font-size="6.5" fill="#e0f2fe" text-anchor="middle">/account/orders, /admin/audit</text>
+          <text x="117" y="388" font-family="Inter" font-size="7" fill="#bae6fd" text-anchor="middle">Autenticação RBAC e Auditoria</text>
+          <text x="117" y="399" font-family="Inter" font-size="7" fill="#bae6fd" text-anchor="middle">/admin/whatsapp/config</text>
         </g>
 
-        <!-- COLUNA 2: CORE BUSINESS SERVICES & DISPATCHERS -->
+        <!-- COLUNA 2: BUSINESS SERVICES (x=225, w=170) -->
         <g filter="url(#shadow)">
-          <rect x="225" y="45" width="155" height="78" rx="6" fill="#1e293b" stroke="#0ea5e9" stroke-width="1.5"/>
-          <text x="302" y="65" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">MercadoPago Service</text>
-          <text x="302" y="77" font-family="JetBrains Mono" font-size="7" fill="#38bdf8" text-anchor="middle">src/lib/mercadopago.ts</text>
-          <text x="302" y="93" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• createMercadoPagoPixOrder</text>
-          <text x="302" y="105" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• mp-webhook-auth (HMAC)</text>
-          <text x="302" y="117" font-family="Inter" font-size="7" fill="#38bdf8" text-anchor="middle">Orders API v2</text>
-        </g>
-
-        <g filter="url(#shadow)">
-          <rect x="225" y="132" width="155" height="108" rx="6" fill="#1e293b" stroke="#16a34a" stroke-width="1.8"/>
-          <text x="302" y="152" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Dimona POD Service</text>
-          <text x="302" y="164" font-family="JetBrains Mono" font-size="7" fill="#86efac" text-anchor="middle">src/lib/dimona.ts</text>
-          <text x="302" y="179" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• createDimonaOrder</text>
-          <text x="302" y="191" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• calculateDimonaShipping</text>
-          <text x="302" y="204" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">• dimona-mapping.ts (Blanks)</text>
-          <text x="302" y="216" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• artworks.ts (PNG 300 DPI)</text>
-          <text x="302" y="230" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">Trava Financeira Prévia</text>
-        </g>
-
-        <!-- NOVO: Módulo WhatsApp Evolution -->
-        <g filter="url(#shadow)">
-          <rect x="225" y="250" width="155" height="80" rx="6" fill="#064e3b" stroke="#059669" stroke-width="2"/>
-          <text x="302" y="270" font-family="Inter" font-size="10" font-weight="800" fill="#a7f3d0" text-anchor="middle">WhatsApp Service ✨</text>
-          <text x="302" y="282" font-family="JetBrains Mono" font-size="7" fill="#ffffff" text-anchor="middle">src/lib/whatsapp.ts</text>
-          <text x="302" y="297" font-family="Inter" font-size="7" fill="#ccfbf1">• sendOrderCreatedWhatsApp</text>
-          <text x="302" y="309" font-family="Inter" font-size="7" fill="#ccfbf1">• sendPaymentConfirmedWhatsApp</text>
-          <text x="302" y="321" font-family="Inter" font-size="7" fill="#a7f3d0">• sendOrderShippedWhatsApp (Link)</text>
-        </g>
-
-        <!-- NOVO: Módulo Resend Email -->
-        <g filter="url(#shadow)">
-          <rect x="225" y="338" width="155" height="70" rx="6" fill="#2e1065" stroke="#7c3aed" stroke-width="1.8"/>
-          <text x="302" y="356" font-family="Inter" font-size="10" font-weight="800" fill="#c4b5fd" text-anchor="middle">Email Service (@react-email) ✨</text>
-          <text x="302" y="368" font-family="JetBrains Mono" font-size="7" fill="#ffffff" text-anchor="middle">src/lib/email.ts</text>
-          <text x="302" y="383" font-family="Inter" font-size="7" fill="#ede9fe">• OrderCreated & PaymentConfirmed</text>
-          <text x="302" y="395" font-family="Inter" font-size="7" fill="#c4b5fd">• OrderShippedEmail com Rastreio</text>
-        </g>
-
-        <!-- COLUNA 3: DATA, AUDIT & RULES -->
-        <g filter="url(#shadow)">
-          <rect x="415" y="90" width="145" height="110" rx="6" fill="#042f2e" stroke="#0f766e" stroke-width="1.5"/>
-          <text x="487" y="112" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Database Service</text>
-          <text x="487" y="125" font-family="JetBrains Mono" font-size="7" fill="#5eead4" text-anchor="middle">supabase.ts & audit.ts</text>
-          <text x="487" y="142" font-family="Inter" font-size="7" fill="#ccfbf1">• saveDatabaseOrder</text>
-          <text x="487" y="155" font-family="Inter" font-size="7" fill="#ccfbf1">• logAuditEvent (RBAC)</text>
-          <text x="487" y="168" font-family="Inter" font-size="7" fill="#ccfbf1">• Service Role Key Privada</text>
-          <text x="487" y="181" font-family="Inter" font-size="7" fill="#ccfbf1">• Políticas de RLS</text>
-          <text x="487" y="194" font-family="Inter" font-size="7" fill="#5eead4" text-anchor="middle">PostgreSQL Seguro</text>
+          <rect x="225" y="45" width="170" height="70" rx="6" fill="#1e293b" stroke="#0ea5e9" stroke-width="1.5"/>
+          <text x="310" y="66" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">MercadoPago Service</text>
+          <text x="310" y="78" font-family="JetBrains Mono" font-size="7" fill="#38bdf8" text-anchor="middle">src/lib/mercadopago.ts</text>
+          <text x="310" y="93" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• createMercadoPagoPixOrder</text>
+          <text x="310" y="105" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• mp-webhook-auth (HMAC)</text>
         </g>
 
         <g filter="url(#shadow)">
-          <rect x="415" y="215" width="145" height="95" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
-          <text x="487" y="236" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Rules & Pricing Engine</text>
-          <text x="487" y="249" font-family="JetBrains Mono" font-size="7" fill="#fde047" text-anchor="middle">coupons.ts & pricing.ts</text>
-          <text x="487" y="266" font-family="Inter" font-size="7" fill="#cbd5e1">• validateCouponCode</text>
-          <text x="487" y="279" font-family="Inter" font-size="7" fill="#cbd5e1">• calculateItemPricing</text>
-          <text x="487" y="292" font-family="Inter" font-size="7" fill="#cbd5e1">• Descontos % e Frete Grátis</text>
-          <text x="487" y="304" font-family="Inter" font-size="7" fill="#fde047" text-anchor="middle">Margem de Lucro Garantida</text>
-        </g>
-
-        <!-- DESTINOS EXTERNOS (Direita) -->
-        <g filter="url(#shadow)">
-          <rect x="745" y="45" width="255" height="60" rx="6" fill="#334155" stroke="#0ea5e9" stroke-width="1.5"/>
-          <text x="872" y="66" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">Mercado Pago Orders API</text>
-          <text x="872" y="80" font-family="Inter" font-size="7.5" fill="#38bdf8" text-anchor="middle">Ordens Pix dinâmicas + IPN instantâneo</text>
-          <text x="872" y="93" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">Validação de assinatura HMAC-SHA256</text>
+          <rect x="225" y="122" width="170" height="95" rx="6" fill="#1e293b" stroke="#16a34a" stroke-width="1.8"/>
+          <text x="310" y="142" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Dimona POD Service</text>
+          <text x="310" y="154" font-family="JetBrains Mono" font-size="7" fill="#86efac" text-anchor="middle">src/lib/dimona.ts</text>
+          <text x="310" y="169" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• createDimonaOrder</text>
+          <text x="310" y="181" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• calculateDimonaShipping</text>
+          <text x="310" y="194" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">• dimona-mapping.ts (Blanks)</text>
+          <text x="310" y="206" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">Trava Financeira Prévia</text>
         </g>
 
         <g filter="url(#shadow)">
-          <rect x="745" y="115" width="255" height="75" rx="6" fill="#334155" stroke="#16a34a" stroke-width="2"/>
-          <text x="872" y="137" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">Dimona API v2 (Fábrica POD)</text>
-          <text x="872" y="151" font-family="Inter" font-size="7.5" fill="#86efac" text-anchor="middle">Recepção de Ordens e Disparo de Webhook</text>
-          <text x="872" y="165" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">Envio de artes HD e dados postais ao operador</text>
-          <text x="872" y="178" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">Disparo de Webhook com código dos Correios</text>
+          <rect x="225" y="224" width="170" height="65" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="310" y="244" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Rules & Pricing Engine</text>
+          <text x="310" y="256" font-family="JetBrains Mono" font-size="7" fill="#fde047" text-anchor="middle">coupons.ts & pricing.ts</text>
+          <text x="310" y="271" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• validateCouponCode</text>
+          <text x="310" y="282" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• Margem & Descontos</text>
         </g>
 
         <g filter="url(#shadow)">
-          <rect x="745" y="200" width="255" height="65" rx="6" fill="#064e3b" stroke="#059669" stroke-width="2"/>
-          <text x="872" y="222" font-family="Inter" font-size="10.5" font-weight="800" fill="#a7f3d0" text-anchor="middle">Evolution API (WhatsApp Gateway) ✨</text>
-          <text x="872" y="236" font-family="Inter" font-size="7.5" fill="#ffffff" text-anchor="middle">Instância dedicada para alertas automáticos</text>
-          <text x="872" y="249" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="middle">Entrega de Pix, recibo de pagamento e rastreio</text>
+          <rect x="225" y="296" width="170" height="110" rx="6" fill="#042f2e" stroke="#0f766e" stroke-width="1.5"/>
+          <text x="310" y="316" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Database Service</text>
+          <text x="310" y="328" font-family="JetBrains Mono" font-size="7" fill="#5eead4" text-anchor="middle">supabase.ts & audit.ts</text>
+          <text x="310" y="344" font-family="Inter" font-size="7" fill="#ccfbf1">• saveDatabaseOrder</text>
+          <text x="310" y="356" font-family="Inter" font-size="7" fill="#ccfbf1">• logAuditEvent (RBAC)</text>
+          <text x="310" y="369" font-family="Inter" font-size="7" fill="#ccfbf1">• Service Role Key Privada</text>
+          <text x="310" y="382" font-family="Inter" font-size="7" fill="#ccfbf1">• RLS Policies Ativas</text>
+          <text x="310" y="396" font-family="Inter" font-size="7" fill="#5eead4" text-anchor="middle">PostgreSQL Seguro</text>
+        </g>
+
+        <!-- COLUNA 3: NOTIFICATION DISPATCHERS (x=415, w=165) -->
+        <g filter="url(#shadow)">
+          <rect x="415" y="130" width="165" height="115" rx="6" fill="#064e3b" stroke="#059669" stroke-width="2"/>
+          <text x="497" y="152" font-family="Inter" font-size="10.5" font-weight="800" fill="#a7f3d0" text-anchor="middle">WhatsApp Service ✨</text>
+          <text x="497" y="165" font-family="JetBrains Mono" font-size="7" fill="#ffffff" text-anchor="middle">src/lib/whatsapp.ts</text>
+          <text x="497" y="182" font-family="Inter" font-size="7" fill="#ccfbf1">• sendOrderCreatedWhatsApp</text>
+          <text x="497" y="195" font-family="Inter" font-size="7" fill="#ccfbf1">• sendPaymentConfirmedWhatsApp</text>
+          <text x="497" y="208" font-family="Inter" font-size="7" fill="#a7f3d0">• sendOrderShippedWhatsApp</text>
+          <text x="497" y="222" font-family="Inter" font-size="7" fill="#a7f3d0">• Fallback nativo wa.me</text>
+          <text x="497" y="235" font-family="Inter" font-size="6.5" fill="#94a3b8" text-anchor="middle">Instância Evolution v1/v2</text>
         </g>
 
         <g filter="url(#shadow)">
-          <rect x="745" y="275" width="255" height="65" rx="6" fill="#2e1065" stroke="#7c3aed" stroke-width="1.8"/>
-          <text x="872" y="297" font-family="Inter" font-size="10.5" font-weight="800" fill="#c4b5fd" text-anchor="middle">Resend Cloud (E-mail API) ✨</text>
-          <text x="872" y="311" font-family="Inter" font-size="7.5" fill="#ffffff" text-anchor="middle">Entrega SMTP/REST com alta entregabilidade</text>
-          <text x="872" y="324" font-family="Inter" font-size="7" fill="#ede9fe" text-anchor="middle">Layout responsivo Dark Mode com @react-email</text>
+          <rect x="415" y="260" width="165" height="115" rx="6" fill="#2e1065" stroke="#7c3aed" stroke-width="1.8"/>
+          <text x="497" y="282" font-family="Inter" font-size="10.5" font-weight="800" fill="#c4b5fd" text-anchor="middle">Email Service (@react-email) ✨</text>
+          <text x="497" y="295" font-family="JetBrains Mono" font-size="7" fill="#ffffff" text-anchor="middle">src/lib/email.ts</text>
+          <text x="497" y="312" font-family="Inter" font-size="7" fill="#ede9fe">• OrderCreatedEmail</text>
+          <text x="497" y="325" font-family="Inter" font-size="7" fill="#ede9fe">• PaymentConfirmedEmail</text>
+          <text x="497" y="338" font-family="Inter" font-size="7" fill="#c4b5fd">• OrderShippedEmail (Rastreio)</text>
+          <text x="497" y="351" font-family="Inter" font-size="7" fill="#ede9fe">• ResetPasswordEmail</text>
+          <text x="497" y="365" font-family="Inter" font-size="6.5" fill="#94a3b8" text-anchor="middle">Resend REST API Engine</text>
+        </g>
+
+        <!-- COLUNA 4: DESTINOS EXTERNOS (x=735, w=265) -->
+        <g filter="url(#shadow)">
+          <rect x="735" y="45" width="265" height="55" rx="6" fill="#334155" stroke="#0ea5e9" stroke-width="1.5"/>
+          <text x="867" y="66" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">Mercado Pago Orders API</text>
+          <text x="867" y="79" font-family="Inter" font-size="7.5" fill="#38bdf8" text-anchor="middle">Ordens Pix dinâmicas + IPN instantâneo</text>
+          <text x="867" y="91" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">Validação de assinatura HMAC-SHA256</text>
         </g>
 
         <g filter="url(#shadow)">
-          <rect x="745" y="350" width="255" height="58" rx="6" fill="#042f2e" stroke="#14b8a6" stroke-width="1.5"/>
-          <text x="872" y="371" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">Supabase PostgreSQL & CDN</text>
-          <text x="872" y="384" font-family="Inter" font-size="7.5" fill="#5eead4" text-anchor="middle">Persistência relacional de pedidos, cupons e trilha</text>
-          <text x="872" y="396" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="middle">Tabela 'orders' atualizada a cada webhook</text>
+          <rect x="735" y="108" width="265" height="65" rx="6" fill="#334155" stroke="#16a34a" stroke-width="2"/>
+          <text x="867" y="129" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">Dimona API v2 (Fábrica POD)</text>
+          <text x="867" y="142" font-family="Inter" font-size="7.5" fill="#86efac" text-anchor="middle">Recepção de Ordens e Disparo de Webhook</text>
+          <text x="867" y="155" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">Envio de artes HD e dados postais ao operador</text>
+          <text x="867" y="166" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">Disparo de Webhook com código dos Correios</text>
         </g>
 
-        <!-- LIGAÇÕES E PIPELINE -->
+        <g filter="url(#shadow)">
+          <rect x="735" y="180" width="265" height="65" rx="6" fill="#064e3b" stroke="#059669" stroke-width="2"/>
+          <text x="867" y="202" font-family="Inter" font-size="10.5" font-weight="800" fill="#a7f3d0" text-anchor="middle">Evolution API (WhatsApp Gateway) ✨</text>
+          <text x="867" y="215" font-family="Inter" font-size="7.5" fill="#ffffff" text-anchor="middle">Instância dedicada para alertas automáticos</text>
+          <text x="867" y="228" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="middle">Entrega de Pix, recibo de pagamento e rastreio</text>
+          <text x="867" y="239" font-family="Inter" font-size="6.5" fill="#a7f3d0" text-anchor="middle">POST /message/sendText/{instance}</text>
+        </g>
+
+        <g filter="url(#shadow)">
+          <rect x="735" y="255" width="265" height="65" rx="6" fill="#2e1065" stroke="#7c3aed" stroke-width="1.8"/>
+          <text x="867" y="277" font-family="Inter" font-size="10.5" font-weight="800" fill="#c4b5fd" text-anchor="middle">Resend Cloud (E-mail API) ✨</text>
+          <text x="867" y="290" font-family="Inter" font-size="7.5" fill="#ffffff" text-anchor="middle">Entrega SMTP/REST com alta entregabilidade</text>
+          <text x="867" y="303" font-family="Inter" font-size="7" fill="#ede9fe" text-anchor="middle">Layout responsivo Dark Mode com @react-email</text>
+          <text x="867" y="314" font-family="Inter" font-size="6.5" fill="#c4b5fd" text-anchor="middle">POST https://api.resend.com/emails</text>
+        </g>
+
+        <g filter="url(#shadow)">
+          <rect x="735" y="330" width="265" height="75" rx="6" fill="#042f2e" stroke="#14b8a6" stroke-width="1.5"/>
+          <text x="867" y="352" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">Supabase PostgreSQL & CDN</text>
+          <text x="867" y="365" font-family="Inter" font-size="7.5" fill="#5eead4" text-anchor="middle">Persistência relacional de pedidos, cupons e trilha</text>
+          <text x="867" y="378" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="middle">Tabela 'orders' atualizada a cada webhook</text>
+          <text x="867" y="391" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="middle">Storage CDN de mockups e artes em alta resolução</text>
+        </g>
+
+        <!-- LIGAÇÕES E PIPELINE LIMPOS -->
         <!-- Checkout -> MP Service -->
-        <path d="M 195 80 L 225 80" stroke="#0284c7" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
+        <path d="M 205 75 L 225 75" stroke="#0284c7" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
         <!-- MP Service -> MP API -->
-        <path d="M 380 80 L 738 75" stroke="#0ea5e9" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+        <path d="M 395 75 L 728 72" stroke="#0ea5e9" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
 
-        <!-- Checkout -> WhatsApp (Pix) -->
-        <path d="M 195 95 L 225 270" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arrow-wa)"/>
+        <!-- Shipping -> Dimona Service -->
+        <path d="M 205 145 L 225 145" stroke="#0284c7" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
 
         <!-- MP Webhook -> Dimona Service (Ordem paga) -->
-        <path d="M 195 230 L 225 185" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
-        <!-- MP Webhook -> WhatsApp (Aprovado) -->
-        <path d="M 195 245 L 225 285" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arrow-wa)"/>
-
+        <path d="M 205 205 L 225 175" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
         <!-- Dimona Service -> Dimona API -->
-        <path d="M 380 160 L 738 150" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
+        <path d="M 395 145 L 728 140" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
 
-        <!-- Dimona Webhook -> Supabase Service (Grava Rastreio) -->
-        <path d="M 195 315 L 415 150" stroke="#0f766e" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
-        <!-- Dimona Webhook -> WhatsApp (Rastreio) -->
-        <path d="M 195 325 L 225 310" stroke="#059669" stroke-width="2" fill="none" marker-end="url(#arrow-wa)"/>
-        <!-- Dimona Webhook -> Email Service (Rastreio) -->
-        <path d="M 195 335 L 225 365" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#arrow-email)"/>
+        <!-- Inbound Dimona Webhook -> Database Service -->
+        <path d="M 205 315 L 225 330" stroke="#0f766e" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
 
-        <!-- WhatsApp Service -> Evolution API -->
-        <path d="M 380 290 L 738 235" stroke="#059669" stroke-width="2" fill="none" marker-end="url(#arrow-wa)"/>
-        <!-- Email Service -> Resend API -->
-        <path d="M 380 375 L 738 310" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#arrow-email)"/>
         <!-- Database Service -> Supabase -->
-        <path d="M 560 145 L 738 375" stroke="#14b8a6" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+        <path d="M 395 365 L 728 365" stroke="#14b8a6" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+
+        <!-- Notificadores -> WhatsApp Service -->
+        <path d="M 395 185 L 415 185" stroke="#059669" stroke-width="2" fill="none" marker-end="url(#arrow-wa)"/>
+        <!-- WhatsApp Service -> Evolution API -->
+        <path d="M 580 185 L 728 205" stroke="#059669" stroke-width="2" fill="none" marker-end="url(#arrow-wa)"/>
+
+        <!-- Notificadores -> Email Service -->
+        <path d="M 395 260 L 415 285" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#arrow-email)"/>
+        <!-- Email Service -> Resend API -->
+        <path d="M 580 315 L 728 290" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#arrow-email)"/>
       </svg>
     </div>
 

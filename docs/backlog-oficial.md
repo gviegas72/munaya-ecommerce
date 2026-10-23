@@ -91,7 +91,3 @@
 - **Objetivo:** Aumentar o ticket médio (AOV) sugerindo combos com desconto automático na PDP e na gaveta do carrinho.
 - **Prioridade:** Alta (`priority: P1-alta`)
 
-### [V2 - #05] Integração com ERP / Emissão de Nota Fiscal (Bling / Tiny)
-- **GitHub Issue:** #28
-- **Objetivo:** Conexão direta com ERP Bling ou Tiny para emissão automatizada de NF-e e controle de estoque centralizado.
-- **Prioridade:** Suporte (`priority: P3-suporte`)
