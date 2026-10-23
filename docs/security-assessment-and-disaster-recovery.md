@@ -180,16 +180,26 @@ Um deploy recente introduziu uma regressão visual ou comportamento indesejado e
 
 ---
 
-### 📋 RUNBOOK 7: Rotina de Backup & Restauração do Supabase
+### 📋 RUNBOOK 7: Rotina de Backup Automatizado (GitHub Actions & Supabase)
 
-#### Frequência Recomendada:
-- Backup lógico semanal ou antes de grandes migrações de catálogo.
+#### Frequência & Execução:
+- **Automação Contínua:** GitHub Action executada todo domingo à meia-noite (03:00 UTC / 00:00 BRT) via [`.github/workflows/database-backup.yml`](file:///.github/workflows/database-backup.yml).
+- **Disparo Manual (1 clique):** Pode ser disparado a qualquer momento na aba **Actions** do GitHub selecionando o workflow `🛡️ Supabase Database Backup` e clicando em **Run workflow**.
+- **Execução Local / CLI:** Basta rodar `npm run backup` na raiz do projeto.
 
-#### Como Executar Backup Manual:
-1. Acesse `https://supabase.com/dashboard/project/jaxxkyvsgasgaccbejln/sql`.
-2. O Supabase realiza backups diários automatizados (Daily Backups) na nuvem AWS.
-3. Para exportação sob demanda das tabelas essenciais (`products`, `orders`, `coupons`, `admin_audit_logs`), basta executar a query de extração ou exportar via interface da tabela em formato CSV/JSON.
-4. As definições de tabelas e dados canônicos iniciais estão 100% versionados no repositório Git nos arquivos [`supabase_setup.sql`](file:///c:/Users/viega/Downloads/munaya/munaya_project/supabase_setup.sql) e [`supabase_admin_rbac_audit.sql`](file:///c:/Users/viega/Downloads/munaya/munaya_project/supabase_admin_rbac_audit.sql).
+#### O que é Exportado & Salvo no Pacote (.tar.gz):
+1. **Catálogo & Variantes:** `products.json`
+2. **Pedidos & Clientes:** `orders.json`
+3. **Cupons Promocionais:** `coupons.json`
+4. **Configurações & Markups:** `store_settings.json`
+5. **Usuários & Permissões:** `admin_users.json`
+6. **Trilha Imutável de Auditoria:** `admin_audit_logs.json`
+7. **Manifesto de Integridade:** `manifest.json` com total de linhas e checksums.
+8. **Scripts DDL de Restauração:** `supabase_setup.sql` e `supabase_admin_rbac_audit.sql`.
+
+#### Onde Ficam Armazenados os Backups:
+- Na aba **Actions** do GitHub, em **Artifacts** de cada execução (retenção de 90 dias, download com 1 clique).
+- Os backups físicos diários nativos do Supabase permanecem ativos na infraestrutura da AWS.
 
 ---
 

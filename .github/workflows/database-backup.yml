@@ -1,0 +1,51 @@
+name: 🛡️ Supabase Database Backup
+
+on:
+  # Executa automaticamente todo domingo às 03:00 UTC (00:00 horário de Brasília)
+  schedule:
+    - cron: '0 3 * * 0'
+
+  # Permite disparo manual com 1 clique pela aba Actions do GitHub
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Motivo do backup manual'
+        required: false
+        default: 'Backup manual sob demanda'
+
+jobs:
+  database-backup:
+    name: 📦 Exportar & Compactar Dados do Supabase
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Clonar repositório
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar dependências
+        run: npm ci || npm install --no-audit --prefer-offline
+
+      - name: 🚀 Executar rotina de backup
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://jaxxkyvsgasgaccbejln.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: node scripts/backup-database.mjs
+
+      - name: 🕒 Obter carimbo de data
+        id: timestamp
+        run: echo "date=$(date +'%Y-%m-%d_%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: 💾 Armazenar Artefato de Backup no GitHub (Retenção de 90 dias)
+        uses: actions/upload-artifact@v4
+        with:
+          name: munaya-db-backup-${{ steps.timestamp.outputs.date }}
+          path: backups/*.tar.gz
+          retention-days: 90
+          if-no-files-found: error
