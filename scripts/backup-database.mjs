@@ -65,6 +65,11 @@ async function runBackup() {
 
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    realtime: {
+      params: {
+        eventsPerSecond: 0,
+      },
+    },
   });
 
   const manifest = {
