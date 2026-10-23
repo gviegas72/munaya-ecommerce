@@ -1,0 +1,46 @@
+# Motor de Recuperação de Carrinho & Pix Abandonado (Issue #32)
+# Chama /api/cron/abandoned-carts a cada 10 minutos.
+# Substitui o cron de 10 min da Vercel, que não é permitido no plano Hobby.
+#
+# Configuração necessária no GitHub (Settings > Secrets and variables > Actions):
+#   - Secret   CRON_SECRET : mesmo valor da variável CRON_SECRET cadastrada na Vercel
+#   - Variable SITE_URL    : (opcional) URL de produção. Padrão: https://munayarocks.vercel.app
+#
+# Observação: o agendamento do GitHub Actions é "melhor esforço" e pode atrasar
+# alguns minutos em horários de pico.
+
+name: Cron - Carrinhos Abandonados
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: abandoned-carts-cron
+  cancel-in-progress: false
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Disparar motor de recuperação
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://munayarocks.vercel.app' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::Secret CRON_SECRET não configurado no repositório."
+            exit 1
+          fi
+          status=$(curl -sS -o response.json -w "%{http_code}" \
+            --max-time 60 \
+            -X POST "$SITE_URL/api/cron/abandoned-carts" \
+            -H "Authorization: Bearer $CRON_SECRET")
+          echo "HTTP $status"
+          cat response.json; echo
+          if [ "$status" -ge 400 ]; then
+            echo "::error::Motor de recuperação retornou HTTP $status"
+            exit 1
+          fi
