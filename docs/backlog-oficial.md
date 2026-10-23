@@ -66,33 +66,32 @@
 
 ---
 
-## 🟡 Fase 2: Backlog Futuro (Planejado / Pós-Lançamento)
+## 🟡 Fase 2: Backlog Futuro (Catalogado no GitHub Issues)
 
 > [!NOTE]
-> Estes itens estão catalogados e prontos para desenvolvimento futuro conforme a necessidade comercial e escala de tráfego.
+> Estes itens estão devidamente criados e catalogados no **GitHub Issues** com status `status:todo`, prontos para serem puxados quando iniciarmos a próxima sprint.
 
-### [V2-01] Rastreamento Avançado de Mídia & Conversão (GA4 & Meta CAPI)
+### [V2 - #01] Rastreamento Avançado de Mídia & Conversão (GA4 & Meta CAPI)
+- **GitHub Issue:** #24
 - **Objetivo:** Instalação e disparo de eventos de e-commerce (`view_item`, `add_to_cart`, `begin_checkout`, `purchase`) para mensuração de ROAS em tráfego pago (Instagram, Google Ads, TikTok).
-- **Escopo:**
-  - Google Analytics 4 via Google Tag Manager ou Server-Side.
-  - Meta Pixel + Conversions API (CAPI) para proteção contra bloqueadores de anúncios e iOS 14.5+.
-- **Prioridade:** Média (Pré-campanha de tráfego)
+- **Prioridade:** Média (`priority: P2-media`)
 
-### [V2-02] SEO Dinâmico, Sitemap XML & Structured Data (Schema.org)
+### [V2 - #02] SEO Dinâmico, Sitemap XML & Structured Data (Schema.org)
+- **GitHub Issue:** #25
 - **Objetivo:** Geração automatizada de `sitemap.xml` indexando todas as rotas `/produto/[slug]` no Google Search Console, acompanhado de dados estruturados Schema.org (`Product`, `Offer`, `AggregateRating`) para exibição com estrelas e preço nos resultados de busca do Google.
-- **Prioridade:** Média
+- **Prioridade:** Média (`priority: P2-media`)
 
-### [V2-03] Filtros Avançados na Vitrine & Busca Instantânea
-- **Objetivo:** Adicionar barra de filtros interativos na home/categoria permitindo filtrar produtos por:
-  - Tipo de Base (Camiseta, Moletom, Boné, Caneca).
-  - Estilo Musical / Tag (Heavy, Doom, Grunge, Hardcore).
-  - Faixa de Preço e Cor.
-- **Prioridade:** Baixa
+### [V2 - #03] Filtros Avançados na Vitrine & Busca Instantânea
+- **GitHub Issue:** #26
+- **Objetivo:** Adicionar barra de filtros interativos na home/categoria permitindo filtrar produtos por tipo de base (Camiseta, Moletom, Boné, Caneca), estilo musical e faixa de preço.
+- **Prioridade:** Média (`priority: P2-media`)
 
-### [V2-04] Motor de Compre Junto & Desconto Progressivo (Kits)
-- **Objetivo:** Aumentar o ticket médio (AOV) sugerindo combos com desconto automático no checkout (ex: *"Leve Camiseta + Boné com 15% OFF"* ou *"Compre 3 camisetas com frete grátis"*).
-- **Prioridade:** Média/Alta para campanhas de Black Friday e Dia do Rock.
+### [V2 - #04] Motor de Compre Junto & Desconto Progressivo (Kits / Bundles)
+- **GitHub Issue:** #27
+- **Objetivo:** Aumentar o ticket médio (AOV) sugerindo combos com desconto automático na PDP e na gaveta do carrinho.
+- **Prioridade:** Alta (`priority: P1-alta`)
 
-### [V2-05] Integração com ERP / Emissão de Nota Fiscal (Bling / Tiny)
-- **Objetivo:** Conexão direta com ERP Bling ou Tiny para emissão automatizada de NF-e e controle de estoque centralizado caso a marca passe a operar com estoque próprio a pronta entrega.
-- **Prioridade:** Baixa (Operação atual é 100% Print-on-Demand Dimona).
+### [V2 - #05] Integração com ERP / Emissão de Nota Fiscal (Bling / Tiny)
+- **GitHub Issue:** #28
+- **Objetivo:** Conexão direta com ERP Bling ou Tiny para emissão automatizada de NF-e e controle de estoque centralizado.
+- **Prioridade:** Suporte (`priority: P3-suporte`)
