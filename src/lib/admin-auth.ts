@@ -113,35 +113,31 @@ export function getAdminSession(req: NextRequest): AdminUserSession | null {
   const tokenHeader = req.headers.get("x-admin-token") || "";
   const pinHeader = req.headers.get("x-admin-pin") || "";
 
-  // 1. Verificação de Token de Sessão Assinado (Bearer ou x-admin-token)
-  let candidateToken = "";
-  if (authHeader.startsWith("Bearer ")) {
-    candidateToken = authHeader.slice(7).trim();
-  } else if (tokenHeader) {
-    candidateToken = tokenHeader.trim();
-  }
+  // Coleta todos os candidatos potenciais de token/credencial
+  const candidates = [
+    authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "",
+    tokenHeader.trim(),
+    pinHeader.trim(),
+  ].filter(Boolean);
 
-  if (candidateToken && candidateToken.includes(".")) {
-    const session = verifyAdminToken(candidateToken);
-    if (session) return session;
+  // 1. Verificação de Token de Sessão Assinado (Bearer, x-admin-token ou x-admin-pin)
+  for (const candidate of candidates) {
+    if (candidate.includes(".")) {
+      const session = verifyAdminToken(candidate);
+      if (session) return session;
+    }
   }
 
   // 2. Fallback de Compatibilidade: PIN Master munaya2026 ou Secret Key
-  const isMasterPin =
-    (pinHeader && safeCompare(pinHeader, "munaya2026")) ||
-    (candidateToken && safeCompare(candidateToken, "munaya2026"));
-
-  const isSecretKey =
-    (pinHeader && safeCompare(pinHeader, ADMIN_SECRET)) ||
-    (candidateToken && safeCompare(candidateToken, ADMIN_SECRET));
-
-  if (isMasterPin || isSecretKey) {
-    return {
-      id: "adm_super_master",
-      email: "admin@munayarocks.com.br",
-      name: "Master Admin (PIN)",
-      role: "super_admin",
-    };
+  for (const val of candidates) {
+    if (safeCompare(val, "munaya2026") || safeCompare(val, ADMIN_SECRET)) {
+      return {
+        id: "adm_super_master",
+        email: "admin@munayarocks.com.br",
+        name: "Master Admin (PIN)",
+        role: "super_admin",
+      };
+    }
   }
 
   return null;

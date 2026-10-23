@@ -452,15 +452,24 @@ export default function AdminPage() {
     }
   }, [isAuthed, currentUser?.role]);
 
+  const getAuthHeaders = (extra: Record<string, string> = {}) => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("munaya_admin_token") || "munaya2026"
+        : "munaya2026";
+    return {
+      "x-admin-pin": token,
+      "x-admin-token": token,
+      Authorization: `Bearer ${token}`,
+      ...extra,
+    };
+  };
+
   const loadCustomers = async () => {
     setLoadingCustomers(true);
     try {
-      const savedPin =
-        typeof window !== "undefined"
-          ? localStorage.getItem("munaya_admin_token") || "munaya2026"
-          : "munaya2026";
       const res = await fetch("/api/customers", {
-        headers: { "x-admin-pin": savedPin },
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (data.success && Array.isArray(data.customers)) {
@@ -476,12 +485,8 @@ export default function AdminPage() {
   const loadEvolutionConfig = async () => {
     setLoadingEvo(true);
     try {
-      const savedPin =
-        typeof window !== "undefined"
-          ? localStorage.getItem("munaya_admin_token") || "munaya2026"
-          : "munaya2026";
       const res = await fetch("/api/whatsapp/config", {
-        headers: { "x-admin-pin": savedPin },
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (data.success) {
@@ -730,11 +735,8 @@ export default function AdminPage() {
   const loadOrders = async () => {
     setLoadingOrders(true);
     try {
-      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
       const res = await fetch("/api/orders", {
-        headers: {
-          "x-admin-pin": savedPin,
-        },
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (data.success && Array.isArray(data.orders)) {
@@ -747,14 +749,11 @@ export default function AdminPage() {
     }
   };
 
-
-
   const loadPricing = async () => {
     setLoadingPricing(true);
     try {
-      const savedPin = typeof window !== "undefined" ? (localStorage.getItem("munaya_admin_token") || "munaya2026") : "munaya2026";
       const res = await fetch("/api/pricing", {
-        headers: { "x-admin-pin": savedPin },
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (data.success && data.settings && data.settings.fabrics) {
@@ -839,9 +838,8 @@ export default function AdminPage() {
   const loadCoupons = async () => {
     setLoadingCoupons(true);
     try {
-      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
       const res = await fetch("/api/coupons", {
-        headers: { "x-admin-pin": savedPin },
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (data.success && Array.isArray(data.coupons)) {
@@ -979,11 +977,8 @@ export default function AdminPage() {
   const loadProducts = async () => {
     setLoadingProducts(true);
     try {
-      const savedPin = localStorage.getItem("munaya_admin_token") || "munaya2026";
       const res = await fetch("/api/products?admin=true", {
-        headers: {
-          "x-admin-pin": savedPin,
-        },
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (data.success && Array.isArray(data.products)) {
