@@ -88,6 +88,7 @@
 3. **[V2 - #08] Recuperação Automática de Carrinho Abandonado (WhatsApp & Resend)**
    - **GitHub Issue:** #32 | **RICE Score:** 12.6 | **Prioridade:** `priority: P1-alta`
    - **Objetivo:** Disparo inteligente de WhatsApp (Evolution API) e e-mail transacional (Resend) 20 minutos após o abandono com foto da peça e link do carrinho já preenchido.
+   - **Status:** 🚧 **EM PROGRESSO (Sprint 1)**
 4. **[V2 - #01] Rastreamento Avançado de Mídia & Conversão (GA4 & Meta CAPI Server-Side)**
    - **GitHub Issue:** #24 | **RICE Score:** 11.25 | **Prioridade:** `priority: P2-media`
    - **Objetivo:** Disparo de eventos server-side via Meta Graph API e GA4 (`ViewContent`, `AddToCart`, `Purchase`) para otimizar campanhas de tráfego pago sem perda no iOS 14.5+.
