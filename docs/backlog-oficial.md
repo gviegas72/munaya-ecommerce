@@ -122,3 +122,14 @@
    - **GitHub Issue:** #36 | **RICE Score:** 1.0 | **Prioridade:** `priority: P3-suporte`
    - **Objetivo:** Microplayer sutil opt-in com riffs/samples musicais da estampa carregados via CDN sem impactar a performance.
 
+---
+
+### 🎨 Frentes de UX & Copywriting Transacional (Refinadas pelo PO)
+12. **[UX] Criar texto para whatsapp**
+   - **GitHub Issue:** #39 | **Prioridade:** `priority: P1-alta` | **Status:** `status:todo`
+   - **Entrega do PO:** Matriz completa de 10 gatilhos de WhatsApp (Pix imediato, aprovação Dimona, rastreio, pós-venda, abandono de carrinho 20m/24h), brand persona "Rocker, Prestativo e Sem Frescura", regras anti-ban e critérios de aceite BDD.
+13. **[UX] Criar Emails**
+   - **GitHub Issue:** #38 | **Prioridade:** `priority: P1-alta` | **Status:** `status:todo`
+   - **Entrega do PO:** Design System brutalista dark mode 600px (@react-email), paleta (#050505, #141414, #ff66c4), matriz de 10 e-mails transacionais e de ciclo de vida (Pix, aprovação, rastreio, abandono, boas-vindas, review), subjects de alta abertura e critérios de aceite BDD.
+
+
