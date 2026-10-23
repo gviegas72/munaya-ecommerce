@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
+import { recordAuditLog } from "@/lib/audit";
 import { getProductByIdOrSlug, getCatalogProducts } from "@/lib/supabase";
 import {
   buildDimonaDispatchItem,
@@ -17,10 +18,11 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: NextRequest) {
   try {
-    if (!verifyAdminAuth(req)) {
+    const session = verifyAdminAuth(req, ["super_admin", "operator"]);
+    if (!session) {
       return NextResponse.json(
-        { success: false, error: "Acesso administrativo obrigatório." },
-        { status: 401 }
+        { success: false, error: "Acesso restrito a Operadores e Super Admins." },
+        { status: 403 }
       );
     }
 
@@ -91,6 +93,20 @@ export async function POST(req: NextRequest) {
 
     // Dispara via client da Dimona (que responde em modo dry-run / sandbox se em homologação)
     const dimonaResponse = await createDimonaOrder(orderPayload);
+
+    await recordAuditLog(req, {
+      user_id: session.id,
+      user_email: session.email,
+      action: "dimona_test_dispatch",
+      entity: "dimona",
+      entity_id: orderPayload.external_id,
+      payload_diff: {
+        sku: dispatchItem.sku,
+        blank_type: effectiveBlankType,
+        recipient: testDelivery.recipient_name,
+        dimona_order_id: dimonaResponse?.order_id,
+      },
+    });
 
     return NextResponse.json({
       success: true,

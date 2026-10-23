@@ -7,6 +7,7 @@ import {
   deleteProductAdmin,
 } from "@/lib/supabase";
 import { verifyAdminAuth } from "@/lib/admin-auth";
+import { recordAuditLog } from "@/lib/audit";
 import { generateBaseSku } from "@/lib/variants";
 
 export const dynamic = "force-dynamic";
@@ -40,13 +41,14 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    if (!verifyAdminAuth(req)) {
+    const session = verifyAdminAuth(req, ["super_admin"]);
+    if (!session) {
       return NextResponse.json(
         {
           success: false,
-          error: "Acesso administrativo obrigatório para criar estampas.",
+          error: "Acesso restrito: Apenas usuários com permissão Super Admin podem criar novos produtos.",
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
@@ -145,6 +147,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    await recordAuditLog(req, {
+      user_id: session.id,
+      user_email: session.email,
+      action: "product_create",
+      entity: "products",
+      entity_id: String(res.data?.id || slug),
+      payload_diff: {
+        name,
+        price: cleanPrice,
+        sku: newProdPayload.sku,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       product: res.data,
@@ -158,13 +173,14 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    if (!verifyAdminAuth(req)) {
+    const session = verifyAdminAuth(req, ["super_admin"]);
+    if (!session) {
       return NextResponse.json(
         {
           success: false,
-          error: "Acesso administrativo obrigatório para remover produtos.",
+          error: "Acesso restrito: Apenas usuários com perfil Super Admin podem remover produtos.",
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
@@ -196,6 +212,14 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
+    await recordAuditLog(req, {
+      user_id: session.id,
+      user_email: session.email,
+      action: "product_delete",
+      entity: "products",
+      entity_id: String(id),
+    });
+
     return NextResponse.json({
       success: true,
       message: "Produto removido com sucesso.",
@@ -208,7 +232,8 @@ export async function DELETE(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    if (!verifyAdminAuth(req)) {
+    const session = verifyAdminAuth(req, ["super_admin", "operator"]);
+    if (!session) {
       return NextResponse.json(
         {
           success: false,
@@ -225,6 +250,22 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json(
         { success: false, error: "ID do produto é obrigatório." },
         { status: 400 }
+      );
+    }
+
+    // Trava de Segurança RBAC: Operadores não podem alterar preços nem blank_prices
+    const isPriceModification =
+      updates.price !== undefined ||
+      updates.compare_at_price !== undefined ||
+      updates.blank_prices !== undefined;
+
+    if (isPriceModification && session.role !== "super_admin") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Acesso restrito: Operadores não possuem permissão para alterar preços de venda ou margens.",
+        },
+        { status: 403 }
       );
     }
 
@@ -300,6 +341,21 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
+    await recordAuditLog(req, {
+      user_id: session.id,
+      user_email: session.email,
+      action: isPriceModification ? "product_price_update" : "product_update",
+      entity: "products",
+      entity_id: String(id),
+      payload_diff: {
+        ...(updates.price !== undefined ? { price: updates.price } : {}),
+        ...(updates.compare_at_price !== undefined ? { compare_at_price: updates.compare_at_price } : {}),
+        ...(updates.blank_prices ? { blank_prices: updates.blank_prices } : {}),
+        ...(updates.name ? { name: updates.name } : {}),
+        ...(updates.is_active !== undefined ? { is_active: updates.is_active } : {}),
+      },
+    });
+
     return NextResponse.json({
       success: true,
       product: res.data,
@@ -310,3 +366,6 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }
+
+export const PUT = PATCH;
+

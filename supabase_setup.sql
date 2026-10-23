@@ -188,4 +188,45 @@ CREATE TABLE IF NOT EXISTS public.sku_dimona_mappings (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ==============================================================================
+-- 🛡️ RBAC: USUÁRIOS ADMINISTRATIVOS & LOGS DE AUDITORIA
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.admin_users (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'operator', -- 'super_admin' | 'operator' | 'viewer'
+    password_hash TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    last_login_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Apenas service_role gerencia admin_users" ON public.admin_users;
+CREATE POLICY "Apenas service_role gerencia admin_users"
+ON public.admin_users FOR ALL USING (auth.role() = 'service_role');
+
+CREATE TABLE IF NOT EXISTS public.admin_audit_logs (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    user_email TEXT NOT NULL,
+    action TEXT NOT NULL,
+    entity TEXT NOT NULL,
+    entity_id TEXT,
+    payload_diff JSONB DEFAULT '{}'::jsonb,
+    ip_address TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON public.admin_audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON public.admin_audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_email ON public.admin_audit_logs(user_email);
+ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Apenas service_role gerencia audit_logs" ON public.admin_audit_logs;
+CREATE POLICY "Apenas service_role gerencia audit_logs"
+ON public.admin_audit_logs FOR ALL USING (auth.role() = 'service_role');
+
+
 

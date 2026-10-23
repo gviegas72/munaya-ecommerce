@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
+import { recordAuditLog } from "@/lib/audit";
 import { getCoupons, upsertCoupon, deleteCoupon, Coupon } from "@/lib/coupons";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -37,10 +38,11 @@ export async function GET(req: NextRequest) {
  * Cria ou atualiza um cupom de desconto (Apenas Admin)
  */
 export async function POST(req: NextRequest) {
-  if (!verifyAdminAuth(req)) {
+  const session = verifyAdminAuth(req, ["super_admin"]);
+  if (!session) {
     return NextResponse.json(
-      { error: "Acesso não autorizado. Chave de administração inválida." },
-      { status: 401 }
+      { error: "Acesso restrito: Apenas usuários com permissão Super Admin podem criar ou editar cupons." },
+      { status: 403 }
     );
   }
 
@@ -85,6 +87,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: res.error || "Erro ao salvar cupom." }, { status: 400 });
     }
 
+    await recordAuditLog(req, {
+      user_id: session.id,
+      user_email: session.email,
+      action: "coupon_upsert",
+      entity: "coupons",
+      entity_id: rawCode,
+      payload_diff: {
+        type: couponData.type,
+        value: couponData.value,
+        is_active: couponData.is_active,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       coupon: res.coupon,
@@ -112,10 +127,11 @@ export async function PATCH(req: NextRequest) {
  * Exclui ou inativa um cupom
  */
 export async function DELETE(req: NextRequest) {
-  if (!verifyAdminAuth(req)) {
+  const session = verifyAdminAuth(req, ["super_admin"]);
+  if (!session) {
     return NextResponse.json(
-      { error: "Acesso não autorizado." },
-      { status: 401 }
+      { error: "Acesso restrito: Apenas usuários com permissão Super Admin podem excluir cupons." },
+      { status: 403 }
     );
   }
 
@@ -125,6 +141,15 @@ export async function DELETE(req: NextRequest) {
   }
 
   const res = await deleteCoupon(code);
+
+  await recordAuditLog(req, {
+    user_id: session.id,
+    user_email: session.email,
+    action: "coupon_delete",
+    entity: "coupons",
+    entity_id: code.toUpperCase(),
+  });
+
   return NextResponse.json({
     success: res.success,
     message: `Cupom ${code.toUpperCase()} removido com sucesso.`,

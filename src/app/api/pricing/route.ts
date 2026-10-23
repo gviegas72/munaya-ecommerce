@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
+import { recordAuditLog } from "@/lib/audit";
 import {
   getPricingSettings,
   savePricingSettings,
@@ -54,19 +55,34 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/pricing
- * Salva as configurações de custo e markup (Admin)
+ * Salva as configurações de custo e markup (Apenas Super Admin)
  */
 export async function POST(req: NextRequest) {
-  if (!verifyAdminAuth(req)) {
+  const session = verifyAdminAuth(req, ["super_admin"]);
+  if (!session) {
     return NextResponse.json(
-      { error: "Acesso não autorizado." },
-      { status: 401 }
+      { error: "Acesso restrito: Apenas usuários com permissão Super Admin podem alterar as regras de preço e markup." },
+      { status: 403 }
     );
   }
 
   try {
     const body: Partial<PricingSettings> = await req.json().catch(() => ({}));
     const res = await savePricingSettings(body);
+
+    await recordAuditLog(req, {
+      user_id: session.id,
+      user_email: session.email,
+      action: "pricing_rules_update",
+      entity: "pricing",
+      entity_id: "global_pricing",
+      payload_diff: {
+        markup_type: body.markup_type,
+        markup_value: body.markup_value,
+        rounding_mode: body.rounding_mode,
+        tax_gateway_percent: body.tax_gateway_percent,
+      },
+    });
 
     return NextResponse.json({
       success: res.success,

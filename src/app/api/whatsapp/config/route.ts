@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
+import { recordAuditLog } from "@/lib/audit";
 import {
   getEvolutionSettings,
   saveEvolutionSettings,
@@ -35,10 +36,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!verifyAdminAuth(req)) {
+  const session = verifyAdminAuth(req, ["super_admin"]);
+  if (!session) {
     return NextResponse.json(
-      { error: "Acesso administrativo obrigatório." },
-      { status: 401 }
+      { error: "Acesso restrito: Apenas usuários com permissão Super Admin podem alterar as credenciais de API do WhatsApp." },
+      { status: 403 }
     );
   }
 
@@ -57,6 +59,19 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    await recordAuditLog(req, {
+      user_id: session.id,
+      user_email: session.email,
+      action: "whatsapp_config_update",
+      entity: "settings",
+      entity_id: "evolution_api",
+      payload_diff: {
+        baseUrl: body.baseUrl,
+        instanceName: body.instanceName,
+        enabled: body.enabled,
+      },
+    });
 
     const status = await checkEvolutionConnection(false);
 

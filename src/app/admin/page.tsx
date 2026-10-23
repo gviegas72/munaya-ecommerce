@@ -44,6 +44,10 @@ import {
   ShoppingCart,
   UserCheck,
   ShieldCheck,
+  Shield,
+  ShieldAlert,
+  FileText,
+  Check,
   Smartphone,
   Monitor,
 } from "lucide-react";
@@ -279,7 +283,26 @@ export default function AdminPage() {
   const [pin, setPin] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [activeTab, setActiveTab] = useState<"orders" | "customers" | "catalog" | "coupons" | "pricing" | "dimona" | "whatsapp" | "emails">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "customers" | "catalog" | "coupons" | "pricing" | "dimona" | "whatsapp" | "emails" | "audit">("orders");
+
+  // Estados de Autenticação RBAC e Sessão
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    email: string;
+    name: string;
+    role: "super_admin" | "operator" | "viewer";
+  } | null>(null);
+  const [loginMode, setLoginMode] = useState<"credentials" | "pin">("credentials");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
+
+  // Estados da Trilha de Auditoria (Audit Logs)
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [loadingAudit, setLoadingAudit] = useState(false);
+  const [auditFilterAction, setAuditFilterAction] = useState("all");
+  const [auditSearch, setAuditSearch] = useState("");
+  const [selectedAuditLog, setSelectedAuditLog] = useState<any | null>(null);
 
   // Estados da Central de Templates de E-mail (@react-email)
   const [emailPreviewTemplate, setEmailPreviewTemplate] = useState<"created" | "paid" | "shipped">("created");
@@ -389,8 +412,25 @@ export default function AdminPage() {
   useEffect(() => {
     setMounted(true);
     try {
-      const savedPin = localStorage.getItem("munaya_admin_token");
-      if (savedPin === "munaya2026") {
+      const savedToken = localStorage.getItem("munaya_admin_token");
+      const savedUserStr = localStorage.getItem("munaya_admin_user");
+      if (savedToken) {
+        if (savedUserStr) {
+          try {
+            const parsed = JSON.parse(savedUserStr);
+            setCurrentUser(parsed);
+          } catch {
+            // fallback
+          }
+        }
+        if (savedToken === "munaya2026") {
+          setCurrentUser({
+            id: "adm_super_master",
+            email: "admin@munayarocks.com.br",
+            name: "Master Admin (PIN)",
+            role: "super_admin",
+          });
+        }
         setIsAuthed(true);
       }
     } catch (e) {
@@ -406,8 +446,11 @@ export default function AdminPage() {
       loadCoupons();
       loadPricing();
       loadEvolutionConfig();
+      if (!currentUser || currentUser.role === "super_admin") {
+        loadAuditLogs();
+      }
     }
-  }, [isAuthed]);
+  }, [isAuthed, currentUser?.role]);
 
   const loadCustomers = async () => {
     setLoadingCustomers(true);
@@ -605,20 +648,83 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const selectQuickAccount = (email: string, pass: string) => {
+    setLoginMode("credentials");
+    setLoginEmail(email);
+    setLoginPassword(pass);
+    setAuthError("");
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin.trim() === "munaya2026") {
-      setIsAuthed(true);
-      localStorage.setItem("munaya_admin_token", "munaya2026");
-      setAuthError("");
-    } else {
-      setAuthError("PIN incorreto. Tente novamente.");
+    setLoggingIn(true);
+    setAuthError("");
+    try {
+      const payload =
+        loginMode === "pin"
+          ? { pin: pin.trim() }
+          : { email: loginEmail.trim(), password: loginPassword.trim() };
+
+      const res = await fetch("/api/admin/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (data.success && data.token && data.user) {
+        localStorage.setItem("munaya_admin_token", data.token);
+        localStorage.setItem("munaya_admin_user", JSON.stringify(data.user));
+        setCurrentUser(data.user);
+        setIsAuthed(true);
+        setPin("");
+        setLoginPassword("");
+        setActionMsg(`✓ Conectado como ${data.user.name} (${data.user.role.toUpperCase()})`);
+        setTimeout(() => setActionMsg(""), 3500);
+      } else {
+        setAuthError(data.error || "Credenciais inválidas. Tente novamente.");
+      }
+    } catch {
+      setAuthError("Erro de conexão com o servidor ao autenticar.");
+    } finally {
+      setLoggingIn(false);
     }
   };
 
   const handleLogout = () => {
     setIsAuthed(false);
+    setCurrentUser(null);
     localStorage.removeItem("munaya_admin_token");
+    localStorage.removeItem("munaya_admin_user");
+  };
+
+  const loadAuditLogs = async (customAction?: string, customSearch?: string) => {
+    setLoadingAudit(true);
+    try {
+      const savedToken = localStorage.getItem("munaya_admin_token") || "munaya2026";
+      const params = new URLSearchParams();
+      params.set("limit", "100");
+      const act = customAction !== undefined ? customAction : auditFilterAction;
+      const srch = customSearch !== undefined ? customSearch : auditSearch;
+      if (act && act !== "all") params.set("action", act);
+      if (srch && srch.trim()) params.set("search", srch.trim());
+
+      const res = await fetch(`/api/admin/audit?${params.toString()}`, {
+        headers: {
+          "x-admin-pin": savedToken,
+          "x-admin-token": savedToken,
+          Authorization: `Bearer ${savedToken}`,
+        },
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.logs)) {
+        setAuditLogs(data.logs);
+      }
+    } catch (e) {
+      console.error("Erro ao carregar auditoria:", e);
+    } finally {
+      setLoadingAudit(false);
+    }
   };
 
   const loadOrders = async () => {
@@ -1461,48 +1567,164 @@ export default function AdminPage() {
 
   if (!isAuthed) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 font-sans">
-        <div className="w-full max-w-md border-2 border-white bg-black p-8 shadow-[8px_8px_0px_#ff66c4]">
-          <div className="flex items-center gap-3 mb-6">
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 md:p-6 font-sans">
+        <div className="w-full max-w-md border-2 border-white bg-black p-6 md:p-8 shadow-[8px_8px_0px_#ff66c4]">
+          <div className="flex items-center gap-3 mb-2">
             <Lock className="w-8 h-8 text-[#ff66c4]" />
             <h1 className="font-oswald text-3xl font-black uppercase tracking-tight">
               Munaya Admin
             </h1>
           </div>
-          <p className="text-sm text-neutral-400 mb-6 uppercase tracking-wider font-semibold">
-            Central de Gestão e Operações // Acesso Restrito
+          <p className="text-xs text-neutral-400 mb-6 uppercase tracking-wider font-semibold">
+            Central de Gestão e Operações // RBAC & Auditoria
           </p>
 
+          {/* Seletor de Modo de Autenticação */}
+          <div className="grid grid-cols-2 gap-2 p-1 bg-neutral-900 border border-neutral-800 mb-5">
+            <button
+              type="button"
+              onClick={() => {
+                setLoginMode("credentials");
+                setAuthError("");
+              }}
+              className={`py-2 text-xs font-oswald uppercase tracking-wider font-bold transition-all ${
+                loginMode === "credentials"
+                  ? "bg-white text-black shadow"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              Login Individual
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setLoginMode("pin");
+                setAuthError("");
+              }}
+              className={`py-2 text-xs font-oswald uppercase tracking-wider font-bold transition-all ${
+                loginMode === "pin"
+                  ? "bg-white text-black shadow"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              PIN de Emergência
+            </button>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs uppercase font-bold tracking-widest text-neutral-300 mb-2">
-                PIN de Segurança
-              </label>
-              <input
-                type="password"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                placeholder="Digite o PIN..."
-                autoFocus
-                className="w-full bg-neutral-900 border-2 border-white px-4 py-3 text-white font-mono text-lg focus:outline-none focus:border-[#ff66c4]"
-              />
-            </div>
+            {loginMode === "credentials" ? (
+              <>
+                <div>
+                  <label className="block text-[11px] uppercase font-bold tracking-widest text-neutral-300 mb-1.5">
+                    E-mail do Operador
+                  </label>
+                  <input
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="operador@munayarocks.com.br"
+                    required
+                    autoFocus
+                    className="w-full bg-neutral-900 border-2 border-neutral-700 px-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-[#ff66c4]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] uppercase font-bold tracking-widest text-neutral-300 mb-1.5">
+                    Senha de Acesso
+                  </label>
+                  <input
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    required
+                    className="w-full bg-neutral-900 border-2 border-neutral-700 px-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-[#ff66c4]"
+                  />
+                </div>
+
+                {/* Chips de Atalho de Teste para Homologação */}
+                <div className="pt-2 border-t border-neutral-900">
+                  <p className="text-[10px] uppercase font-mono text-neutral-500 mb-2">
+                    Perfis Pré-Configurados para Teste (QA):
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        selectQuickAccount("admin@munayarocks.com.br", "munaya2026!")
+                      }
+                      className="text-[10px] font-mono px-2 py-1 bg-pink-950/60 border border-[#ff66c4]/60 text-pink-300 hover:bg-[#ff66c4] hover:text-black transition-colors"
+                      title="Permissão total para finanças, preços, catálogo e auditoria"
+                    >
+                      👑 Super Admin
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        selectQuickAccount("operador@munayarocks.com.br", "operador2026!")
+                      }
+                      className="text-[10px] font-mono px-2 py-1 bg-cyan-950/60 border border-cyan-500/60 text-cyan-300 hover:bg-cyan-400 hover:text-black transition-colors"
+                      title="Permissão para pedidos, clientes e despacho Dimona"
+                    >
+                      🛠️ Operador
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        selectQuickAccount("viewer@munayarocks.com.br", "viewer2026!")
+                      }
+                      className="text-[10px] font-mono px-2 py-1 bg-amber-950/60 border border-amber-500/60 text-amber-300 hover:bg-amber-400 hover:text-black transition-colors"
+                      title="Visualização somente leitura de relatórios e catálogo"
+                    >
+                      👁️ Visualizador
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-[11px] uppercase font-bold tracking-widest text-neutral-300 mb-1.5">
+                  PIN Mestre de Recuperação
+                </label>
+                <input
+                  type="password"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                  placeholder="Digite o PIN (ex: munaya2026)..."
+                  autoFocus
+                  required
+                  className="w-full bg-neutral-900 border-2 border-neutral-700 px-3 py-2.5 text-white font-mono text-base focus:outline-none focus:border-[#ff66c4]"
+                />
+                <p className="text-[10px] text-neutral-500 font-mono mt-1.5">
+                  Acesso mestre direto com perfil Super Admin de emergência.
+                </p>
+              </div>
+            )}
 
             {authError && (
-              <p className="text-xs uppercase font-bold text-[#ff66c4]">
+              <div className="p-3 bg-red-950/80 border border-red-500 text-red-200 text-xs font-mono">
                 {authError}
-              </p>
+              </div>
             )}
 
             <button
               type="submit"
-              className="w-full bg-white text-black font-oswald text-xl font-black uppercase py-3 tracking-wider hover:bg-[#ff66c4] transition-colors"
+              disabled={loggingIn}
+              className="w-full bg-white text-black font-oswald text-lg font-black uppercase py-3 tracking-wider hover:bg-[#ff66c4] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              Entrar no Painel
+              {loggingIn ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Autenticando...</span>
+                </>
+              ) : (
+                <span>Entrar no Painel</span>
+              )}
             </button>
           </form>
 
-          <div className="mt-8 pt-4 border-t border-neutral-800 text-center">
+          <div className="mt-6 pt-4 border-t border-neutral-800 text-center">
             <Link
               href="/"
               className="text-xs uppercase font-bold text-neutral-500 hover:text-white"
@@ -1586,6 +1808,30 @@ export default function AdminPage() {
         )}
 
         <div className="flex items-center gap-3">
+          {currentUser && (
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 border border-neutral-800 bg-neutral-950 font-mono text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-neutral-300 font-bold truncate max-w-[150px] md:max-w-[200px]">
+                {currentUser.email}
+              </span>
+              <span
+                className={`text-[9px] px-1.5 py-0.5 font-bold uppercase tracking-wider ${
+                  currentUser.role === "super_admin"
+                    ? "bg-pink-950/80 border border-[#ff66c4] text-[#ff66c4]"
+                    : currentUser.role === "operator"
+                    ? "bg-cyan-950/80 border border-cyan-400 text-cyan-300"
+                    : "bg-amber-950/80 border border-amber-400 text-amber-300"
+                }`}
+              >
+                {currentUser.role === "super_admin"
+                  ? "SUPER ADMIN"
+                  : currentUser.role === "operator"
+                  ? "OPERADOR"
+                  : "VISUALIZADOR"}
+              </span>
+            </div>
+          )}
+
           <Link
             href="/"
             target="_blank"
@@ -1598,6 +1844,7 @@ export default function AdminPage() {
           <button
             onClick={handleLogout}
             className="flex items-center gap-1.5 text-xs uppercase font-bold text-neutral-400 hover:text-[#ff66c4] border border-neutral-700 px-3 py-2 transition-colors"
+            title="Encerrar sessão administrativa"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sair</span>
@@ -1709,6 +1956,23 @@ export default function AdminPage() {
             <Mail className="w-5 h-5" />
             <span>Templates de E-mail (@react-email)</span>
           </button>
+
+          {(!currentUser || currentUser.role === "super_admin") && (
+            <button
+              onClick={() => {
+                setActiveTab("audit");
+                loadAuditLogs();
+              }}
+              className={`flex items-center gap-2 px-6 py-3 font-oswald text-xl uppercase font-black tracking-tight transition-all shrink-0 ${
+                activeTab === "audit"
+                  ? "bg-amber-400 text-black"
+                  : "text-amber-400 hover:text-white"
+              }`}
+            >
+              <Shield className="w-5 h-5" />
+              <span>🛡️ Auditoria</span>
+            </button>
+          )}
         </div>
 
         {/* TAB 1: PEDIDOS */}
@@ -6379,6 +6643,384 @@ export default function AdminPage() {
                     />
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 8: TRILHA DE AUDITORIA & COMPLIANCE (RBAC) */}
+        {activeTab === "audit" && (
+          currentUser && currentUser.role !== "super_admin" ? (
+            <div className="border-2 border-amber-500 bg-amber-950/40 p-8 text-center space-y-4 my-6">
+              <ShieldAlert className="w-12 h-12 text-amber-400 mx-auto" />
+              <h3 className="font-oswald text-2xl font-black uppercase text-amber-300">
+                Acesso Restrito: Permissão Super Admin Necessária
+              </h3>
+              <p className="text-xs text-neutral-300 max-w-lg mx-auto font-mono">
+                Seu perfil atual ({currentUser.role.toUpperCase()}) não possui permissão para visualizar a trilha de auditoria e compliance da plataforma.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Header da Auditoria */}
+              <div className="flex flex-wrap items-center justify-between gap-4 bg-neutral-950 p-6 border-2 border-amber-500/60">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">
+                      Segurança & Governança Corporativa
+                    </span>
+                    <span className="bg-amber-400 text-black text-[10px] font-black uppercase px-2 py-0.5 tracking-wider">
+                      ● AUDIT TRAIL IMUTÁVEL
+                    </span>
+                  </div>
+                  <h2 className="font-oswald text-3xl font-black uppercase tracking-tight text-white flex items-center gap-2">
+                    <Shield className="w-7 h-7 text-amber-400" />
+                    <span>Trilha de Auditoria & Compliance</span>
+                  </h2>
+                  <p className="text-xs text-neutral-400 max-w-2xl">
+                    Registro detalhado e à prova de adulteração de todas as operações sensíveis: alteração de preços, recalculo de markup em lote, despachos para a fábrica Dimona, gerenciamento de cupons e autenticações de operadores.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => loadAuditLogs()}
+                    disabled={loadingAudit}
+                    className="flex items-center gap-2 px-4 py-2.5 border border-neutral-700 bg-neutral-900 text-white font-oswald text-sm font-bold uppercase tracking-wider hover:border-white transition-colors"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${loadingAudit ? "animate-spin text-amber-400" : ""}`} />
+                    <span>Atualizar Trilha</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const blob = new Blob([JSON.stringify(auditLogs, null, 2)], {
+                        type: "application/json",
+                      });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `munaya_audit_logs_${new Date().toISOString().slice(0, 10)}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-amber-400 text-black font-oswald text-sm font-black uppercase tracking-wider hover:bg-white transition-colors"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>Exportar JSON</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Stat Cards da Auditoria */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="border border-neutral-800 bg-neutral-950 p-4">
+                  <span className="text-[11px] uppercase font-bold text-neutral-500 tracking-wider">
+                    Total de Eventos Auditados
+                  </span>
+                  <p className="font-oswald text-3xl font-bold mt-1 text-white">
+                    {auditLogs.length}
+                  </p>
+                  <span className="text-[10px] text-neutral-500 font-mono">
+                    Registros capturados
+                  </span>
+                </div>
+
+                <div className="border border-neutral-800 bg-neutral-950 p-4">
+                  <span className="text-[11px] uppercase font-bold text-neutral-500 tracking-wider">
+                    Despachos Dimona
+                  </span>
+                  <p className="font-oswald text-3xl font-bold mt-1 text-[#ff66c4]">
+                    {auditLogs.filter((l) => l.action?.includes("dimona")).length}
+                  </p>
+                  <span className="text-[10px] text-neutral-500 font-mono">
+                    Ordens e simulações de fábrica
+                  </span>
+                </div>
+
+                <div className="border border-neutral-800 bg-neutral-950 p-4">
+                  <span className="text-[11px] uppercase font-bold text-neutral-500 tracking-wider">
+                    Mutações de Preço / Markup
+                  </span>
+                  <p className="font-oswald text-3xl font-bold mt-1 text-emerald-400">
+                    {
+                      auditLogs.filter(
+                        (l) =>
+                          l.action?.includes("price") ||
+                          l.action?.includes("pricing") ||
+                          l.action?.includes("markup")
+                      ).length
+                    }
+                  </p>
+                  <span className="text-[10px] text-neutral-500 font-mono">
+                    Ajustes de margem e custos
+                  </span>
+                </div>
+
+                <div className="border border-neutral-800 bg-neutral-950 p-4">
+                  <span className="text-[11px] uppercase font-bold text-neutral-500 tracking-wider">
+                    Acessos Administrativos
+                  </span>
+                  <p className="font-oswald text-3xl font-bold mt-1 text-cyan-300">
+                    {auditLogs.filter((l) => l.action?.includes("login")).length}
+                  </p>
+                  <span className="text-[10px] text-neutral-500 font-mono">
+                    Logins autenticados
+                  </span>
+                </div>
+              </div>
+
+              {/* Barra de Filtros e Busca */}
+              <div className="flex flex-wrap items-center justify-between gap-4 bg-neutral-900/60 p-4 border border-neutral-800">
+                <div className="flex items-center gap-3 flex-1 min-w-[280px]">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={auditSearch}
+                      onChange={(e) => setAuditSearch(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") loadAuditLogs(auditFilterAction, auditSearch);
+                      }}
+                      placeholder="Buscar por e-mail, ID do pedido, produto ou ação..."
+                      className="w-full bg-black border border-neutral-700 pl-9 pr-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <select
+                    value={auditFilterAction}
+                    onChange={(e) => {
+                      setAuditFilterAction(e.target.value);
+                      loadAuditLogs(e.target.value, auditSearch);
+                    }}
+                    className="bg-black border border-neutral-700 px-3 py-2 text-xs font-mono text-neutral-300 focus:outline-none focus:border-amber-400"
+                  >
+                    <option value="all">Todas as Ações</option>
+                    <option value="dimona_order_dispatch">Despacho de Pedido (Dimona)</option>
+                    <option value="dimona_test_dispatch">Simulação de Esteira (Dimona)</option>
+                    <option value="pricing_rules_update">Regras de Preço & Markup</option>
+                    <option value="pricing_batch_apply">Aplicação em Lote de Preços</option>
+                    <option value="product_price_update">Alteração de Preço de Produto</option>
+                    <option value="product_create">Criação de Produto</option>
+                    <option value="product_delete">Exclusão de Produto</option>
+                    <option value="coupon_upsert">Criação / Edição de Cupom</option>
+                    <option value="coupon_delete">Exclusão de Cupom</option>
+                    <option value="admin_login">Login de Operador</option>
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => loadAuditLogs(auditFilterAction, auditSearch)}
+                    className="px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-white font-mono text-xs font-bold uppercase transition-colors"
+                  >
+                    Filtrar
+                  </button>
+                </div>
+
+                <div className="text-[11px] font-mono text-neutral-400">
+                  Exibindo <strong>{auditLogs.length}</strong> eventos
+                </div>
+              </div>
+
+              {/* Tabela de Logs de Auditoria */}
+              <div className="border border-neutral-800 bg-neutral-950 overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead className="bg-neutral-900 border-b border-neutral-800 text-[10px] uppercase text-neutral-400 tracking-wider">
+                    <tr>
+                      <th className="p-3.5">Data / Hora</th>
+                      <th className="p-3.5">Operador</th>
+                      <th className="p-3.5">Ação Executada</th>
+                      <th className="p-3.5">Entidade / Alvo</th>
+                      <th className="p-3.5">IP de Origem</th>
+                      <th className="p-3.5 text-right">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-900">
+                    {auditLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="p-8 text-center text-neutral-500">
+                          {loadingAudit ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
+                              <span>Carregando trilha de auditoria...</span>
+                            </div>
+                          ) : (
+                            "Nenhum evento registrado com os filtros selecionados."
+                          )}
+                        </td>
+                      </tr>
+                    ) : (
+                      auditLogs.map((log) => {
+                        const dateFormatted = new Date(log.created_at).toLocaleString("pt-BR", {
+                          dateStyle: "short",
+                          timeStyle: "medium",
+                        });
+
+                        // Cor e rótulo da ação
+                        let actionLabel = log.action;
+                        let actionBadgeClass = "bg-neutral-800 border-neutral-700 text-neutral-300";
+
+                        if (log.action === "dimona_order_dispatch") {
+                          actionLabel = "DESPACHO PEDIDO DIMONA";
+                          actionBadgeClass = "bg-emerald-950/80 border-emerald-500 text-emerald-300";
+                        } else if (log.action === "dimona_test_dispatch") {
+                          actionLabel = "SIMULAÇÃO ESTEIRA DIMONA";
+                          actionBadgeClass = "bg-pink-950/80 border-[#ff66c4] text-[#ff66c4]";
+                        } else if (log.action === "pricing_rules_update") {
+                          actionLabel = "REGRAS DE MARKUP";
+                          actionBadgeClass = "bg-amber-950/80 border-amber-500 text-amber-300";
+                        } else if (log.action === "pricing_batch_apply") {
+                          actionLabel = "MARKUP EM LOTE";
+                          actionBadgeClass = "bg-purple-950/80 border-purple-500 text-purple-300";
+                        } else if (log.action === "product_price_update") {
+                          actionLabel = "ALTERAÇÃO DE PREÇO";
+                          actionBadgeClass = "bg-yellow-950/80 border-yellow-500 text-yellow-300";
+                        } else if (log.action === "product_create") {
+                          actionLabel = "NOVA ESTAMPA";
+                          actionBadgeClass = "bg-blue-950/80 border-blue-500 text-blue-300";
+                        } else if (log.action === "product_delete") {
+                          actionLabel = "EXCLUSÃO PRODUTO";
+                          actionBadgeClass = "bg-red-950/80 border-red-500 text-red-300";
+                        } else if (log.action === "coupon_upsert") {
+                          actionLabel = "CUPOM ATUALIZADO";
+                          actionBadgeClass = "bg-pink-950/80 border-pink-400 text-pink-300";
+                        } else if (log.action === "coupon_delete") {
+                          actionLabel = "CUPOM REMOVIDO";
+                          actionBadgeClass = "bg-red-950/80 border-red-400 text-red-300";
+                        } else if (log.action === "admin_login") {
+                          actionLabel = "LOGIN OPERADOR";
+                          actionBadgeClass = "bg-cyan-950/80 border-cyan-500 text-cyan-300";
+                        }
+
+                        return (
+                          <tr key={log.id} className="hover:bg-neutral-900/40 transition-colors">
+                            <td className="p-3.5 text-neutral-400 whitespace-nowrap">
+                              {dateFormatted}
+                            </td>
+                            <td className="p-3.5 font-bold text-white whitespace-nowrap">
+                              {log.user_email}
+                            </td>
+                            <td className="p-3.5 whitespace-nowrap">
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 border ${actionBadgeClass}`}
+                              >
+                                {actionLabel}
+                              </span>
+                            </td>
+                            <td className="p-3.5 text-neutral-300 max-w-[200px] truncate">
+                              <span className="text-neutral-500 uppercase">{log.entity}:</span>{" "}
+                              <strong className="text-white">{log.entity_id || "-"}</strong>
+                            </td>
+                            <td className="p-3.5 text-neutral-400 font-mono text-[11px] whitespace-nowrap">
+                              {log.ip_address || "127.0.0.1"}
+                            </td>
+                            <td className="p-3.5 text-right whitespace-nowrap">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedAuditLog(log)}
+                                className="text-[11px] font-oswald uppercase font-bold text-amber-400 hover:text-white border border-neutral-700 hover:border-amber-400 px-2.5 py-1 transition-colors"
+                              >
+                                Ver Detalhes
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
+        )}
+
+        {/* MODAL DE DETALHES DE AUDITORIA */}
+        {selectedAuditLog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
+            <div className="relative w-full max-w-2xl bg-neutral-950 border-2 border-amber-400 shadow-[0_0_50px_rgba(251,191,36,0.35)] p-6 space-y-4 my-8">
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-amber-400 text-black flex items-center justify-center font-black">
+                    <Shield className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-oswald text-xl font-bold uppercase tracking-tight text-white">
+                      Registro de Auditoria #{selectedAuditLog.id}
+                    </h3>
+                    <p className="text-[11px] text-neutral-400 font-mono">
+                      {new Date(selectedAuditLog.created_at).toLocaleString("pt-BR")}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedAuditLog(null)}
+                  className="text-neutral-400 hover:text-white p-2 hover:bg-neutral-900"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Informações Gerais do Evento */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 bg-neutral-900/60 border border-neutral-800 text-xs font-mono">
+                <div>
+                  <span className="text-neutral-500 text-[10px] block uppercase">Operador:</span>
+                  <strong className="text-white">{selectedAuditLog.user_email}</strong>
+                </div>
+                <div>
+                  <span className="text-neutral-500 text-[10px] block uppercase">Ação:</span>
+                  <strong className="text-amber-400">{selectedAuditLog.action}</strong>
+                </div>
+                <div>
+                  <span className="text-neutral-500 text-[10px] block uppercase">IP de Origem:</span>
+                  <span className="text-neutral-300">{selectedAuditLog.ip_address || "127.0.0.1"}</span>
+                </div>
+                <div>
+                  <span className="text-neutral-500 text-[10px] block uppercase">Entidade:</span>
+                  <strong className="text-white">{selectedAuditLog.entity}</strong>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-neutral-500 text-[10px] block uppercase">ID do Alvo:</span>
+                  <span className="text-neutral-300 truncate block">{selectedAuditLog.entity_id || "-"}</span>
+                </div>
+              </div>
+
+              {/* Payload Diff */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs uppercase font-bold text-neutral-400 tracking-wider">
+                    Payload Diff / Dados da Operação:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        JSON.stringify(selectedAuditLog.payload_diff, null, 2)
+                      );
+                      setActionMsg("📋 Dados do evento copiados para a área de transferência!");
+                      setTimeout(() => setActionMsg(""), 3000);
+                    }}
+                    className="text-[10px] font-mono uppercase text-amber-400 hover:underline"
+                  >
+                    Copiar JSON
+                  </button>
+                </div>
+                <pre className="p-4 bg-black border-2 border-neutral-800 text-xs font-mono text-neutral-200 whitespace-pre-wrap break-all max-h-80 overflow-y-auto leading-relaxed">
+                  {selectedAuditLog.payload_diff
+                    ? JSON.stringify(selectedAuditLog.payload_diff, null, 2)
+                    : "// Nenhum payload adicional registrado"}
+                </pre>
+              </div>
+
+              <div className="flex justify-end pt-3 border-t border-neutral-800">
+                <button
+                  type="button"
+                  onClick={() => setSelectedAuditLog(null)}
+                  className="px-5 py-2.5 bg-neutral-800 text-white font-oswald text-sm font-bold uppercase tracking-wider hover:bg-neutral-700 transition-colors"
+                >
+                  Fechar
+                </button>
               </div>
             </div>
           </div>

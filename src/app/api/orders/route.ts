@@ -3,6 +3,7 @@ import { createDimonaOrder, DimonaOrderItem } from "@/lib/dimona";
 import { getArtworkUrl } from "@/lib/artworks";
 import { saveDatabaseOrder, getDatabaseOrdersAdmin } from "@/lib/supabase";
 import { verifyAdminAuth } from "@/lib/admin-auth";
+import { recordAuditLog } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -39,12 +40,13 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    if (!verifyAdminAuth(req)) {
+    const session = verifyAdminAuth(req, ["super_admin", "operator"]);
+    if (!session) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "Despacho direto de pedidos não permitido sem confirmação de pagamento prévia.",
+            "Despacho direto de pedidos não permitido sem autorização de operador ou confirmação prévia.",
         },
         { status: 403 }
       );
@@ -110,6 +112,20 @@ export async function POST(req: NextRequest) {
       payment_status: "pago",
       items: rawItems,
     }).catch((e) => console.warn("Supabase order save:", e));
+
+    await recordAuditLog(req, {
+      user_id: session.id,
+      user_email: session.email,
+      action: "dimona_order_dispatch",
+      entity: "orders",
+      entity_id: String(orderId),
+      payload_diff: {
+        recipient_name: dimonaOrderPayload.delivery.recipient_name,
+        dimona_order_id: dimonaRes.order_id,
+        items_count: items.length,
+        shipping: dimonaOrderPayload.delivery.shipping_speed,
+      },
+    });
 
     return NextResponse.json({
       success: true,
