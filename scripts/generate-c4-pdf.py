@@ -752,60 +752,60 @@ HTML_CONTENT = """<!DOCTYPE html>
           <rect x="225" y="45" width="170" height="70" rx="6" fill="#1e293b" stroke="#0ea5e9" stroke-width="1.5"/>
           <text x="310" y="66" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">MercadoPago Service</text>
           <text x="310" y="78" font-family="JetBrains Mono" font-size="7" fill="#38bdf8" text-anchor="middle">src/lib/mercadopago.ts</text>
-          <text x="310" y="93" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• createMercadoPagoPixOrder</text>
-          <text x="310" y="105" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• mp-webhook-auth (HMAC)</text>
+          <text x="235" y="93" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="start">• createMercadoPagoPixOrder</text>
+          <text x="235" y="105" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="start">• mp-webhook-auth (HMAC)</text>
         </g>
 
         <g filter="url(#shadow)">
           <rect x="225" y="122" width="170" height="95" rx="6" fill="#1e293b" stroke="#16a34a" stroke-width="1.8"/>
           <text x="310" y="142" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Dimona POD Service</text>
           <text x="310" y="154" font-family="JetBrains Mono" font-size="7" fill="#86efac" text-anchor="middle">src/lib/dimona.ts</text>
-          <text x="310" y="169" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• createDimonaOrder</text>
-          <text x="310" y="181" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• calculateDimonaShipping</text>
-          <text x="310" y="194" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">• dimona-mapping.ts (Blanks)</text>
-          <text x="310" y="206" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">Trava Financeira Prévia</text>
+          <text x="235" y="169" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="start">• createDimonaOrder</text>
+          <text x="235" y="181" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="start">• calculateDimonaShipping</text>
+          <text x="235" y="194" font-family="Inter" font-size="7" fill="#86efac" text-anchor="start">• dimona-mapping.ts (Blanks)</text>
+          <text x="310" y="207" font-family="Inter" font-size="7" fill="#86efac" text-anchor="middle">Trava Financeira Prévia</text>
         </g>
 
         <g filter="url(#shadow)">
           <rect x="225" y="224" width="170" height="65" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
           <text x="310" y="244" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Rules & Pricing Engine</text>
           <text x="310" y="256" font-family="JetBrains Mono" font-size="7" fill="#fde047" text-anchor="middle">coupons.ts & pricing.ts</text>
-          <text x="310" y="271" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• validateCouponCode</text>
-          <text x="310" y="282" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="middle">• Margem & Descontos</text>
+          <text x="235" y="271" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="start">• validateCouponCode</text>
+          <text x="235" y="282" font-family="Inter" font-size="7" fill="#cbd5e1" text-anchor="start">• Margem & Descontos</text>
         </g>
 
         <g filter="url(#shadow)">
           <rect x="225" y="296" width="170" height="110" rx="6" fill="#042f2e" stroke="#0f766e" stroke-width="1.5"/>
           <text x="310" y="316" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Database Service</text>
           <text x="310" y="328" font-family="JetBrains Mono" font-size="7" fill="#5eead4" text-anchor="middle">supabase.ts & audit.ts</text>
-          <text x="310" y="344" font-family="Inter" font-size="7" fill="#ccfbf1">• saveDatabaseOrder</text>
-          <text x="310" y="356" font-family="Inter" font-size="7" fill="#ccfbf1">• logAuditEvent (RBAC)</text>
-          <text x="310" y="369" font-family="Inter" font-size="7" fill="#ccfbf1">• Service Role Key Privada</text>
-          <text x="310" y="382" font-family="Inter" font-size="7" fill="#ccfbf1">• RLS Policies Ativas</text>
+          <text x="235" y="344" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="start">• saveDatabaseOrder</text>
+          <text x="235" y="356" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="start">• logAuditEvent (RBAC)</text>
+          <text x="235" y="369" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="start">• Service Role Key Privada</text>
+          <text x="235" y="382" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="start">• RLS Policies Ativas</text>
           <text x="310" y="396" font-family="Inter" font-size="7" fill="#5eead4" text-anchor="middle">PostgreSQL Seguro</text>
         </g>
 
         <!-- COLUNA 3: NOTIFICATION DISPATCHERS (x=415, w=165) -->
         <g filter="url(#shadow)">
           <rect x="415" y="130" width="165" height="115" rx="6" fill="#064e3b" stroke="#059669" stroke-width="2"/>
-          <text x="497" y="152" font-family="Inter" font-size="10.5" font-weight="800" fill="#a7f3d0" text-anchor="middle">WhatsApp Service ✨</text>
-          <text x="497" y="165" font-family="JetBrains Mono" font-size="7" fill="#ffffff" text-anchor="middle">src/lib/whatsapp.ts</text>
-          <text x="497" y="182" font-family="Inter" font-size="7" fill="#ccfbf1">• sendOrderCreatedWhatsApp</text>
-          <text x="497" y="195" font-family="Inter" font-size="7" fill="#ccfbf1">• sendPaymentConfirmedWhatsApp</text>
-          <text x="497" y="208" font-family="Inter" font-size="7" fill="#a7f3d0">• sendOrderShippedWhatsApp</text>
-          <text x="497" y="222" font-family="Inter" font-size="7" fill="#a7f3d0">• Fallback nativo wa.me</text>
-          <text x="497" y="235" font-family="Inter" font-size="6.5" fill="#94a3b8" text-anchor="middle">Instância Evolution v1/v2</text>
+          <text x="497" y="150" font-family="Inter" font-size="10.5" font-weight="800" fill="#a7f3d0" text-anchor="middle">WhatsApp Service ✨</text>
+          <text x="497" y="163" font-family="JetBrains Mono" font-size="7" fill="#ffffff" text-anchor="middle">src/lib/whatsapp.ts</text>
+          <text x="425" y="179" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="start">• sendOrderCreatedWhatsApp</text>
+          <text x="425" y="192" font-family="Inter" font-size="7" fill="#ccfbf1" text-anchor="start">• sendPaymentConfirmedWA</text>
+          <text x="425" y="205" font-family="Inter" font-size="7" fill="#a7f3d0" text-anchor="start">• sendOrderShippedWhatsApp</text>
+          <text x="425" y="218" font-family="Inter" font-size="7" fill="#a7f3d0" text-anchor="start">• Fallback nativo wa.me</text>
+          <text x="497" y="234" font-family="Inter" font-size="6.5" fill="#94a3b8" text-anchor="middle">Instância Evolution v1/v2</text>
         </g>
 
         <g filter="url(#shadow)">
           <rect x="415" y="260" width="165" height="115" rx="6" fill="#2e1065" stroke="#7c3aed" stroke-width="1.8"/>
-          <text x="497" y="282" font-family="Inter" font-size="10.5" font-weight="800" fill="#c4b5fd" text-anchor="middle">Email Service (@react-email) ✨</text>
-          <text x="497" y="295" font-family="JetBrains Mono" font-size="7" fill="#ffffff" text-anchor="middle">src/lib/email.ts</text>
-          <text x="497" y="312" font-family="Inter" font-size="7" fill="#ede9fe">• OrderCreatedEmail</text>
-          <text x="497" y="325" font-family="Inter" font-size="7" fill="#ede9fe">• PaymentConfirmedEmail</text>
-          <text x="497" y="338" font-family="Inter" font-size="7" fill="#c4b5fd">• OrderShippedEmail (Rastreio)</text>
-          <text x="497" y="351" font-family="Inter" font-size="7" fill="#ede9fe">• ResetPasswordEmail</text>
-          <text x="497" y="365" font-family="Inter" font-size="6.5" fill="#94a3b8" text-anchor="middle">Resend REST API Engine</text>
+          <text x="497" y="280" font-family="Inter" font-size="10.5" font-weight="800" fill="#c4b5fd" text-anchor="middle">Email Service (@react-email) ✨</text>
+          <text x="497" y="293" font-family="JetBrains Mono" font-size="7" fill="#ffffff" text-anchor="middle">src/lib/email.ts</text>
+          <text x="425" y="309" font-family="Inter" font-size="7" fill="#ede9fe" text-anchor="start">• OrderCreatedEmail</text>
+          <text x="425" y="321" font-family="Inter" font-size="7" fill="#ede9fe" text-anchor="start">• PaymentConfirmedEmail</text>
+          <text x="425" y="333" font-family="Inter" font-size="7" fill="#c4b5fd" text-anchor="start">• OrderShippedEmail (Rastreio)</text>
+          <text x="425" y="345" font-family="Inter" font-size="7" fill="#ede9fe" text-anchor="start">• ResetPasswordEmail</text>
+          <text x="497" y="362" font-family="Inter" font-size="6.5" fill="#94a3b8" text-anchor="middle">Resend REST API Engine</text>
         </g>
 
         <!-- COLUNA 4: DESTINOS EXTERNOS (x=735, w=265) -->
@@ -865,8 +865,8 @@ HTML_CONTENT = """<!DOCTYPE html>
         <!-- Inbound Dimona Webhook -> Database Service -->
         <path d="M 205 315 L 225 330" stroke="#0f766e" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
 
-        <!-- Database Service -> Supabase -->
-        <path d="M 395 365 L 728 365" stroke="#14b8a6" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+        <!-- Database Service -> Supabase (passa abaixo de Email Service sem cruzar o card) -->
+        <path d="M 395 390 L 728 390" stroke="#14b8a6" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
 
         <!-- Notificadores -> WhatsApp Service -->
         <path d="M 395 185 L 415 185" stroke="#059669" stroke-width="2" fill="none" marker-end="url(#arrow-wa)"/>
@@ -874,7 +874,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <path d="M 580 185 L 728 205" stroke="#059669" stroke-width="2" fill="none" marker-end="url(#arrow-wa)"/>
 
         <!-- Notificadores -> Email Service -->
-        <path d="M 395 260 L 415 285" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#arrow-email)"/>
+        <path d="M 395 260 L 415 300" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#arrow-email)"/>
         <!-- Email Service -> Resend API -->
         <path d="M 580 315 L 728 290" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#arrow-email)"/>
       </svg>

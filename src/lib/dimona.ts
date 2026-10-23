@@ -97,6 +97,8 @@ export async function createDimonaOrder(
         name: item.name,
         sku: item.sku,
         qty: item.qty,
+        unit_price: item.unit_price !== undefined ? Number(item.unit_price) : undefined,
+        price: item.unit_price !== undefined ? Number(item.unit_price) : undefined,
         designs: item.artwork_url ? [item.artwork_url] : [],
         mocks: item.mock_url ? [item.mock_url] : [],
       })),
