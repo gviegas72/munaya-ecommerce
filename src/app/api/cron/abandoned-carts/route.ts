@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { verifyAdminAuth } from "@/lib/admin-auth";
 import {
   sendPixReminderWhatsApp,
   sendAbandonedCartRecoveryWhatsApp,
@@ -11,7 +12,7 @@ export const maxDuration = 30; // 30 segundos de execução na Vercel
 /**
  * GET e POST /api/cron/abandoned-carts
  * Orquestrador Automatizado de Recuperação de Carrinho & Pix (Issue #32)
- * Disparado pela Cron Job da Vercel (a cada 10 min) ou manualmente pelo /admin
+ * Disparado pelo GitHub Actions (a cada 10 min), pela Cron Job diária da Vercel ou manualmente pelo /admin
  */
 export async function GET(req: NextRequest) {
   return handleRecovery(req);
@@ -23,14 +24,14 @@ export async function POST(req: NextRequest) {
 
 async function handleRecovery(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET || "munaya-recovery-secret-2026";
-  const adminPin = req.headers.get("x-admin-pin");
+  const cronSecret = process.env.CRON_SECRET;
 
-  // Proteção de segurança: aceita chamada oficial da Vercel Cron ou PIN de Admin
+  // Proteção de segurança: aceita chamada agendada (Vercel Cron / GitHub Actions)
+  // com o CRON_SECRET, ou um operador autenticado do /admin (disparo manual).
+  const isCronCall = Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`;
   const isAuthorized =
-    authHeader === `Bearer ${cronSecret}` ||
-    adminPin === process.env.ADMIN_PIN ||
-    adminPin === "munaya2026" ||
+    isCronCall ||
+    Boolean(verifyAdminAuth(req)) ||
     process.env.NODE_ENV === "development";
 
   if (!isAuthorized) {
