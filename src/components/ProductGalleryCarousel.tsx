@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductColor } from "@/lib/variants";
 
@@ -92,10 +93,15 @@ export function ProductGalleryCarousel({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <img
+        <Image
           key={activeSrc}
           src={activeSrc}
           alt={`${productName} (${activeColor?.name || "Preta"}) — Foto ${safeIndex + 1} de ${gallery.length}`}
+          fill
+          priority={safeIndex === 0}
+          loading={safeIndex === 0 ? "eager" : "lazy"}
+          sizes="(max-width: 768px) 100vw, 65vw"
+          quality={88}
           className="w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-105"
         />
 
@@ -167,12 +173,17 @@ export function ProductGalleryCarousel({
                       : "border-foreground/30 opacity-60 hover:opacity-100 hover:border-foreground"
                   }`}
                 >
-                  <img
-                    src={imgUrl}
-                    alt={`${productName} — Miniatura ${idx + 1}`}
-                    loading="lazy"
-                    className="w-full h-full object-cover object-center"
-                  />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={imgUrl}
+                      alt={`${productName} — Miniatura ${idx + 1}`}
+                      fill
+                      loading="lazy"
+                      sizes="90px"
+                      quality={60}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  </div>
                   <span
                     className={`absolute bottom-0 right-0 px-1.5 py-0.5 font-mono text-[10px] font-bold ${
                       isSelected

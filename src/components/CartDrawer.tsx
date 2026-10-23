@@ -125,6 +125,8 @@ export function CartDrawer() {
                   <img
                     src={item.image}
                     alt={item.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover object-center transition-all duration-300"
                   />
                 </div>

@@ -53,6 +53,8 @@ export function Navbar() {
           <img
             src="/logo-pink.svg"
             alt="Munaya — início"
+            loading="eager"
+            fetchPriority="high"
             className="w-12 h-12 object-contain"
           />
         </Link>
@@ -149,6 +151,8 @@ export function Navbar() {
             <img
               src="/logo-pink.svg"
               alt="Munaya — início"
+              loading="eager"
+              fetchPriority="high"
               className="mt-[26px] w-[136px] h-[136px] object-contain"
             />
           </Link>

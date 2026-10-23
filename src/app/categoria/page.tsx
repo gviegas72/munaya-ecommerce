@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getCatalogProducts } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -18,23 +19,33 @@ export default async function Category() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 auto-rows-[340px] md:auto-rows-[400px] gap-4 md:gap-8">
-        {products.map((product) => (
-          <Link
-            href={`/produto/${product.slug || product.id}`}
-            key={product.id}
-            className="group relative overflow-hidden bg-foreground rounded-none border border-foreground/30 col-span-1 row-span-1"
-          >
-            {/* Foto do Produto */}
-            <div className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-[1.03]">
-              <img
-                src={product.image_url}
-                alt={product.name}
-                className="w-full h-full object-cover object-center transition-all duration-700"
-              />
-            </div>
+        {products.map((product, idx) => {
+          // As 3 primeiras imagens (primeira dobra) carregam com prioridade (LCP imediato)
+          // As demais usam lazy loading nativo para poupar banda no 4G mobile
+          const isPriority = idx < 3;
 
-            {/* Grainy Filter on Hover */}
-            <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mix-blend-multiply"></div>
+          return (
+            <Link
+              href={`/produto/${product.slug || product.id}`}
+              key={product.id}
+              className="group relative overflow-hidden bg-foreground rounded-none border border-foreground/30 col-span-1 row-span-1"
+            >
+              {/* Foto do Produto com Next/Image Otimizada */}
+              <div className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-[1.03]">
+                <Image
+                  src={product.image_url}
+                  alt={product.name}
+                  fill
+                  priority={isPriority}
+                  loading={isPriority ? "eager" : "lazy"}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  quality={85}
+                  className="w-full h-full object-cover object-center transition-all duration-700"
+                />
+              </div>
+
+              {/* Grainy Filter on Hover */}
+              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mix-blend-multiply pointer-events-none"></div>
 
             {/* =========================================
                 Overlay Mobile (SEMPRE visível no celular)
@@ -70,8 +81,9 @@ export default async function Category() {
               </div>
             </div>
           </Link>
-        ))}
-      </div>
+        );
+      })}
+    </div>
     </div>
   );
 }
