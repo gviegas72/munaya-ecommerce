@@ -520,3 +520,104 @@ export async function sendOrderShippedWhatsApp(
     forceResend,
   });
 }
+
+/**
+ * Gatilho 4: Lembrete Amigável de Pix Pendente (Após 20 minutos de abandono)
+ */
+export async function sendPixReminderWhatsApp(
+  order: WhatsAppOrderPayload,
+  forceResend = false
+): Promise<WhatsAppSendResult> {
+  const firstName = String(order.customer_name || "Rocker").trim().split(/\s+/)[0];
+  const totalBrl = Number(order.total_amount || 0).toFixed(2).replace(".", ",");
+  const itemsSummary = (order.items || [])
+    .map((it) => `• ${it.quantity || it.qty || 1}x ${it.name} (${it.size || "M"})`)
+    .join("\n");
+
+  const lines = [
+    `⚡ *SEU PEDIDO MUNAYA TE ESPERA! — #${order.id}*`,
+    ``,
+    `Fala, *${firstName}*! 🤘`,
+    `Notamos que o Pix de *R$ ${totalBrl}* do seu pedido ainda não bateu por aqui. O app do banco deu uma travada ou rolou algum imprevisto?`,
+    itemsSummary ? `\n*Peças reservadas:*\n${itemsSummary}\n` : "",
+    order.pix_code
+      ? [
+          `Segue o código Pix Copia e Cola para aprovar com 1 toque:`,
+          ``,
+          order.pix_code,
+          ``,
+        ].join("\n")
+      : "",
+    `A sua peça já está separada aqui no camarim. Se pintar qualquer dúvida sobre caimento, medidas ou prazo, é só responder essa mensagem que nosso time te ajuda! 🎸🔥`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return sendOrderWhatsAppNotification({
+    orderId: order.id,
+    eventType: "created",
+    phone: order.customer_phone,
+    text: lines,
+    forceResend,
+  });
+}
+
+/**
+ * Gatilho 5: Recuperação de Carrinho Abandonado no Checkout (Com Magic Link e Cupom Opcional)
+ */
+export interface AbandonedCartWhatsAppPayload {
+  sessionId: string;
+  customerName?: string;
+  customerPhone: string;
+  cartItems: Array<{ name: string; size?: string; qty?: number; price?: number }>;
+  totalAmount: number;
+  recoveryUrl: string;
+  couponCode?: string;
+  isSecondAlert?: boolean;
+}
+
+export async function sendAbandonedCartRecoveryWhatsApp(
+  payload: AbandonedCartWhatsAppPayload
+): Promise<WhatsAppSendResult> {
+  const firstName = String(payload.customerName || "Rocker").trim().split(/\s+/)[0];
+  const itemsList = (payload.cartItems || [])
+    .map((it) => `• ${it.qty || 1}x ${it.name} (${it.size || "M"})`)
+    .join("\n");
+
+  let lines: string[];
+
+  if (payload.isSecondAlert) {
+    // 2º Disparo (24h após abandono) com cupom VOLTA5
+    lines = [
+      `🎸 *ÚLTIMA CHAMADA PRO SHOW! — MUNAYA ROCKS*`,
+      ``,
+      `E aí, *${firstName}*! 🤘`,
+      `As suas peças exclusivas ainda estão te esperando na sacola, mas o lote artesanal da fábrica está rodando hoje:`,
+      itemsList ? `\n${itemsList}\n` : "",
+      `Pra você não ficar sem a sua armadura no próximo rolê, liberamos um passe VIP de backstage:`,
+      ``,
+      `🎟️ Use o cupom *${payload.couponCode || "VOLTA5"}* e ganhe *5% OFF extra* no fechamento:`,
+      `🔗 ${payload.recoveryUrl}`,
+      ``,
+      `O link acima já abre sua sacola com o cupom aplicado automaticamente. Nos vemos no pit! ⚡`,
+    ];
+  } else {
+    // 1º Disparo (20-30 min após abandono) tom amigável de suporte
+    lines = [
+      `🤘 *FALTOU POUCO PRA FINALIZAR! — MUNAYA ROCKS*`,
+      ``,
+      `Fala, *${firstName}*! Tudo bem por aí?`,
+      `Vimos que você separou umas peças de peso na sua sacola:`,
+      itemsList ? `\n${itemsList}\n` : "",
+      `Rolou alguma dúvida com o frete, prazo ou tamanho?`,
+      ``,
+      `Para retomar seu pedido em 1 clique de onde você parou, é só tocar no link seguro abaixo:`,
+      `🔗 ${payload.recoveryUrl}`,
+      ``,
+      `Qualquer dúvida, responda aqui que a gente te atende na hora! 🎸`,
+    ];
+  }
+
+  const text = lines.filter(Boolean).join("\n");
+  return sendEvolutionTextMessage(payload.customerPhone, text);
+}

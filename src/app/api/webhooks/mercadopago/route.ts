@@ -140,6 +140,18 @@ export async function POST(req: NextRequest) {
           dimona_status: dimonaRes.status || "recebido",
         }).catch((e) => console.warn("Erro ao atualizar status no Supabase:", e));
 
+        // Marca qualquer rascunho de carrinho abandonado como recuperado
+        Promise.resolve(
+          supabaseAdmin
+            .from("abandoned_checkouts")
+            .update({
+              status: "recovered",
+              recovered_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .or(`order_id.eq.${externalId},phone.eq.${customerPhone},email.eq.${customerEmail}`)
+        ).catch((e: unknown) => console.warn("Aviso ao marcar carrinho recuperado:", e));
+
         // Dispara e-mail transacional de pagamento aprovado
         if (customerEmail) {
           sendPaymentConfirmedEmail({

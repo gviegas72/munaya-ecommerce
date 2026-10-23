@@ -53,6 +53,17 @@ export const INITIAL_CANONICAL_COUPONS: Record<string, Coupon> = {
     max_uses: null,
     used_count: 0,
   },
+  VOLTA5: {
+    code: "VOLTA5",
+    type: "percentage",
+    value: 5,
+    min_subtotal: 0,
+    description: "5% OFF de resgate exclusivo para finalizar seu pedido",
+    is_active: true,
+    expires_at: null,
+    max_uses: null,
+    used_count: 0,
+  },
   ROCK10: {
     code: "ROCK10",
     type: "percentage",

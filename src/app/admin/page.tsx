@@ -50,6 +50,7 @@ import {
   Check,
   Smartphone,
   Monitor,
+  RotateCcw,
 } from "lucide-react";
 import { Coupon } from "@/lib/coupons";
 import { PricingSettings, DEFAULT_PRICING_SETTINGS, calculateSellingPrice, calculateFinancialSummary } from "@/lib/pricing";
@@ -283,7 +284,46 @@ export default function AdminPage() {
   const [pin, setPin] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [activeTab, setActiveTab] = useState<"orders" | "customers" | "catalog" | "coupons" | "pricing" | "dimona" | "whatsapp" | "emails" | "audit">("orders");
+  const [activeTab, setActiveTab] = useState<
+    | "orders"
+    | "customers"
+    | "catalog"
+    | "coupons"
+    | "pricing"
+    | "dimona"
+    | "whatsapp"
+    | "emails"
+    | "audit"
+    | "abandoned"
+  >("orders");
+
+  // Estados da Central de Recuperação de Carrinhos (Issue #32)
+  const [abandonedData, setAbandonedData] = useState<{
+    metrics: {
+      total_abandoned: number;
+      total_recovered: number;
+      recovery_rate_pct: number;
+      recovered_amount_brl: number;
+      pending_pix_count: number;
+    };
+    drafts: any[];
+    pending_pix: any[];
+  }>({
+    metrics: {
+      total_abandoned: 0,
+      total_recovered: 0,
+      recovery_rate_pct: 0,
+      recovered_amount_brl: 0,
+      pending_pix_count: 0,
+    },
+    drafts: [],
+    pending_pix: [],
+  });
+  const [loadingAbandoned, setLoadingAbandoned] = useState(false);
+  const [runningRecoveryCron, setRunningRecoveryCron] = useState(false);
+  const [recoveryFeedback, setRecoveryFeedback] = useState("");
+  const [recoveryError, setRecoveryError] = useState("");
+  const [sendingManualRecoveryId, setSendingManualRecoveryId] = useState<string | null>(null);
 
   // Estados de Autenticação RBAC e Sessão
   const [currentUser, setCurrentUser] = useState<{
@@ -746,6 +786,88 @@ export default function AdminPage() {
       console.error("Erro ao carregar pedidos:", e);
     } finally {
       setLoadingOrders(false);
+    }
+  };
+
+  const loadAbandonedCarts = async () => {
+    setLoadingAbandoned(true);
+    setRecoveryError("");
+    try {
+      const res = await fetch("/api/admin/abandoned-carts", {
+        headers: getAuthHeaders(),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAbandonedData({
+          metrics: data.metrics || {
+            total_abandoned: 0,
+            total_recovered: 0,
+            recovery_rate_pct: 0,
+            recovered_amount_brl: 0,
+            pending_pix_count: 0,
+          },
+          drafts: Array.isArray(data.drafts) ? data.drafts : [],
+          pending_pix: Array.isArray(data.pending_pix) ? data.pending_pix : [],
+        });
+      } else {
+        setRecoveryError(data.error || "Falha ao carregar carrinhos abandonados.");
+      }
+    } catch (e: any) {
+      setRecoveryError(e?.message || "Erro de conexão ao carregar carrinhos.");
+    } finally {
+      setLoadingAbandoned(false);
+    }
+  };
+
+  const handleRunRecoveryCron = async () => {
+    setRunningRecoveryCron(true);
+    setRecoveryFeedback("");
+    setRecoveryError("");
+    try {
+      const res = await fetch("/api/cron/abandoned-carts", {
+        method: "POST",
+        headers: getAuthHeaders(),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const resStats = data.results || {};
+        setRecoveryFeedback(
+          `✓ Ciclo de recuperação executado! Pix lembrados: ${resStats.pixRemindersSent || 0} | 1º Alerta WhatsApp: ${resStats.firstCartAlertsSent || 0} | 2º Alerta (VOLTA5): ${resStats.secondCartAlertsSent || 0}`
+        );
+        loadAbandonedCarts();
+        setTimeout(() => setRecoveryFeedback(""), 6000);
+      } else {
+        setRecoveryError(data.error || "Falha na execução do ciclo.");
+      }
+    } catch (err: any) {
+      setRecoveryError(err?.message || "Erro ao executar ciclo de recuperação.");
+    } finally {
+      setRunningRecoveryCron(false);
+    }
+  };
+
+  const handleSendManualRecovery = async (draftId: string) => {
+    setSendingManualRecoveryId(draftId);
+    setRecoveryFeedback("");
+    setRecoveryError("");
+    try {
+      const res = await fetch("/api/admin/abandoned-carts", {
+        method: "POST",
+        headers: getAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ draft_id: draftId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRecoveryFeedback("✓ Mensagem de recuperação enviada via WhatsApp com sucesso!");
+        loadAbandonedCarts();
+        setTimeout(() => setRecoveryFeedback(""), 4000);
+      } else {
+        setRecoveryError(data.error || "Falha ao disparar mensagem manual.");
+      }
+    } catch (err: any) {
+      setRecoveryError(err?.message || "Erro de comunicação ao disparar mensagem.");
+    } finally {
+      setSendingManualRecoveryId(null);
     }
   };
 
@@ -1950,6 +2072,21 @@ export default function AdminPage() {
           >
             <Mail className="w-5 h-5" />
             <span>Templates de E-mail (@react-email)</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab("abandoned");
+              loadAbandonedCarts();
+            }}
+            className={`flex items-center gap-2 px-6 py-3 font-oswald text-xl uppercase font-black tracking-tight transition-all shrink-0 ${
+              activeTab === "abandoned"
+                ? "bg-[#ff66c4] text-black"
+                : "text-[#ff66c4] hover:text-white"
+            }`}
+          >
+            <RotateCcw className="w-5 h-5" />
+            <span>🛒 Carrinhos & Resgate ({abandonedData.drafts.length})</span>
           </button>
 
           {(!currentUser || currentUser.role === "super_admin") && (
@@ -7017,6 +7154,289 @@ export default function AdminPage() {
                   Fechar
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 10: CARRINHOS & RESGATE (ISSUE #32) */}
+        {activeTab === "abandoned" && (
+          <div className="space-y-6">
+            {/* Header da Aba */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-oswald text-3xl md:text-4xl font-bold uppercase tracking-tight text-white">
+                    Carrinhos & Resgate Automatizado
+                  </h2>
+                  <span className="bg-[#ff66c4] text-black text-xs font-black uppercase px-2 py-0.5 transform -skew-x-12">
+                    Issue #32
+                  </span>
+                </div>
+                <p className="text-sm text-neutral-400 mt-1">
+                  Motor de recuperação contínua via WhatsApp (Evolution API) e e-mail transacional. Cron Job a cada 10 min.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={loadAbandonedCarts}
+                  disabled={loadingAbandoned}
+                  className="px-4 py-2 border border-neutral-700 bg-neutral-900 text-white font-oswald text-sm font-bold uppercase tracking-wider hover:border-white transition-colors flex items-center gap-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingAbandoned ? "animate-spin" : ""}`} />
+                  <span>Atualizar</span>
+                </button>
+
+                <button
+                  onClick={handleRunRecoveryCron}
+                  disabled={runningRecoveryCron}
+                  className="px-5 py-2 bg-[#ff66c4] text-black font-oswald text-base font-black uppercase tracking-wider hover:bg-white transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(255,102,196,0.3)] disabled:opacity-50"
+                >
+                  <Play className={`w-4 h-4 ${runningRecoveryCron ? "animate-spin" : ""}`} />
+                  <span>{runningRecoveryCron ? "Processando..." : "Rodar Ciclo Agora"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Mensagens de Feedback */}
+            {recoveryFeedback && (
+              <div className="p-4 bg-emerald-950/80 border-2 border-emerald-500 text-emerald-200 text-sm font-mono flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                <span>{recoveryFeedback}</span>
+              </div>
+            )}
+
+            {recoveryError && (
+              <div className="p-4 bg-red-950/80 border-2 border-red-500 text-red-200 text-sm font-mono flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                <span>{recoveryError}</span>
+              </div>
+            )}
+
+            {/* Cards de Métricas e KPIs de Resgate */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="border border-neutral-800 bg-neutral-950 p-4">
+                <span className="text-[10px] md:text-xs uppercase font-bold text-neutral-500 tracking-wider">
+                  Total Abandonados
+                </span>
+                <p className="font-oswald text-2xl md:text-4xl font-bold mt-1 text-white">
+                  {abandonedData.metrics.total_abandoned}
+                </p>
+              </div>
+
+              <div className="border border-neutral-800 bg-neutral-950 p-4">
+                <span className="text-[10px] md:text-xs uppercase font-bold text-neutral-500 tracking-wider">
+                  Pix Pendentes (&gt;20m)
+                </span>
+                <p className="font-oswald text-2xl md:text-4xl font-bold mt-1 text-amber-400">
+                  {abandonedData.metrics.pending_pix_count}
+                </p>
+              </div>
+
+              <div className="border border-neutral-800 bg-neutral-950 p-4">
+                <span className="text-[10px] md:text-xs uppercase font-bold text-neutral-500 tracking-wider">
+                  Carrinhos Resgatados
+                </span>
+                <p className="font-oswald text-2xl md:text-4xl font-bold mt-1 text-emerald-400">
+                  {abandonedData.metrics.total_recovered}
+                </p>
+              </div>
+
+              <div className="border border-neutral-800 bg-neutral-950 p-4">
+                <span className="text-[10px] md:text-xs uppercase font-bold text-neutral-500 tracking-wider">
+                  Taxa de Conversão
+                </span>
+                <p className="font-oswald text-2xl md:text-4xl font-bold mt-1 text-[#ff66c4]">
+                  {abandonedData.metrics.recovery_rate_pct}%
+                </p>
+              </div>
+
+              <div className="col-span-2 md:col-span-1 border border-neutral-800 bg-neutral-950 p-4">
+                <span className="text-[10px] md:text-xs uppercase font-bold text-neutral-500 tracking-wider">
+                  Receita Recuperada
+                </span>
+                <p className="font-oswald text-2xl md:text-4xl font-bold mt-1 text-emerald-400">
+                  R$ {abandonedData.metrics.recovered_amount_brl.toFixed(2).replace(".", ",")}
+                </p>
+              </div>
+            </div>
+
+            {/* Alerta de Pix Pendentes (Quick Win) */}
+            {abandonedData.pending_pix.length > 0 && (
+              <div className="border-2 border-amber-500/60 bg-amber-950/20 p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-amber-400" />
+                    <h3 className="font-oswald text-xl font-bold uppercase text-amber-300">
+                      ⚡ Pix Gerados Aguardando Pagamento (&gt; 20 minutos)
+                    </h3>
+                  </div>
+                  <span className="text-xs font-mono text-amber-400">
+                    {abandonedData.pending_pix.length} pedido(s) em aberto
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {abandonedData.pending_pix.map((pixOrder: any) => (
+                    <div
+                      key={pixOrder.id}
+                      className="p-3 bg-black border border-neutral-800 flex items-center justify-between gap-3 text-xs font-mono"
+                    >
+                      <div>
+                        <div className="font-bold text-white uppercase text-sm">
+                          Pedido #{pixOrder.id}
+                        </div>
+                        <div className="text-neutral-400">{pixOrder.customer_name}</div>
+                        <div className="text-emerald-400 font-bold mt-0.5">
+                          R$ {Number(pixOrder.total_amount).toFixed(2).replace(".", ",")}
+                        </div>
+                      </div>
+
+                      {pixOrder.customer_phone ? (
+                        <a
+                          href={`https://wa.me/${pixOrder.customer_phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                            `Fala, ${pixOrder.customer_name.split(" ")[0]}! 🤘 Notamos que o Pix do seu pedido #${pixOrder.id} de R$ ${Number(pixOrder.total_amount).toFixed(2).replace(".", ",")} ainda não bateu por aqui. A sua estampa já está separada no camarim! Se precisar de ajuda, avisa a gente!`
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-1.5 bg-emerald-500 text-black font-oswald text-xs font-black uppercase hover:bg-white transition-colors flex items-center gap-1.5 shrink-0"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>WhatsApp</span>
+                        </a>
+                      ) : (
+                        <span className="text-neutral-600">Sem telefone</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tabela de Carrinhos Abandonados */}
+            <div className="border border-neutral-800 bg-neutral-950 overflow-hidden">
+              <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
+                <h3 className="font-oswald text-xl font-bold uppercase text-white">
+                  Rascunhos de Checkout & Carrinhos Recentes
+                </h3>
+                <span className="text-xs font-mono text-neutral-400">
+                  {abandonedData.drafts.length} registro(s)
+                </span>
+              </div>
+
+              {loadingAbandoned ? (
+                <div className="p-12 text-center text-neutral-400 font-mono text-sm flex items-center justify-center gap-3">
+                  <RefreshCw className="w-5 h-5 animate-spin text-[#ff66c4]" />
+                  <span>Carregando carrinhos...</span>
+                </div>
+              ) : abandonedData.drafts.length === 0 ? (
+                <div className="p-12 text-center text-neutral-400 font-mono text-sm">
+                  Nenhum carrinho abandonado registrado ainda.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead className="bg-neutral-900/80 text-neutral-400 uppercase border-b border-neutral-800 text-[11px]">
+                      <tr>
+                        <th className="p-3">Cliente / Contato</th>
+                        <th className="p-3">Itens na Sacola</th>
+                        <th className="p-3">Total</th>
+                        <th className="p-3">Status do Resgate</th>
+                        <th className="p-3">Data</th>
+                        <th className="p-3 text-right">Ações de Resgate</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-800">
+                      {abandonedData.drafts.map((draft: any) => {
+                        const items = Array.isArray(draft.cart_items) ? draft.cart_items : [];
+                        const isRecovered = draft.status === "recovered";
+
+                        return (
+                          <tr key={draft.id} className="hover:bg-neutral-900/40 transition-colors">
+                            <td className="p-3">
+                              <div className="font-bold text-white text-sm">
+                                {draft.customer_name || "Visitante Anônimo"}
+                              </div>
+                              <div className="text-neutral-400">{draft.customer_email || "Sem e-mail"}</div>
+                              <div className="text-emerald-400">{draft.customer_phone || "Sem WhatsApp"}</div>
+                            </td>
+
+                            <td className="p-3 max-w-xs">
+                              {items.length > 0 ? (
+                                <div className="space-y-0.5">
+                                  {items.map((it: any, idx: number) => (
+                                    <div key={idx} className="truncate text-neutral-300">
+                                      • {it.qty || 1}x {it.name} ({it.size || "M"})
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-neutral-600">Sem itens registrados</span>
+                              )}
+                            </td>
+
+                            <td className="p-3 font-bold text-white text-sm">
+                              R$ {Number(draft.total_amount || draft.subtotal || 0).toFixed(2).replace(".", ",")}
+                            </td>
+
+                            <td className="p-3">
+                              {isRecovered ? (
+                                <span className="px-2 py-0.5 bg-emerald-950/80 border border-emerald-500 text-emerald-300 text-[10px] uppercase font-bold">
+                                  ✓ Recuperado
+                                </span>
+                              ) : draft.status === "second_alert_sent" ? (
+                                <span className="px-2 py-0.5 bg-purple-950/80 border border-purple-500 text-purple-300 text-[10px] uppercase font-bold">
+                                  2º Alerta (VOLTA5)
+                                </span>
+                              ) : draft.status === "first_alert_sent" ? (
+                                <span className="px-2 py-0.5 bg-amber-950/80 border border-amber-500 text-amber-300 text-[10px] uppercase font-bold">
+                                  1º Alerta Enviado
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 bg-neutral-800 text-neutral-400 text-[10px] uppercase font-bold">
+                                  Aguardando Ciclo
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="p-3 text-neutral-400 text-[11px]">
+                              {new Date(draft.updated_at || draft.created_at).toLocaleString("pt-BR")}
+                            </td>
+
+                            <td className="p-3 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {draft.wa_me_url && (
+                                  <a
+                                    href={draft.wa_me_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="px-3 py-1.5 bg-emerald-500 text-black font-oswald text-xs font-black uppercase hover:bg-white transition-colors flex items-center gap-1"
+                                    title="Abrir no WhatsApp Web"
+                                  >
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                    <span>WhatsApp</span>
+                                  </a>
+                                )}
+
+                                {!isRecovered && draft.customer_phone && (
+                                  <button
+                                    onClick={() => handleSendManualRecovery(draft.id)}
+                                    disabled={sendingManualRecoveryId === draft.id}
+                                    className="px-3 py-1.5 bg-neutral-800 text-white font-oswald text-xs font-bold uppercase hover:bg-[#ff66c4] hover:text-black transition-colors disabled:opacity-50"
+                                    title="Disparar via Evolution API"
+                                  >
+                                    {sendingManualRecoveryId === draft.id ? "Enviando..." : "Disparar Robô"}
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}

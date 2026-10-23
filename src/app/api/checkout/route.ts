@@ -237,6 +237,21 @@ export async function POST(req: NextRequest) {
         items: validatedItems,
       }).catch((e) => console.warn("Erro ao registrar pedido no Supabase:", e));
 
+      // Vincula o rascunho de checkout abandonado (se houver) ao pedido oficial
+      const rawSessionId = sanitizeString(body.session_id, 80);
+      if (rawSessionId) {
+        Promise.resolve(
+          supabaseAdmin
+            .from("abandoned_checkouts")
+            .update({
+              order_id: orderId,
+              stage: "checkout_pix_pending",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("session_id", rawSessionId)
+        ).catch((e: unknown) => console.warn("Aviso ao vincular rascunho de carrinho ao pedido:", e));
+      }
+
       // Contabiliza uso do cupom se aplicado
       if (validatedCouponCodeStr) {
         incrementCouponUsage(validatedCouponCodeStr).catch(() => {});

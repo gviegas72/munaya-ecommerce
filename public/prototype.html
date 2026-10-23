@@ -1836,6 +1836,62 @@ class Component extends DCLogic {
     });
   };
 
+  saveDraftToServer = () => {
+    if (this._draftTimer) clearTimeout(this._draftTimer);
+    this._draftTimer = setTimeout(async () => {
+      try {
+        const s = this.state;
+        const f = s.ckForm || {};
+        const phone = (f.fone || "").replace(/\D/g, "");
+        const email = (f.email || "").trim();
+        // Dispara auto-save no backend quando houver telefone (>= 10 dígitos) ou e-mail válido
+        if (phone.length < 10 && (!email || !email.includes("@"))) return;
+
+        let sid = window.localStorage.getItem("munaya.checkout_session_id");
+        if (!sid) {
+          sid = "chk_" + Math.random().toString(36).substring(2, 12) + "_" + Date.now().toString(36);
+          window.localStorage.setItem("munaya.checkout_session_id", sid);
+        }
+
+        const t = this.totals();
+        const ship = (s.ckFrete || []).find((x) => x.id === s.ckFreteChoice);
+        const items = (s.cart || []).map((i) => ({
+          id: i.productId || i.id,
+          name: i.name,
+          price: i.price,
+          size: i.rawSize || String(i.size || "M").split("·")[0].trim(),
+          color: i.color || (String(i.size || "").split("·")[1] || "Preta").trim(),
+          sku: i.sku,
+        }));
+
+        await fetch("/api/checkout/draft", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: sid,
+            customer_name: f.nome || "",
+            phone: phone,
+            email: email,
+            items: items,
+            subtotal: t.subtotal,
+            frete: ship ? ship.price : 0,
+            total: t.total,
+            coupon_code: s.couponCode || null,
+            address: {
+              street: f.rua || "",
+              number: f.num || "",
+              complement: f.compl || "",
+              neighborhood: f.bairro || "",
+              city: (s.ckCity || "").split(",")[0]?.trim() || "",
+              state: (s.ckCity || "").split(",")[1]?.trim() || "",
+              zipcode: s.ckCep || "",
+            },
+          }),
+        });
+      } catch (err) {}
+    }, 800);
+  };
+
   setField = (k, mask) => (e) => {
     const raw = e.target.value;
     const val = mask ? mask(raw) : raw;
@@ -1851,6 +1907,10 @@ class Component extends DCLogic {
         }));
       } catch (err) {}
       return { ckForm: nextForm, ckErrors: errors };
+    }, () => {
+      if (k === "fone" || k === "email" || k === "nome") {
+        this.saveDraftToServer();
+      }
     });
   };
 
@@ -2086,6 +2146,7 @@ class Component extends DCLogic {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: num,
+          session_id: window.localStorage.getItem("munaya.checkout_session_id") || undefined,
           payment_method: pay,
           coupon_code: this.state.couponCode || undefined,
           total: t.total,
@@ -2156,6 +2217,7 @@ class Component extends DCLogic {
     if (account) this.persist(account, orders);
     try {
       window.localStorage.removeItem("munaya.draft.checkout");
+      window.localStorage.removeItem("munaya.checkout_session_id");
     } catch (e) {}
     saveSharedCart([]);
 
