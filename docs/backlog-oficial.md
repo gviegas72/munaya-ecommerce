@@ -1,59 +1,98 @@
 # 🎸 Backlog Oficial & Governança de Engenharia — Munaya Rocks
 
 > [!IMPORTANT]
-> **Fluxo de Trabalho Oficial:**
-> 1. Cada funcionalidade é desenvolvida em uma **branch dedicada** (`feat/...`).
-> 2. Testes de build e validação técnica rigorosa são executados localmente.
-> 3. Notificação detalhada ao Fundador com **instruções exatas de homologação**.
-> 4. Merge para `master` e deploy em produção **apenas após o aceite e aprovação explícita do Fundador**.
+> **Status Geral do Projeto:**
+> - **100% das 10 Histórias Prioritárias da Fase 1 foram desenvolvidas, testadas, homologadas pelo Fundador e publicadas em Produção na Vercel.**
+> - Branches de Produção sincronizadas: `master` e `claude-export`.
 
 ---
 
-## 🟢 Sprint 1: Blindagem de Margem & Operação Zero Falhas
+## 🟢 Fase 1: Core E-Commerce, Experiência do Cliente & Governança (100% CONCLUÍDA)
 
-### [S1-01] Trava de Preço Customizado (`is_custom_price`)
-- **Objetivo:** Impedir que produtos com precificação manual/especial tenham seus preços sobrescritos pelo motor de recálculo em lote de markup.
-- **Branch:** `feat/price-lock-is-custom-price`
-- **Critérios de Aceite:**
-  - [x] Coluna `is_custom_price` adicionada na tabela `products` do Supabase (com persistência híbrida e fallback em metadata).
-  - [x] No modal de edição do produto no `/admin`, toggle/alerta visual: *"Fixar Preço Individual"*.
-  - [x] Badge visual brutalista **`🔒 PREÇO TRAVADO`** exibida no card do catálogo no `/admin`.
-  - [x] A rota `POST /api/pricing/apply` filtra e pula automaticamente produtos com `is_custom_price = true`.
-- **Status:** ✅ **CONCLUÍDO E HOMOLOGADO PELO FUNDADOR**
+### [P0 - #01] Rota Canônica de Produto (`/produto/[slug]`)
+- **Issue:** #13 | **Commit:** `4f828cf`
+- **Entrega:** PDP indexável, SSR dinâmico, meta tags sociais OpenGraph, Breadcrumb e URLs amigáveis.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
+### [P0 - #02] Ação "Ver Produto na Loja" no `/admin`
+- **Issue:** #11 | **Commit:** `1da85f9`
+- **Entrega:** Link direto nos cards do catálogo e no modal de edição abrindo a PDP correspondente da vitrine.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
+### [P0 - #03] Recuperação de Senha por E-mail (OTP)
+- **Issue:** #15 | **Commit:** `8f2f281`
+- **Entrega:** Fluxo em duas etapas via Supabase Auth com código OTP de 6 dígitos e redefinição segura de senha.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
+### [P0 - #03.1] Área do Cliente Logada (`/minha-conta`)
+- **Issue:** #23 | **Commit:** `d99b244`
+- **Entrega:** Painel do cliente com histórico de pedidos, status em tempo real, rastreio, dados cadastrais e troca de senha.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
+### [P1 - #04] Notificações Transacionais via WhatsApp (Evolution API)
+- **Issue:** #19 | **Commit:** `fc81b2d`
+- **Entrega:** Disparo automático de Pix Copia e Cola imediato e link de rastreio dos Correios/transportadora via WhatsApp, com aba de pareamento QR Code no `/admin` e botão de contingência `wa.me`.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
+### [P1 - #05] Suporte a Múltiplas Imagens & Carrossel Fotográfico
+- **Issue:** #12 | **Commit:** `150b064`
+- **Entrega:** Até 6 imagens por produto, carrossel interativo na vitrine com navegação touch/desktop, modal fullscreen e upload no `/admin`.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
+### [P1 - #06] Variação de Cores com Troca Dinâmica de Mockups
+- **Issue:** #14 | **Commit:** `4269e82`
+- **Entrega:** Seletor de cores (Preta, Branca, Cinza Mescla, Estonada), SKU inteligente e troca fluida de mockups de alta resolução.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
+### [P2 - #07] Central de Blanks & Desacoplamento de Bases
+- **Issue:** #20 | **Commit:** `fc9a9f5`
+- **Entrega:** Desacoplamento de estampas e modelos físicos. Suporte nativo a Bonés, Canecas e Moletons além de Camisetas clássicas, quality e estonadas com precificação individual por blank.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
+### [P2 - #08] Gestão e Histórico de Compras de Clientes no `/admin`
+- **Issue:** #16 | **Commit:** `3281103`
+- **Entrega:** Nova aba dedicada `👥 Clientes` com KPIs (Total de Clientes, LTV Médio, Taxa de Recompra, Ticket Médio), busca em tempo real e drawer de perfil com histórico completo.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
+### [P3 - #09] Templates Transacionais de E-mail com `@react-email`
+- **Issue:** #22 | **Commit:** `0365482`
+- **Entrega:** Três templates responsivos e versionados (`OrderCreated`, `PaymentConfirmed`, `OrderShipped`), integração Resend e aba de pré-visualização desktop/mobile com disparo de testes no `/admin`.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
+### [P3 - #10] Autenticação por Usuários (RBAC), Permissões e Auditoria
+- **Issue:** #21 | **Commits:** `cb17ce3` e `1c7b14e`
+- **Entrega:** Login individual por e-mail e senha, papéis (`super_admin`, `operator`, `viewer`), bloqueio estrito 403 para mutações financeiras por operadores, trilha de auditoria imutável (`audit_logs`) e nova aba `🛡️ Auditoria`.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
 
 ---
 
-### [S1-02] Mapeamento De/Para Oficial de SKUs com a Dimona
-- **Objetivo:** Vincular os SKUs canônicos Munaya (`MNY-TSH-DIMEBAG-PRETA-G`) aos IDs de produtos e variantes exatos da API v2 da Dimona.
-- **Branch:** `feat/dimona-sku-mapping`
-- **Critérios de Aceite:**
-  - [x] Estrutura / motor `dimona-mapping.ts` com Anti-Corruption Layer (ACL) para resolução determinística de código de fábrica.
-  - [x] Interface no `/admin` com aba dedicada *"Esteira Dimona (De/Para)"* para visualização, troca rápida de blanks e simulação de despacho via API v2.
-  - [x] Seção de mapeamento no modal de edição e cadastro de estampa com prévia em tempo real de SKU e custos.
-  - [x] Webhook do Mercado Pago despachando com os códigos de esteira resolvidos, artwork URLs e mockups oficiais.
-- **Status:** ✅ **CONCLUÍDO E HOMOLOGADO PELO FUNDADOR**
+## 🟡 Fase 2: Backlog Futuro (Planejado / Pós-Lançamento)
 
----
+> [!NOTE]
+> Estes itens estão catalogados e prontos para desenvolvimento futuro conforme a necessidade comercial e escala de tráfego.
 
-## 🟡 Sprint 2: Alavanca de Conversão & Expansão de Sortimento
+### [V2-01] Rastreamento Avançado de Mídia & Conversão (GA4 & Meta CAPI)
+- **Objetivo:** Instalação e disparo de eventos de e-commerce (`view_item`, `add_to_cart`, `begin_checkout`, `purchase`) para mensuração de ROAS em tráfego pago (Instagram, Google Ads, TikTok).
+- **Escopo:**
+  - Google Analytics 4 via Google Tag Manager ou Server-Side.
+  - Meta Pixel + Conversions API (CAPI) para proteção contra bloqueadores de anúncios e iOS 14.5+.
+- **Prioridade:** Média (Pré-campanha de tráfego)
 
-### [S2-01] Notificações Transacionais via WhatsApp
-- **Objetivo:** Disparo de Pix Copia e Cola imediato após o checkout e link de rastreamento pós-despacho da Dimona no WhatsApp do cliente.
-- **Branch:** `feat/whatsapp-transactional`
-- **Status:** ⏳ **Planejado**
+### [V2-02] SEO Dinâmico, Sitemap XML & Structured Data (Schema.org)
+- **Objetivo:** Geração automatizada de `sitemap.xml` indexando todas as rotas `/produto/[slug]` no Google Search Console, acompanhado de dados estruturados Schema.org (`Product`, `Offer`, `AggregateRating`) para exibição com estrelas e preço nos resultados de busca do Google.
+- **Prioridade:** Média
 
----
+### [V2-03] Filtros Avançados na Vitrine & Busca Instantânea
+- **Objetivo:** Adicionar barra de filtros interativos na home/categoria permitindo filtrar produtos por:
+  - Tipo de Base (Camiseta, Moletom, Boné, Caneca).
+  - Estilo Musical / Tag (Heavy, Doom, Grunge, Hardcore).
+  - Faixa de Preço e Cor.
+- **Prioridade:** Baixa
 
-### [S2-02] Central de Blanks & Produtos Dinâmicos
-- **Objetivo:** Gerenciar tipos de produtos (bonés, canecas, moletons, ecobags) além de camisetas no `/admin` e na vitrine.
-- **Branch:** `feat/dynamic-blanks-catalog`
-- **Status:** ⏳ **Planejado**
+### [V2-04] Motor de Compre Junto & Desconto Progressivo (Kits)
+- **Objetivo:** Aumentar o ticket médio (AOV) sugerindo combos com desconto automático no checkout (ex: *"Leve Camiseta + Boné com 15% OFF"* ou *"Compre 3 camisetas com frete grátis"*).
+- **Prioridade:** Média/Alta para campanhas de Black Friday e Dia do Rock.
 
----
-
-## 🔵 Sprint 3: Governança & Auditoria
-
-### [S3-01] Controle de Acesso por Usuários (RBAC) e Logs de Atividade
-- **Objetivo:** Múltiplos operadores no `/admin` com papéis restritos e trilha de auditoria no PostgreSQL.
-- **Branch:** `feat/rbac-admin-logs`
-- **Status:** ⏳ **Planejado**
+### [V2-05] Integração com ERP / Emissão de Nota Fiscal (Bling / Tiny)
+- **Objetivo:** Conexão direta com ERP Bling ou Tiny para emissão automatizada de NF-e e controle de estoque centralizado caso a marca passe a operar com estoque próprio a pronta entrega.
+- **Prioridade:** Baixa (Operação atual é 100% Print-on-Demand Dimona).
