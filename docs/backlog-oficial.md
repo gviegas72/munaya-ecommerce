@@ -71,28 +71,51 @@
 
 ---
 
-## 🟡 Fase 2: Backlog Futuro (Catalogado no GitHub Issues)
+## 🟡 Fase 2: Backlog Oficial Priorizado (Catalogado no GitHub Issues)
 
 > [!NOTE]
-> Estes itens estão devidamente criados e catalogados no **GitHub Issues** com status `status:todo`, prontos para serem puxados quando iniciarmos a próxima sprint.
+> Todos os 11 itens abaixo estão catalogados no **GitHub Issues** com status `status:todo`, devidamente pontuados pela Matriz RICE do Comitê de Produto & Engenharia (PO, Tech Lead e Growth Lead).
 
-### [V2 - #01] Rastreamento Avançado de Mídia & Conversão (GA4 & Meta CAPI)
-- **GitHub Issue:** #24
-- **Objetivo:** Instalação e disparo de eventos de e-commerce (`view_item`, `add_to_cart`, `begin_checkout`, `purchase`) para mensuração de ROAS em tráfego pago (Instagram, Google Ads, TikTok).
-- **Prioridade:** Média (`priority: P2-media`)
+### 🚀 Sprint 1: Fundação, Performance Mobile & Recuperação de Receita
+1. **[V2 - #06] Otimização Mobile, Lazy Loading & Core Web Vitals (next/image)**
+   - **GitHub Issue:** #30 | **RICE Score:** 20.0 | **Prioridade:** `priority: P1-alta`
+   - **Objetivo:** Migrar tags `<img>` para `next/image` ou atributos `loading="lazy"`, `decoding="async"` e WebP, eliminando a lentidão de LCP no mobile (4G) e reduzindo a taxa de rejeição.
+2. **[V2 - #07] Login Social com 1-Clique (Google & Apple via Supabase OAuth)**
+   - **GitHub Issue:** #31 | **RICE Score:** 14.4 | **Prioridade:** `priority: P1-alta`
+   - **Objetivo:** Reduzir o atrito de cadastro a 1 clique na tela de login e checkout via provedores OAuth do Supabase.
+3. **[V2 - #08] Recuperação Automática de Carrinho Abandonado (WhatsApp & Resend)**
+   - **GitHub Issue:** #32 | **RICE Score:** 12.6 | **Prioridade:** `priority: P1-alta`
+   - **Objetivo:** Disparo inteligente de WhatsApp (Evolution API) e e-mail transacional (Resend) 20 minutos após o abandono com foto da peça e link do carrinho já preenchido.
+4. **[V2 - #01] Rastreamento Avançado de Mídia & Conversão (GA4 & Meta CAPI Server-Side)**
+   - **GitHub Issue:** #24 | **RICE Score:** 11.25 | **Prioridade:** `priority: P2-media`
+   - **Objetivo:** Disparo de eventos server-side via Meta Graph API e GA4 (`ViewContent`, `AddToCart`, `Purchase`) para otimizar campanhas de tráfego pago sem perda no iOS 14.5+.
 
-### [V2 - #02] SEO Dinâmico, Sitemap XML & Structured Data (Schema.org)
-- **GitHub Issue:** #25
-- **Objetivo:** Geração automatizada de `sitemap.xml` indexando todas as rotas `/produto/[slug]` no Google Search Console, acompanhado de dados estruturados Schema.org (`Product`, `Offer`, `AggregateRating`) para exibição com estrelas e preço nos resultados de busca do Google.
-- **Prioridade:** Média (`priority: P2-media`)
+---
 
-### [V2 - #03] Filtros Avançados na Vitrine & Busca Instantânea
-- **GitHub Issue:** #26
-- **Objetivo:** Adicionar barra de filtros interativos na home/categoria permitindo filtrar produtos por tipo de base (Camiseta, Moletom, Boné, Caneca), estilo musical e faixa de preço.
-- **Prioridade:** Média (`priority: P2-media`)
+### 💰 Sprint 2: Aumento de Ticket Médio (AOV) & Aquisição
+5. **[V2 - #09] Social Commerce & Catálogo XML para Instagram Shopping / Meta Catalog**
+   - **GitHub Issue:** #33 | **RICE Score:** 9.45 | **Prioridade:** `priority: P2-media`
+   - **Objetivo:** Feed dinâmico `/api/catalog/meta.xml` para habilitar a 'sacolinha' em posts, reels e stories do Instagram da marca.
+6. **[V2 - #04] Motor de Compre Junto & Desconto Progressivo em Kits (Cross-sell / Bundles)**
+   - **GitHub Issue:** #27 | **RICE Score:** 8.0 | **Prioridade:** `priority: P1-alta`
+   - **Objetivo:** Aumentar o ticket médio (AOV) sugerindo combos com desconto automático na PDP e carrinho (ex: 2 camisetas por R$ 199 ou Camiseta + Boné).
+7. **[V2 - #10] Depoimentos e Avaliações de Clientes com Fotos (Social Proof & Reviews)**
+   - **GitHub Issue:** #34 | **RICE Score:** 5.6 | **Prioridade:** `priority: P2-media`
+   - **Objetivo:** Prova social com estrelas, fotos reais de clientes vestindo as camisetas e aba de moderação no `/admin`.
+8. **[V2 - #02] SEO Dinâmico, Sitemap XML & Structured Data (Schema.org)**
+   - **GitHub Issue:** #25 | **RICE Score:** 4.8 | **Prioridade:** `priority: P2-media`
+   - **Objetivo:** Geração automatizada de `sitemap.xml` e dados estruturados Schema.org para exibição rica no Google (preço e estrelas).
 
-### [V2 - #04] Motor de Compre Junto & Desconto Progressivo (Kits / Bundles)
-- **GitHub Issue:** #27
-- **Objetivo:** Aumentar o ticket médio (AOV) sugerindo combos com desconto automático na PDP e na gaveta do carrinho.
-- **Prioridade:** Alta (`priority: P1-alta`)
+---
+
+### 🎸 Sprint 3: Redução de Trocas, Catálogo Amplo & Imersão Rock
+9. **[V2 - #11] Provador Virtual Interativo & Guia Inteligente de Medidas**
+   - **GitHub Issue:** #35 | **RICE Score:** 4.8 | **Prioridade:** `priority: P2-media`
+   - **Objetivo:** Calculadora interativa (altura, peso e preferência de caimento) recomendando P, M, G, GG ou XGG com base nas medidas da Dimona para zerar trocas.
+10. **[V2 - #03] Filtros Avançados na Vitrine & Busca Instantânea**
+   - **GitHub Issue:** #26 | **RICE Score:** 2.4 | **Prioridade:** `priority: P2-media`
+   - **Objetivo:** Barra de filtros na vitrine para filtrar por tipo de base (Camiseta, Moletom, Boné) e estilo musical.
+11. **[V2 - #12] Imersão no Produto / Rock Sound Experience (Microplayer de Riffs na PDP)**
+   - **GitHub Issue:** #36 | **RICE Score:** 1.0 | **Prioridade:** `priority: P3-suporte`
+   - **Objetivo:** Microplayer sutil opt-in com riffs/samples musicais da estampa carregados via CDN sem impactar a performance.
 
