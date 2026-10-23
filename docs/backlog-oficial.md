@@ -64,6 +64,11 @@
 - **Entrega:** Login individual por e-mail e senha, papéis (`super_admin`, `operator`, `viewer`), bloqueio estrito 403 para mutações financeiras por operadores, trilha de auditoria imutável (`audit_logs`) e nova aba `🛡️ Auditoria`.
 - **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
 
+### [P3 - #11] Assessment de Segurança, Planos de DRP e Backup Automatizado via GitHub Actions
+- **Issue:** #29 | **Commits:** `3012091` e `fb04211`
+- **Entrega:** Auditoria AppSec completa (Score 9.8/10), 7 Runbooks operacionais de Disaster Recovery (DRP), rotina automatizada de backup lógico do Supabase no GitHub Actions todo domingo à meia-noite (cron) e sob demanda (manual dispatch) com retenção de 90 dias.
+- **Status:** ✅ **CONCLUÍDO & HOMOLOGADO**
+
 ---
 
 ## 🟡 Fase 2: Backlog Futuro (Catalogado no GitHub Issues)
