@@ -3827,48 +3827,50 @@ export default function AdminPage() {
         
         {/* MODAL: CADASTRAR NOVA ESTAMPA */}
         {showNewProductModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-            <div className="relative w-full max-w-3xl bg-neutral-950 border-2 border-white shadow-[0_0_50px_rgba(255,102,196,0.3)] p-6 space-y-6 my-8">
-              {/* Header */}
-              <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#ff66c4] text-black flex items-center justify-center font-black">
-                    <Plus className="w-6 h-6 stroke-[3]" />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md">
+            <div className="relative w-full max-w-5xl h-full max-h-[92vh] flex flex-col bg-neutral-950 border-2 border-white shadow-[0_0_60px_rgba(255,102,196,0.3)] overflow-hidden">
+              <form onSubmit={handleCreateProduct} className="flex flex-col h-full min-h-0">
+                {/* Header (Fixo no topo) */}
+                <div className="flex-shrink-0 flex items-center justify-between border-b border-neutral-800 p-4 sm:p-5 bg-neutral-950 z-10">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 bg-[#ff66c4] text-black flex items-center justify-center font-black flex-shrink-0">
+                      <Plus className="w-6 h-6 stroke-[3]" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-oswald text-xl sm:text-2xl font-bold uppercase tracking-tight text-white truncate">
+                        Cadastrar Nova Estampa
+                      </h3>
+                      <p className="text-xs text-neutral-400 uppercase tracking-wider truncate">
+                        Adicione uma nova estampa e publique na vitrine da Munaya Rocks
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-oswald text-2xl font-bold uppercase tracking-tight text-white">
-                      Cadastrar Nova Estampa
-                    </h3>
-                    <p className="text-xs text-neutral-400 uppercase tracking-wider">
-                      Adicione uma nova estampa e publique na vitrine da Munaya Rocks
-                    </p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewProductModal(false)}
+                    className="text-neutral-400 hover:text-white p-2 hover:bg-neutral-900 transition-colors flex-shrink-0 ml-2"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowNewProductModal(false)}
-                  className="text-neutral-400 hover:text-white p-2 hover:bg-neutral-900 transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
 
-              {/* Form */}
-              <form onSubmit={handleCreateProduct} className="space-y-6">
-                {createError && (
-                  <div className="bg-red-950/80 border border-red-500 text-red-200 p-3 text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
-                    <span>{createError}</span>
-                  </div>
-                )}
+                {/* Body (Rolagem interna independente) */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+                  {createError && (
+                    <div className="bg-red-950/80 border border-red-500 text-red-200 p-3 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+                      <span>{createError}</span>
+                    </div>
+                  )}
 
-                {createSuccess && (
-                  <div className="bg-emerald-950/80 border border-emerald-500 text-emerald-200 p-3 text-xs flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
-                    <span>{createSuccess}</span>
-                  </div>
-                )}
+                  {createSuccess && (
+                    <div className="bg-emerald-950/80 border border-emerald-500 text-emerald-200 p-3 text-xs flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                      <span>{createSuccess}</span>
+                    </div>
+                  )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Coluna 1: Dados do Produto */}
                   <div className="space-y-4">
                     <div>
@@ -4637,13 +4639,21 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Footer Buttons */}
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-800">
+              {/* Footer Buttons (Fixo no rodapé) */}
+              <div className="flex-shrink-0 flex items-center justify-between gap-3 p-4 sm:p-5 border-t border-neutral-800 bg-neutral-950/95 backdrop-blur z-10">
+                <div className="hidden sm:flex items-center gap-2 text-xs text-neutral-400 min-w-0">
+                  <span className="font-mono text-white font-bold truncate max-w-[240px]">
+                    {newProduct.name ? `Nova Estampa: ${newProduct.name}` : "Nova Estampa"}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <button
                     type="button"
                     onClick={() => setShowNewProductModal(false)}
-                    className="px-5 py-2.5 border border-neutral-700 text-neutral-300 hover:text-white uppercase font-bold text-xs tracking-wider"
+                    className="px-5 py-2.5 border border-neutral-700 text-neutral-300 hover:text-white uppercase font-bold text-xs tracking-wider transition-colors"
                   >
                     Cancelar
                   </button>
@@ -4653,7 +4663,7 @@ export default function AdminPage() {
                     disabled={
                       creatingProduct || uploadingImage || uploadingArtwork
                     }
-                    className="flex items-center gap-2 bg-[#ff66c4] text-black font-oswald text-base font-black uppercase px-6 py-2.5 tracking-wider hover:bg-white transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(255,102,196,0.4)]"
+                    className="flex items-center gap-2 bg-[#ff66c4] text-black font-oswald text-sm sm:text-base font-black uppercase px-6 py-2.5 tracking-wider hover:bg-white transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(255,102,196,0.4)]"
                   >
                     {creatingProduct ? (
                       <>
@@ -4663,75 +4673,78 @@ export default function AdminPage() {
                     ) : (
                       <>
                         <Plus className="w-5 h-5 stroke-[3]" />
-                        <span>Publicar Estampa no Catálogo</span>
+                        <span>Publicar Estampa</span>
                       </>
                     )}
                   </button>
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
-        )}
+        </div>
+      )}
 
         {/* MODAL: EDITAR ESTAMPA EXISTENTE */}
         {editingProduct && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-            <div className="relative w-full max-w-3xl bg-neutral-950 border-2 border-[#ff66c4] shadow-[0_0_50px_rgba(255,102,196,0.35)] p-6 space-y-6 my-8">
-              {/* Header */}
-              <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#ff66c4] text-black flex items-center justify-center font-black">
-                    <Pencil className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-oswald text-2xl font-bold uppercase tracking-tight text-white">
-                        Editar Estampa #{editingProduct.id}
-                      </h3>
-                      <span className="font-mono text-xs text-[#ff66c4] bg-[#ff66c4]/10 border border-[#ff66c4]/30 px-2 py-0.5">
-                        {editingProduct.slug}
-                      </span>
-                      <a
-                        href={`/produto/${editingProduct.slug || editingProduct.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-oswald uppercase tracking-wider text-neutral-300 hover:text-white bg-neutral-900 hover:bg-[#ff66c4] hover:text-black border border-neutral-700 hover:border-[#ff66c4] px-2.5 py-1 transition-colors ml-1"
-                        title="Ver página deste produto na loja em nova aba"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5 text-[#ff66c4]" />
-                        <span>Ver na Loja</span>
-                      </a>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md">
+            <div className="relative w-full max-w-5xl h-full max-h-[92vh] flex flex-col bg-neutral-950 border-2 border-[#ff66c4] shadow-[0_0_60px_rgba(255,102,196,0.35)] overflow-hidden">
+              <form onSubmit={handleSaveEditProduct} className="flex flex-col h-full min-h-0">
+                {/* Header (Fixo no topo) */}
+                <div className="flex-shrink-0 flex items-center justify-between border-b border-neutral-800 p-4 sm:p-5 bg-neutral-950 z-10">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 bg-[#ff66c4] text-black flex items-center justify-center font-black flex-shrink-0">
+                      <Pencil className="w-5 h-5" />
                     </div>
-                    <p className="text-xs text-neutral-400 uppercase tracking-wider">
-                      Atualize fotos, arte Dimona, preços, coleção e informações na vitrine
-                    </p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-oswald text-xl sm:text-2xl font-bold uppercase tracking-tight text-white truncate">
+                          Editar Estampa #{editingProduct.id}
+                        </h3>
+                        <span className="font-mono text-xs text-[#ff66c4] bg-[#ff66c4]/10 border border-[#ff66c4]/30 px-2 py-0.5">
+                          {editingProduct.slug}
+                        </span>
+                        <a
+                          href={`/produto/${editingProduct.slug || editingProduct.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-oswald uppercase tracking-wider text-neutral-300 hover:text-white bg-neutral-900 hover:bg-[#ff66c4] hover:text-black border border-neutral-700 hover:border-[#ff66c4] px-2.5 py-1 transition-colors ml-1"
+                          title="Ver página deste produto na loja em nova aba"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-[#ff66c4]" />
+                          <span>Ver na Loja</span>
+                        </a>
+                      </div>
+                      <p className="text-xs text-neutral-400 uppercase tracking-wider truncate">
+                        Atualize fotos, arte Dimona, preços, coleção e informações na vitrine
+                      </p>
+                    </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingProduct(null)}
+                    className="text-neutral-400 hover:text-white p-2 hover:bg-neutral-900 transition-colors flex-shrink-0 ml-2"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setEditingProduct(null)}
-                  className="text-neutral-400 hover:text-white p-2 hover:bg-neutral-900 transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
 
-              {/* Form */}
-              <form onSubmit={handleSaveEditProduct} className="space-y-6">
-                {editError && (
-                  <div className="bg-red-950/80 border border-red-500 text-red-200 p-3 text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
-                    <span>{editError}</span>
-                  </div>
-                )}
+                {/* Body (Rolagem interna independente) */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+                  {editError && (
+                    <div className="bg-red-950/80 border border-red-500 text-red-200 p-3 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+                      <span>{editError}</span>
+                    </div>
+                  )}
 
-                {editSuccess && (
-                  <div className="bg-emerald-950/80 border border-emerald-500 text-emerald-200 p-3 text-xs flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
-                    <span>{editSuccess}</span>
-                  </div>
-                )}
+                  {editSuccess && (
+                    <div className="bg-emerald-950/80 border border-emerald-500 text-emerald-200 p-3 text-xs flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                      <span>{editSuccess}</span>
+                    </div>
+                  )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Coluna 1: Dados Principais */}
                   <div className="space-y-4">
                     <div>
@@ -5579,13 +5592,21 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Footer Buttons */}
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-800">
+              {/* Footer Buttons (Fixo no rodapé) */}
+              <div className="flex-shrink-0 flex items-center justify-between gap-3 p-4 sm:p-5 border-t border-neutral-800 bg-neutral-950/95 backdrop-blur z-10">
+                <div className="hidden sm:flex items-center gap-2 text-xs text-neutral-400 min-w-0">
+                  <span className="font-mono text-white font-bold">#{editingProduct.id}</span>
+                  <span>·</span>
+                  <span className="truncate max-w-[240px] text-neutral-300 font-bold">{editingProduct.name}</span>
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <button
                     type="button"
                     onClick={() => setEditingProduct(null)}
-                    className="px-5 py-2.5 border border-neutral-700 text-neutral-300 hover:text-white uppercase font-bold text-xs tracking-wider"
+                    className="px-5 py-2.5 border border-neutral-700 text-neutral-300 hover:text-white uppercase font-bold text-xs tracking-wider transition-colors"
                   >
                     Cancelar
                   </button>
@@ -5595,7 +5616,7 @@ export default function AdminPage() {
                     disabled={
                       savingEdit || uploadingEditImage || uploadingEditArtwork
                     }
-                    className="flex items-center gap-2 bg-[#ff66c4] text-black font-oswald text-base font-black uppercase px-6 py-2.5 tracking-wider hover:bg-white transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(255,102,196,0.4)]"
+                    className="flex items-center gap-2 bg-[#ff66c4] text-black font-oswald text-sm sm:text-base font-black uppercase px-6 py-2.5 tracking-wider hover:bg-white transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(255,102,196,0.4)]"
                   >
                     {savingEdit ? (
                       <>
@@ -5610,10 +5631,11 @@ export default function AdminPage() {
                     )}
                   </button>
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
-        )}
+        </div>
+      )}
 
         {/* TAB 4: PRECIFICAÇÃO DINÂMICA & CUSTOS DIMONA */}
         {activeTab === "pricing" && (
