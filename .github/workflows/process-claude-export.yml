@@ -1,0 +1,79 @@
+name: Process Claude Design Export
+
+on:
+  push:
+    branches:
+      - claude-export
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  process-design:
+    name: Extrair e Abrir PR de Design
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout claude-export
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar Dependências
+        run: npm ci
+
+      - name: Configurar Git
+        run: |
+          git config --global user.name "Munaya Design Bot"
+          git config --global user.email "bot@munayarocks.com.br"
+
+      - name: Processar pacote de design .zip
+        id: process
+        run: |
+          node scripts/process-claude-export.mjs
+
+      - name: Validar Build da Aplicação
+        run: |
+          npm run build
+
+      - name: Verificar se houve alterações
+        id: git_status
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Criar branch de feature e abrir Pull Request
+        if: steps.git_status.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="feature/design-claude-$(date +%Y%m%d-%H%M)"
+          git checkout -b "$BRANCH_NAME"
+          git add public/ docs/
+          git commit -m "🎨 design(sync): nova versão visual e assets exportados do Claude"
+          git push origin "$BRANCH_NAME"
+
+          gh pr create \
+            --base master \
+            --head "$BRANCH_NAME" \
+            --title "🎨 design(sync): novos assets e protótipo visual exportados do Claude" \
+            --body "## 🎯 Objetivo
+          Atualização automática de design gerada a partir do pacote exportado do Claude para a branch \`claude-export\`.
+
+          ## 🛠️ Alterações
+          - Extração de novos mockups, imagens e vídeo (\`public/\` e \`public/uploads/\`).
+          - Atualização dos protótipos e relatórios de fidelidade (\`docs/design/\`).
+          - Remoção do arquivo .zip bruto para manter o repositório leve.
+          - Validação de build (\`npm run build\`) executada com sucesso.
+
+          ---
+          🧪 *Pull Request gerado automaticamente pela esteira de design da Munaya Rocks para auditoria do Tech Lead e QA no n8n.*"
