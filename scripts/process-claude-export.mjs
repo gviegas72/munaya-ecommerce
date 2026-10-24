@@ -38,9 +38,13 @@ if (fs.existsSync(TEMP_DIR)) {
 fs.mkdirSync(TEMP_DIR, { recursive: true });
 
 try {
-  // 3. Descompactar via tar nativo
+  // 3. Descompactar (unzip no Linux/Ubuntu do GitHub Actions, tar no Windows)
   console.log('📂 Descompactando conteúdo do design...');
-  run(`tar -xf "${targetZip}" -C "${TEMP_DIR}"`);
+  if (process.platform === 'win32') {
+    run(`tar -xf "${targetZip}" -C "${TEMP_DIR}"`);
+  } else {
+    run(`unzip -q -o "${targetZip}" -d "${TEMP_DIR}"`);
+  }
 
   // 4. Copiar assets para public/ (com suporte recursivo a diretórios)
   const tempPublicDir = path.join(TEMP_DIR, 'public');

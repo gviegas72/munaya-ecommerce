@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Inter:wght@400..900&display=swap" rel="stylesheet">
+<script src="./doc-page.js"></script>
+<style>
+  doc-page:not(:defined) { visibility: hidden }
+  a { color: #b3007a; text-decoration: underline }
+  a:hover { color: #000 }
+</style>
+</helmet>
+
+<doc-page margin="0.7in">
+
+  <div style="font-family: Inter, system-ui, sans-serif; color: #111; font-size: 10.5pt; line-height: 1.55;">
+
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; border-bottom: 3px solid #111; padding-bottom: 14px;">
+      <div>
+        <div style="font-family: Oswald, sans-serif; font-size: 30pt; font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1;">Munaya — Análise de UX/UI</div>
+        <div style="margin-top: 6px; font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #666;">Home · Coleção · Produto · Navegação global</div>
+      </div>
+      <div style="width: 44px; height: 44px; flex: none; background-color: #ff66c4; mask-image: url('uploads/logo_v2027_vetor.png'); mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-image: url('uploads/logo_v2027_vetor.png'); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;"></div>
+    </div>
+
+    <p style="margin: 18px 0 0 0; font-size: 12pt; line-height: 1.5;">A identidade visual é o ativo mais forte do site: preto absoluto, Oswald condensado em caixa alta, grid assimétrico e nenhum enfeite. Ela comunica a marca em dois segundos e não deve ser diluída. Os problemas abaixo não são de estética — são de informação de compra ausente e de caminho de conversão inexistente. Em quase todos os casos dá para corrigir sem suavizar o visual.</p>
+
+    <p style="margin: 14px 0 0 0;">Diagnóstico curto: o site hoje funciona como um lookbook. Ele apresenta a marca, mas não vende. Faltam as três coisas que uma loja precisa ter antes de qualquer otimização — mostrar o produto, dizer o preço com clareza e ter um caminho até o pagamento.</p>
+
+    <div style="margin-top: 26px; border-top: 1px solid #ddd; padding-top: 18px;">
+      <div style="font-family: Oswald, sans-serif; font-size: 17pt; font-weight: 700; text-transform: uppercase; letter-spacing: .01em;">1. Os cinco pontos que mais custam conversão</div>
+    </div>
+
+    <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 14px;">
+
+      <div style="break-inside: avoid; border-left: 4px solid #ff66c4; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.1 As fotos de produto estão todas em preto e branco</div>
+        <p style="margin: 5px 0 0 0;">O <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9.5pt;">grayscale</span> é aplicado em todas as imagens, na grade e na página de produto. O efeito é bonito e coerente com a marca, mas ele apaga a informação decisiva de quem compra roupa: a cor da peça. O cliente não consegue saber o que está comprando, e cor errada é a primeira causa de devolução e de carrinho abandonado.</p>
+        <p style="margin: 5px 0 0 0;"><strong>Correção:</strong> manter o preto e branco como estado de repouso da grade, revelando cor no hover, e usar cor real em todas as fotos da página de produto. O tratamento continua sendo assinatura visual, mas para de esconder o produto.</p>
+      </div>
+
+      <div style="break-inside: avoid; border-left: 4px solid #ff66c4; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.2 Nome e preço só aparecem no hover</div>
+        <p style="margin: 5px 0 0 0;">Em repouso, a coleção é um mosaico de retângulos cinza sem nome, sem preço e sem indicação de que são clicáveis. Em telas de toque não existe hover: no celular o cliente navega uma loja onde nenhum preço é visível. Como a maior parte do tráfego de streetwear é mobile, isso significa que a maioria das pessoas nunca vê um preço.</p>
+        <p style="margin: 5px 0 0 0;"><strong>Correção:</strong> nome e preço sempre visíveis, fora da imagem, alinhados ao grid — em Oswald, o que combina com o resto. Reservar o hover para o que é secundário: segunda foto, tamanhos disponíveis, botão.</p>
+      </div>
+
+      <div style="break-inside: avoid; border-left: 4px solid #ff66c4; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.3 Preços em dólar, frete em real</div>
+        <p style="margin: 5px 0 0 0;">Os produtos estão marcados em <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9.5pt;">$40</span>, <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9.5pt;">$45</span>, enquanto o frete é calculado por CEP em reais. O cliente não sabe quanto vai pagar, e dúvida sobre preço trava a compra na hora. Também não há parcelamento nem PIX à vista, que no Brasil são alavancas diretas de conversão — o valor da parcela costuma converter melhor que o valor total.</p>
+        <p style="margin: 5px 0 0 0;"><strong>Correção:</strong> tudo em <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9.5pt;">R$</span>, com a linha de parcelamento abaixo do preço e o desconto no PIX indicado.</p>
+      </div>
+
+      <div style="break-inside: avoid; border-left: 4px solid #ff66c4; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.4 Não existe caminho até o pagamento</div>
+        <p style="margin: 5px 0 0 0;">O botão principal da página de produto não tem ação: não há sacola, não há checkout, não há confirmação. O funil termina no clique. Antes de qualquer refinamento visual, esse é o trabalho.</p>
+        <p style="margin: 5px 0 0 0;"><strong>Correção:</strong> sacola persistente com contador visível, feedback imediato ao adicionar, e checkout com o mínimo de etapas. O protótipo já demonstra a sacola e o cálculo de frete funcionando.</p>
+      </div>
+
+      <div style="break-inside: avoid; border-left: 4px solid #ff66c4; padding-left: 14px;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase;">1.5 Nenhuma navegação no celular</div>
+        <p style="margin: 5px 0 0 0;">O menu vive numa barra lateral que desaparece em telas pequenas, e nada assume o lugar dela. No celular não há logo clicável, não há menu, não há acesso à sacola. O site fica sem navegação justamente onde está a maior parte do público.</p>
+        <p style="margin: 5px 0 0 0;"><strong>Correção:</strong> barra superior fixa no mobile com logo, menu e sacola. A lateral pode continuar sendo a assinatura no desktop.</p>
+      </div>
+
+    </div>
+
+    <div style="margin-top: 28px; border-top: 1px solid #ddd; padding-top: 18px; break-before: page;">
+      <div style="font-family: Oswald, sans-serif; font-size: 17pt; font-weight: 700; text-transform: uppercase;">2. As 10 heurísticas de Nielsen aplicadas ao site</div>
+      <p style="margin: 8px 0 0 0; color: #555;">Cada linha aponta onde o site viola a heurística hoje e qual é o efeito sobre a conversão.</p>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5pt;">
+      <thead>
+        <tr style="background: #111; color: #fff; font-family: Oswald, sans-serif; text-transform: uppercase; font-size: 9pt; letter-spacing: .06em;">
+          <th style="text-align: left; padding: 8px 10px; width: 23%;">Heurística</th>
+          <th style="text-align: left; padding: 8px 10px; width: 9%;">Status</th>
+          <th style="text-align: left; padding: 8px 10px;">O que acontece hoje</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">1. Visibilidade do estado do sistema</td>
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700; color: #b3007a;">Crítico</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Adicionar ao carrinho não dá retorno nenhum. Não há contador de sacola, estado de carregamento, nem confirmação. O tamanho selecionado é indicado por foco, não por estado: parece marcado, mas nada é guardado.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">2. Correspondência com o mundo real</td>
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700; color: #b3007a;">Crítico</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Moeda em dólar numa loja brasileira. "Add to Pit" não diz ao cliente o que o botão faz. "Caos" no menu não corresponde a nada que o visitante procure. Tamanhos P/M/G/GG sem medidas em centímetros.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">3. Controle e liberdade do usuário</td>
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700; color: #c96a00;">Alto</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Sem caminho de volta da página de produto para a coleção, sem trilha de navegação, sem como desfazer uma escolha ou remover um item. O card inteiro navega ao clique, sem aviso de que vai levar embora.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">4. Consistência e padrões</td>
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700; color: #c96a00;">Alto</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Um único botão vermelho, vindo da paleta padrão do framework e fora do sistema de cores da marca. Bordas de 1, 2 e 3px sem regra. Transparências improvisadas caso a caso. A sacola não está no canto superior direito, onde todo cliente procura.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">5. Prevenção de erros</td>
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700; color: #c96a00;">Alto</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Dá para tentar comprar sem escolher tamanho. Não há indicação de estoque, então o cliente pode escolher um tamanho esgotado. Nenhum campo é validado.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">6. Reconhecer em vez de lembrar</td>
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700; color: #b3007a;">Crítico</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Nome e preço escondidos no hover obrigam o cliente a memorizar o que viu em cada card para poder comparar. O preto e branco em todas as fotos obriga a imaginar a cor da peça.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">7. Flexibilidade e eficiência</td>
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700; color: #7a7a7a;">Médio</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Sem busca, filtro por tamanho ou ordenação por preço — tolerável com cinco peças, inviável acima de vinte. Na página de produto, três imagens de tela cheia empilhadas, sem miniaturas nem zoom: decidir exige muito scroll.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">8. Design estético e minimalista</td>
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700; color: #2c7a3f;">Forte</td>
+          <td style="padding: 9px 10px; vertical-align: top;">O ponto alto do site. Duas ressalvas: o pulsar infinito do botão de compra lê como elemento quebrado, não como urgência, e ignora quem pediu menos movimento no sistema; e o preto e branco absolutos sem tons intermediários deixam título, texto e borda com o mesmo peso, sem hierarquia.</td>
+        </tr>
+        <tr style="break-inside: avoid; border-bottom: 1px solid #e2e2e2;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">9. Reconhecer e recuperar de erros</td>
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700; color: #c96a00;">Alto</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Não existe estado de erro, estado vazio nem página 404. Se algo falha, o cliente fica sem saber o que aconteceu nem o que fazer.</td>
+        </tr>
+        <tr style="break-inside: avoid;">
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700;">10. Ajuda e documentação</td>
+          <td style="padding: 9px 10px; vertical-align: top; font-weight: 700; color: #b3007a;">Crítico</td>
+          <td style="padding: 9px 10px; vertical-align: top;">Sem tabela de medidas, política de troca, prazo de entrega, forma de contato ou dados da empresa. As páginas Sobre e Caos não levam a nada. Marca nova sem essas informações não recebe a confiança necessária para o primeiro pedido.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 28px; border-top: 1px solid #ddd; padding-top: 18px;">
+      <div style="font-family: Oswald, sans-serif; font-size: 17pt; font-weight: 700; text-transform: uppercase;">3. Observações por tela</div>
+    </div>
+
+    <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 16px;">
+
+      <div style="break-inside: avoid;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #111; padding-bottom: 4px;">Home</div>
+        <p style="margin: 7px 0 0 0;">O vídeo em tela cheia com um único destino é uma abertura forte e a hierarquia funciona. Três ajustes: o vídeo não tem imagem de espera, então a tela fica preta até o carregamento terminar — isso pesa na percepção de velocidade e na métrica de carregamento principal; a linha "Vista a Revolução." usa mistura de cor sobre o vídeo, e a legibilidade muda conforme o quadro, podendo desaparecer em cenas claras; e a home não mostra nenhum produto nem preço, o que empurra toda a decisão para o clique seguinte. Vale testar três peças em destaque abaixo do vídeo.</p>
+      </div>
+
+      <div style="break-inside: avoid;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #111; padding-bottom: 4px;">Coleção</div>
+        <p style="margin: 7px 0 0 0;">O grid assimétrico com peças de tamanhos diferentes cria ritmo e é bom para a marca. Além do nome, preço e cor já citados: os cards não têm indicação visível de foco para quem navega por teclado; não há informação de tamanhos disponíveis, então o cliente entra na página de produto para descobrir que o dele acabou; e não existe filtro nem ordenação. Vale também mostrar a segunda foto no hover — costuma aumentar o clique para a página de produto.</p>
+      </div>
+
+      <div style="break-inside: avoid;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #111; padding-bottom: 4px;">Produto</div>
+        <p style="margin: 7px 0 0 0;">A coluna fixa ao lado das imagens é a decisão certa: mantém preço e botão sempre à vista. O que falta é conteúdo de decisão. Não há tabela de medidas, e sem ela o cliente adivinha o tamanho — é a maior fonte de devolução em vestuário. Não há composição do tecido além de uma linha, nem instrução de lavagem, nem indicação de como a peça veste. Não há prazo de entrega junto ao preço, nem política de troca, nem avaliações de outros clientes. Não há sugestão de outras peças, então quem não se convence sai do site em vez de continuar navegando. A galeria também merece miniaturas e zoom: hoje são três imagens de tela cheia empilhadas, e quem quer ver o detalhe da gola não tem como.</p>
+        <p style="margin: 7px 0 0 0;">Uma observação técnica de conversão: a rota do produto ignora o identificador e mostra sempre a mesma peça. Qualquer link compartilhado leva ao produto errado, o que também prejudica busca e anúncios.</p>
+      </div>
+
+      <div style="break-inside: avoid;">
+        <div style="font-family: Oswald, sans-serif; font-size: 13pt; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #111; padding-bottom: 4px;">Navegação global e confiança</div>
+        <p style="margin: 7px 0 0 0;">A lateral ocupa 15% da largura em todas as telas, inclusive na página de produto, onde o espaço é disputado. Os itens "Shop" e "Coleções" levam ao mesmo lugar, o que gasta atenção sem entregar destino novo. Não há rodapé — e é nele que costumam morar as informações que sustentam a primeira compra: troca, entrega, contato, dados da empresa, formas de pagamento. Também não há captura de e-mail, então todo visitante que não compra hoje é perdido.</p>
+      </div>
+
+    </div>
+
+    <div style="margin-top: 28px; border-top: 1px solid #ddd; padding-top: 18px; break-before: page;">
+      <div style="font-family: Oswald, sans-serif; font-size: 17pt; font-weight: 700; text-transform: uppercase;">4. Ordem de trabalho sugerida</div>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5pt;">
+      <thead>
+        <tr style="background: #111; color: #fff; font-family: Oswald, sans-serif; text-transform: uppercase; font-size: 9pt; letter-spacing: .06em;">
+          <th style="text-align: left; padding: 8px 10px; width: 6%;">#</th>
+          <th style="text-align: left; padding: 8px 10px;">Ação</th>
+          <th style="text-align: left; padding: 8px 10px; width: 16%;">Esforço</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">1</td><td style="padding: 8px 10px;">Preços em real, com parcelamento e PIX abaixo do valor</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">2</td><td style="padding: 8px 10px;">Nome e preço sempre visíveis nos cards da coleção</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">3</td><td style="padding: 8px 10px;">Cor real nas fotos da página de produto; preto e branco só no repouso da grade</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">4</td><td style="padding: 8px 10px;">Texto do botão dizendo a ação; seleção de tamanho com estado real e bloqueio sem escolha</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">5</td><td style="padding: 8px 10px;">Tabela de medidas em painel lateral, junto aos tamanhos</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">6</td><td style="padding: 8px 10px;">Rodapé com troca, entrega, contato, pagamento e dados da empresa</td><td style="padding: 8px 10px;">Baixo</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">7</td><td style="padding: 8px 10px;">Barra superior no mobile com logo, menu e sacola</td><td style="padding: 8px 10px;">Médio</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">8</td><td style="padding: 8px 10px;">Sacola com contador, feedback ao adicionar e remoção de item</td><td style="padding: 8px 10px;">Médio</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">9</td><td style="padding: 8px 10px;">Página de produto lendo o identificador da rota, com dados reais por peça e estoque por tamanho</td><td style="padding: 8px 10px;">Médio</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">10</td><td style="padding: 8px 10px;">Galeria com miniaturas e zoom</td><td style="padding: 8px 10px;">Médio</td></tr>
+        <tr style="border-bottom: 1px solid #e2e2e2;"><td style="padding: 8px 10px; font-weight: 700;">11</td><td style="padding: 8px 10px;">Escala de cinzas e cor de acento no sistema de tokens, substituindo as transparências improvisadas</td><td style="padding: 8px 10px;">Médio</td></tr>
+        <tr><td style="padding: 8px 10px; font-weight: 700;">12</td><td style="padding: 8px 10px;">Checkout completo, com frete real e meios de pagamento</td><td style="padding: 8px 10px;">Alto</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin: 20px 0 0 0; font-size: 9.5pt; color: #555; border-top: 1px solid #ddd; padding-top: 12px;">Os seis primeiros itens são de baixo esforço e mexem diretamente nas objeções de compra — vale começar por eles antes de qualquer trabalho estrutural. Nada nessa lista pede para suavizar a identidade visual: o preto, o Oswald em caixa alta e o grid assimétrico continuam intactos.</p>
+
+  </div>
+
+</doc-page>
+</x-dc>
+</body>
+</html>
