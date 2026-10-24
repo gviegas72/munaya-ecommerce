@@ -49,6 +49,7 @@ export function ProductDetailClient({
           activeColor={selectedColor}
           colorMockupUrl={activeColorMockupUrl}
           activeBlankLabel={currentBlankDef.shortLabel}
+          videoUrl={product.video_url}
         />
       </div>
 

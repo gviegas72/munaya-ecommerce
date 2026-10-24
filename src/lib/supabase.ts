@@ -52,6 +52,7 @@ export interface DatabaseProduct {
   colors?: ProductColor[];
   sizes?: string[];
   gallery?: string[];
+  video_url?: string; // Link de vídeo YouTube opcional da peça
   images?: any;
 }
 
@@ -121,6 +122,7 @@ export function hydrateProductVariants(p: any): DatabaseProduct {
     blank_type: p.blank_type || meta.blank_type || "classic",
     available_blanks,
     blank_prices,
+    video_url: p.video_url || meta.video_url || meta.youtube_url || "",
     sku: baseSku,
     colors,
     sizes,
@@ -392,6 +394,7 @@ export async function updateProductAdmin(
       ...(updates.blank_type !== undefined ? { blank_type: updates.blank_type } : {}),
       ...(updates.available_blanks !== undefined ? { available_blanks: updates.available_blanks } : {}),
       ...(updates.blank_prices !== undefined ? { blank_prices: updates.blank_prices } : {}),
+      ...(updates.video_url !== undefined ? { video_url: updates.video_url } : {}),
     };
 
     const updatePayload: any = {
@@ -404,6 +407,7 @@ export async function updateProductAdmin(
     delete updatePayload.colors;
     delete updatePayload.sizes;
     delete updatePayload.gallery;
+    delete updatePayload.video_url;
     // Removemos do payload raiz para não quebrar tabelas do Supabase que ainda não rodaram a migration SQL
     delete updatePayload.is_custom_price;
     delete updatePayload.dimona_product_id;

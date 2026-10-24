@@ -105,6 +105,7 @@ interface NewProductForm {
   image_url: string;
   artwork_url: string;
   gallery: string[];
+  video_url?: string;
   badge: string;
   is_active: boolean;
   is_featured: boolean;
@@ -129,6 +130,7 @@ const INITIAL_NEW_PRODUCT: NewProductForm = {
   image_url: "",
   artwork_url: "",
   gallery: [],
+  video_url: "",
   badge: "Bonzo Series",
   is_active: true,
   is_featured: false,
@@ -191,6 +193,7 @@ interface Product {
   image_url: string;
   artwork_url?: string;
   gallery?: string[];
+  video_url?: string;
   is_active: boolean;
   is_featured: boolean;
   is_custom_price?: boolean;
@@ -1312,6 +1315,7 @@ export default function AdminPage() {
       image_url: initialGallery[0] || prod.image_url || "",
       artwork_url: prod.artwork_url || prod.image_url || "",
       gallery: initialGallery,
+      video_url: prod.video_url || "",
       badge: prod.badge || "",
       is_active: prod.is_active !== undefined ? prod.is_active : true,
       is_featured: prod.is_featured !== undefined ? prod.is_featured : false,
@@ -1432,6 +1436,7 @@ export default function AdminPage() {
         image_url: coverUrl,
         artwork_url: editingProduct.artwork_url,
         gallery: finalGallery,
+        video_url: editingProduct.video_url ? editingProduct.video_url.trim() : "",
         badge: editingProduct.badge || null,
         is_active: editingProduct.is_active,
         is_featured: editingProduct.is_featured,
@@ -1481,6 +1486,7 @@ export default function AdminPage() {
                   image_url: coverUrl,
                   artwork_url: editingProduct.artwork_url,
                   gallery: finalGallery,
+                  video_url: editingProduct.video_url?.trim() || "",
                   badge: editingProduct.badge || undefined,
                   is_active: editingProduct.is_active,
                   is_featured: editingProduct.is_featured,
@@ -5107,6 +5113,24 @@ export default function AdminPage() {
                           )
                         }
                         className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs uppercase font-bold text-neutral-300 mb-1 flex items-center justify-between">
+                        <span>Vídeo do YouTube (Opcional)</span>
+                        <span className="text-[10px] text-neutral-500 lowercase font-mono">youtube.com/watch?v=... ou youtu.be/...</span>
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://www.youtube.com/watch?v=..."
+                        value={editingProduct.video_url || ""}
+                        onChange={(e) =>
+                          setEditingProduct((prev) =>
+                            prev ? { ...prev, video_url: e.target.value } : null
+                          )
+                        }
+                        className="w-full bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs text-neutral-300 focus:border-[#ff66c4] focus:outline-none"
                       />
                     </div>
 

@@ -9,6 +9,7 @@ import {
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { recordAuditLog } from "@/lib/audit";
 import { generateBaseSku } from "@/lib/variants";
+import { isValidYouTubeUrl } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
 
@@ -321,6 +322,20 @@ export async function PATCH(req: NextRequest) {
 
     if (updates.blank_type !== undefined) {
       updates.blank_type = updates.blank_type ? String(updates.blank_type).trim().toLowerCase() : "classic";
+    }
+
+    if (updates.video_url !== undefined) {
+      const cleanVideo = String(updates.video_url || "").trim();
+      if (cleanVideo && !isValidYouTubeUrl(cleanVideo)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Link de vídeo inválido. Aceitamos somente links do YouTube (ex: youtube.com/watch?v=... ou youtu.be/...).",
+          },
+          { status: 400 }
+        );
+      }
+      updates.video_url = cleanVideo;
     }
 
     if (Array.isArray(updates.gallery)) {
