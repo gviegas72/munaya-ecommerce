@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&amp;family=Inter:wght@400;600;700&amp;display=swap">
+<style>
+  body { margin: 0; }
+  a { color: #b3007a; } a:hover { color: #000; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  doc-page:not(:defined) { visibility: hidden; }
+</style>
+<script src="./doc-page.js"></script>
+</helmet>
+<doc-page margin="0.7in">
+  <div style="font-family: Inter, sans-serif; color: #111; font-size: 10.5pt; line-height: 1.5;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px solid #000; padding-bottom: 10px;">
+      <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 12pt; letter-spacing: .12em; text-transform: uppercase;">Munaya · Design QA</span>
+      <span style="font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #555;">23 out 2026</span>
+    </div>
+    <h1 style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 34pt; line-height: 1; text-transform: uppercase; letter-spacing: -0.02em; margin: 28px 0 0 0;">Fidelidade de implementação</h1>
+    <p style="margin: 12px 0 0 0; font-size: 11pt; color: #333; max-width: 62ch;">Comparação entre o protótipo no Claude (Munaya Protótipo) e o site publicado em <a href="https://munayarocks.vercel.app/">munayarocks.vercel.app</a>.</p>
+
+    <div style="margin-top: 22px; border: 1.5px solid #000; padding: 14px 16px; break-inside: avoid;">
+      <p style="margin: 0; font-family: Oswald, sans-serif; font-weight: 700; font-size: 11pt; text-transform: uppercase; letter-spacing: .06em;">Método</p>
+      <p style="margin: 6px 0 0 0;">O site redireciona a raiz para <span style="font-family: ui-monospace, Menlo, monospace; font-size: 9.5pt;">public/prototype.html</span> (repositório gviegas72/munaya-ecommerce, branch master, commit 1e8fcaa). Esse arquivo é uma cópia anterior do protótipo. Os estilos de cada elemento foram comparados no código, valor por valor, com a versão atual no Claude.</p>
+      <p style="margin: 6px 0 0 0;">Limite: a comparação mostra o que o código define, não a tela renderizada. Problemas que só aparecem no navegador, como fonte que não carrega ou texto que transborda, não entram nesta lista.</p>
+    </div>
+
+    <div style="margin-top: 22px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; break-inside: avoid;">
+      <div style="border-top: 3px solid #000; padding-top: 8px;"><div style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 26pt; line-height: 1;">{{ total }}</div><div style="font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;">Divergências</div></div>
+      <div style="border-top: 3px solid #000; padding-top: 8px;"><div style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 26pt; line-height: 1;">{{ nAlta }}</div><div style="font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;">Alta</div></div>
+      <div style="border-top: 3px solid #000; padding-top: 8px;"><div style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 26pt; line-height: 1;">{{ nMedia }}</div><div style="font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;">Média</div></div>
+      <div style="border-top: 3px solid #000; padding-top: 8px;"><div style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 26pt; line-height: 1;">{{ nBaixa }}</div><div style="font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;">Baixa</div></div>
+    </div>
+
+    <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="5">
+      <div>
+        <h2 style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 16pt; text-transform: uppercase; margin: 30px 0 0 0; border-bottom: 1.5px solid #000; padding-bottom: 6px; break-after: avoid;">{{ sec.title }}</h2>
+        <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: 26px 1fr 64px; gap: 12px; padding: 12px 0; border-bottom: 1px solid #ccc; break-inside: avoid;">
+            <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 12pt;">{{ it.n }}</span>
+            <div>
+              <p style="margin: 0; font-weight: 700;">{{ it.el }}</p>
+              <p style="margin: 4px 0 0 0; color: #333;"><span style="font-weight: 700;">Esperado:</span> {{ it.exp }}</p>
+              <p style="margin: 2px 0 0 0; color: #333;"><span style="font-weight: 700;">Implementado:</span> {{ it.imp }}</p>
+            </div>
+            <span style="align-self: start; justify-self: end; font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 3px 7px; background: {{ it.bg }}; color: {{ it.fg }}; border: 1px solid #000;">{{ it.sev }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+
+    <h2 style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 16pt; text-transform: uppercase; margin: 30px 0 0 0; border-bottom: 1.5px solid #000; padding-bottom: 6px;">Observações</h2>
+    <div style="padding: 12px 0; border-bottom: 1px solid #ccc; break-inside: avoid;">
+      <p style="margin: 0; font-weight: 700;">Ausências esperadas</p>
+      <p style="margin: 4px 0 0 0; color: #333;">Os botões “Entrar com conta de demonstração” e o atalho de preenchimento do checkout não aparecem no site. Eles existem só para edição no protótipo.</p>
+    </div>
+    <div style="padding: 12px 0; break-inside: avoid;">
+      <p style="margin: 0; font-weight: 700;">Itens sem divergência</p>
+      <p style="margin: 4px 0 0 0; color: #333;">Fontes carregadas (Oswald 200–700 e Inter 400–900), variáveis de cor de fundo e texto (#000 e #fff) e a cor de destaque #ff66c4 são iguais nas duas versões.</p>
+    </div>
+  </div>
+</doc-page>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const S = { Alta: { bg: "#000", fg: "#fff" }, "Média": { bg: "#ff66c4", fg: "#000" }, Baixa: { bg: "#fff", fg: "#000" } };
+    let i = 0;
+    const m = (el, exp, imp, sev) => ({ n: String(++i).padStart(2, "0"), el, exp, imp, sev, bg: S[sev].bg, fg: S[sev].fg });
+    const sections = [
+      { title: "Componentes adicionados no site", items: [
+        m("Topo de todas as páginas: faixa de cupom", "sem faixa promocional.", "faixa com fundo #111, borda inferior rosa de 2 px, cupom PRIMEIRACOMPRA em fonte monoespaçada e botão de fechar. Aumenta a altura do topo e desloca o layout.", "Alta"),
+        m("Produto: galeria", "fotos empilhadas, sem controles.", "contador sobre a foto, barra de miniaturas numeradas com rolagem horizontal (fundo #0a0a0a) e legenda “Cor: X”.", "Alta"),
+        m("Produto: cabeçalho e opções", "nome, preço, cor e tamanho.", "selo “REF:” em rosa sobre fundo rosa a 10% e seletor de modelo base em grade de 130 px, com preço por modelo.", "Alta"),
+        m("Checkout: resumo do pedido", "resumo sem campo de cupom.", "campo “Possui cupom?” com botão Aplicar e mensagem de validação.", "Média"),
+        m("Confirmação do pedido", "confirmação no rótulo do botão e em mensagem curta.", "bloco “Pagamento Confirmado 🤘 / Recebemos seu Pix!” com título Oswald 32 px e destaque em verde #10b981.", "Média"),
+      ]},
+      { title: "Componentes ausentes no site", items: [
+        m("Produto no celular: breadcrumb e nome", "breadcrumb e nome do produto acima da primeira foto.", "nome e breadcrumb só na coluna de informações, abaixo das fotos.", "Alta"),
+        m("Produto: título “Descrição” e separador", "linha de 1 px a 40 px do frete e título “Descrição” (14 px, negrito, caixa alta, espaçamento .1em).", "texto da descrição 40 px abaixo do frete, sem linha nem título.", "Média"),
+        m("Produto: “Leia mais” e modal", "link “Leia mais” abrindo modal no padrão do Guia de Tamanhos.", "link e modal inexistentes.", "Alta"),
+      ]},
+      { title: "Bloco PIX na confirmação", items: [
+        m("Título da caixa", "“Código PIX — leia o QR Code ou copie e cole o código abaixo”.", "“Código PIX — copie e cole”.", "Média"),
+        m("QR Code", "caixa branca de 180 px entre o título e o código, gerada na própria tela.", "imagem carregada por URL no fim da caixa, após os botões, com o texto “Ou aponte a câmera para o QR Code:”.", "Alta"),
+        m("Botões WhatsApp e verificar", "“Receber código por WhatsApp” com fundo #25d366 e texto preto; “Já fiz o PIX / verificar” com contorno branco e padding 10/18 px; espaço de 10 px entre botões.", "“📲 Receber PIX no WhatsApp” com contorno #10b981 e fundo verde a 15%; “🔄 Já fiz o Pix / Verificar” com padding 12/20 px; espaço de 12 px. Emojis fora da identidade e grafia “Pix”.", "Média"),
+      ]},
+      { title: "Hierarquia e tipografia", items: [
+        m("Produto: nome", "clamp(34px, 8vw, 64px), máximo de 64 px.", "clamp(34px, 4.4vw, 88px). Em telas acima de ~1450 px o nome passa de 64 px e chega a 88 px.", "Média"),
+        m("Produto: botões de tamanho", "64 × 64 px, Oswald 24 px.", "altura de 52 px, largura mínima de 52 px com padding lateral de 12 px, Oswald 22 px.", "Média"),
+        m("Produto: rótulo “Escolha o tamanho”", "14 px com 16 px de margem inferior.", "13 px sem margem inferior.", "Baixa"),
+        m("Textos auxiliares", "Inter 12 px, negrito, caixa alta, espaçamento .08em, altura de linha 1.6, opacidade .65, sem largura máxima.", "corpo regular em caixa normal: descrição do produto 18 px (.7); criar conta 14 px e 13 px; texto do PIX e do boleto 16 px com máximo de 46ch; linhas da revisão 15 px; aviso de troca 14 px com máximo de 52ch.", "Média"),
+        m("Guia de Tamanhos: parágrafos e medidas", "Inter 12 px, negrito, caixa alta, espaçamento .08em; parágrafos com opacidade .65.", "parágrafos 14 px regulares com opacidade .75; medidas da tabela 15 px regulares.", "Média"),
+        m("Botões e campos de formulário", "herdam a fonte da página (Inter).", "sem regra de herança: botões e campos sem fonte explícita usam a fonte padrão do navegador.", "Média"),
+        m("Fonte monoespaçada", "apenas Oswald e Inter na interface.", "ui-monospace no selo REF, contador da galeria, números das miniaturas, preço do modelo base e cupom.", "Média"),
+        m("Sacola: itens", "nome Oswald 26 px quebrando linha; tamanho como “Tam M” em branco a .6.", "nome 24 px cortado em uma linha com reticências; tamanho sem prefixo, em rosa.", "Baixa"),
+      ]},
+      { title: "Espaçamento e grid", items: [
+        m("Grades de destaques (Estampas, catálogo, Bonés)", "no máximo 3 colunas, reduzindo para 2 e 1 conforme a largura.", "colunas automáticas de 320, 260 e 240 px sem limite. Em telas largas aparecem 4 ou mais destaques por linha.", "Alta"),
+        m("Produto: aviso de tamanho", "16 px de margem superior.", "14 px.", "Baixa"),
+      ]},
+      { title: "Cores e assets", items: [
+        m("Paleta", "#000, #fff e o rosa #ff66c4 como único destaque.", "verde #10b981 (WhatsApp e confirmação), cinzas #111, #888 e #0a0a0a (faixa de cupom e barra de miniaturas) e rosa com transparência de 10% e 30% no selo REF.", "Média"),
+      ]},
+      { title: "Textos divergentes", items: [
+        m("Checkout: Criar conta", "“Crie uma senha para entrar na sua conta e ver pedidos e rastreio.”", "“…ver pedidos, rastreio e dados de cadastro.”", "Baixa"),
+      ]},
+    ];
+    const all = sections.flatMap((s) => s.items);
+    const c = (k) => all.filter((x) => x.sev === k).length;
+    return { sections, total: all.length, nAlta: c("Alta"), nMedia: c("Média"), nBaixa: c("Baixa") };
+  }
+}
+</script>
+</body>
+</html>
