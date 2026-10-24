@@ -22,9 +22,9 @@ export function PromoBanner() {
   const handleCopy = () => {
     try {
       if (navigator.clipboard) {
-        navigator.clipboard.writeText("PRIMEIRACOMPRA");
+        navigator.clipboard.writeText("ROCK10");
       }
-      localStorage.setItem("munaya_coupon", "PRIMEIRACOMPRA");
+      localStorage.setItem("munaya_coupon", "ROCK10");
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     } catch {
@@ -44,7 +44,7 @@ export function PromoBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="w-full bg-[#111111] border-b-2 border-[#ff66c4] text-white px-3 py-2.5 relative z-30 transition-all duration-300">
+    <div className="w-full bg-[#0d0d0d] border-b-2 border-[#ff66c4] text-white px-3 py-2.5 relative z-30 transition-all duration-300">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs md:text-sm">
         {/* Mensagem Promocional */}
         <div className="flex items-center gap-2 font-bold tracking-wide">
@@ -52,11 +52,10 @@ export function PromoBanner() {
             <Sparkles className="w-3.5 h-3.5" />
           </span>
           <span>
-            PRIMEIRA VEZ NO MOSH PIT? USE O CUPOM{" "}
+            PRIMEIRA VEZ NO MOSH PIT? GANHE <strong className="text-[#ff66c4]">10% OFF</strong> COM O CUPOM{" "}
             <span className="font-mono bg-[#ff66c4] text-black px-2 py-0.5 font-black tracking-wider text-xs md:text-sm mx-1">
-              PRIMEIRACOMPRA
-            </span>{" "}
-            E GANHE <strong className="text-[#ff66c4]">10% OFF</strong> NO SEU PEDIDO!
+              ROCK10
+            </span>
           </span>
         </div>
 
@@ -65,7 +64,7 @@ export function PromoBanner() {
           <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center gap-1.5 bg-white text-black font-oswald uppercase text-xs font-black px-3 py-1 hover:bg-[#ff66c4] transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 bg-white text-black font-oswald uppercase text-xs font-black px-3 py-1.5 hover:bg-[#ff66c4] transition-colors cursor-pointer"
           >
             {copied ? (
               <>
@@ -75,7 +74,7 @@ export function PromoBanner() {
             ) : (
               <>
                 <Copy className="w-3 h-3" />
-                <span>Copiar Cupom</span>
+                <span>Copiar ROCK10</span>
               </>
             )}
           </button>
@@ -85,7 +84,7 @@ export function PromoBanner() {
             onClick={handleDismiss}
             title="Fechar aviso"
             aria-label="Fechar banner"
-            className="text-neutral-400 hover:text-white p-1 hover:bg-neutral-800 transition-colors cursor-pointer"
+            className="text-neutral-400 hover:text-white p-2 hover:bg-neutral-800 transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
           >
             <X className="w-4 h-4" />
           </button>
