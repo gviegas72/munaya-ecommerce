@@ -33,6 +33,17 @@ A aplicação foi submetida a auditorias completas de AppSec e conta com os segu
 
 ---
 
+## 🤖 Governança & Esteira Autônoma de Engenharia (IA + n8n)
+
+A Munaya Rocks conta com um ecossistema autônomo de agentes de IA operando 24/7 na AWS e no GitHub:
+
+1. **Product Owner (PO):** Refina automaticamente novas issues com User Stories, escopo, regras de negócio da Munaya, critérios de aceite em BDD e roteiro de testes para o Fundador.
+2. **Tech Lead (TL):** Audita minuciosamente Pull Requests, checando AppSec, limites financeiros, consistência arquitetural, padrões de ramificação e integridade do banco Supabase.
+3. **QA Engineer:** Analisa o diff de código, mapeia cenários de exceção (sad paths), valida usabilidade mobile e gera o checklist interativo de homologação.
+4. **Notificações em Tempo Real (WhatsApp):** Disparo simultâneo via Evolution API para os fundadores com link de homologação e preview da Vercel.
+
+---
+
 ## 📂 Agrupamento de Estampas & Coleções
 
 O catálogo da Munaya Rocks está organizado em 6 agrupamentos canônicos, gerenciáveis diretamente pelo painel `/admin`:
