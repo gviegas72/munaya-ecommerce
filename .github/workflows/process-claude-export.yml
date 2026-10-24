@@ -23,6 +23,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+
+      - name: Instalar Dependências
+        run: npm ci
 
       - name: Configurar Git
         run: |
@@ -33,6 +37,10 @@ jobs:
         id: process
         run: |
           node scripts/process-claude-export.mjs
+
+      - name: Validar Build da Aplicação
+        run: |
+          npm run build
 
       - name: Verificar se houve alterações
         id: git_status
@@ -65,6 +73,7 @@ jobs:
           - Extração de novos mockups, imagens e vídeo (\`public/\` e \`public/uploads/\`).
           - Atualização dos protótipos e relatórios de fidelidade (\`docs/design/\`).
           - Remoção do arquivo .zip bruto para manter o repositório leve.
+          - Validação de build (\`npm run build\`) executada com sucesso.
 
           ---
           🧪 *Pull Request gerado automaticamente pela esteira de design da Munaya Rocks para auditoria do Tech Lead e QA no n8n.*"
