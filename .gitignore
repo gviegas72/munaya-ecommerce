@@ -41,6 +41,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# compressed archives
+*.zip
+*.rar
+*.tar.gz
 munaya-codigo-fonte.zip
 /backups
 /backups_temp
