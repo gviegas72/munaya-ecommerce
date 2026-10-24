@@ -1,4 +1,4 @@
-# 🎸 Munaya Rocks — Headless E-commerce & Print-on-Demand
+# 🎸 TESTE DE N8N
 
 E-commerce moderno, ultrarrápido e seguro desenvolvido para a **Munaya Rocks**, com arquitetura 100% headless, pagamentos nativos via **Mercado Pago (Pix & Cartão)**, catálogo em nuvem via **Supabase** e integração direta de fábrica print-on-demand com a **Dimona**.
 
